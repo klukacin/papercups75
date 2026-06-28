@@ -3,7 +3,7 @@ import {Box} from 'theme-ui';
 import * as Sentry from '@sentry/react';
 import qs from 'query-string';
 import SyntaxHighlighter from 'react-syntax-highlighter';
-import {atomOneLight} from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import {atomOneLight} from 'react-syntax-highlighter/dist/cjs/styles/hljs';
 import {notification, Divider} from './components/common';
 import {env, isHostedProd} from './config';
 
