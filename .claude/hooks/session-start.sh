@@ -79,17 +79,9 @@ mix local.rebar --force >/dev/null
 if command -v pg_ctlcluster >/dev/null 2>&1; then
   log "Starting Postgres..."
   PG_VER="$(pg_lsclusters -h | awk 'NR==1{print $1}')"
-  # The Postgrex version pinned for the current app predates Postgres 16's
-  # default scram-sha-256 auth and dies with {:case_clause, []} against it.
-  # Switch localhost auth to trust so the dev/test DB connections work without
-  # touching the locked dependency. (Local dev container only.)
-  HBA="/etc/postgresql/${PG_VER}/main/pg_hba.conf"
-  if [ -f "$HBA" ]; then
-    as_root sed -i -E 's|^(host[[:space:]]+all[[:space:]]+all[[:space:]]+(127\.0\.0\.1/32|::1/128)[[:space:]]+)scram-sha-256|\1trust|' "$HBA"
-  fi
   as_root pg_ctlcluster "$PG_VER" main start || true
-  psql_postgres "SELECT pg_reload_conf();" >/dev/null 2>&1 || true
-  # Keep a password on the role too, in case auth is later tightened.
+  # Give the postgres role the password the dev/test config expects. The
+  # default localhost scram-sha-256 auth works with the upgraded Postgrex.
   psql_postgres "ALTER USER postgres PASSWORD 'postgres';" >/dev/null 2>&1 || true
 fi
 
