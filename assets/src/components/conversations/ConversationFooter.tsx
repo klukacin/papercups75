@@ -312,20 +312,19 @@ const ConversationFooter = ({
                 defaultSelectedKeys={['reply']}
                 selectedKeys={[messageType]}
                 onClick={handleSetMessageType}
-              >
-                <Menu.Item
-                  key="reply"
-                  style={{padding: '0 4px', marginRight: 20}}
-                >
-                  Reply
-                </Menu.Item>
-                <Menu.Item
-                  key="note"
-                  style={{padding: '0 4px', marginRight: 20}}
-                >
-                  Note
-                </Menu.Item>
-              </Menu>
+                items={[
+                  {
+                    key: 'reply',
+                    label: 'Reply',
+                    style: {padding: '0 4px', marginRight: 20},
+                  },
+                  {
+                    key: 'note',
+                    label: 'Note',
+                    style: {padding: '0 4px', marginRight: 20},
+                  },
+                ]}
+              />
 
               <Box sx={{position: 'absolute', right: 0, top: 0, opacity: 0.8}}>
                 <DashboardShortcutsRenderer>

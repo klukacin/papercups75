@@ -4,14 +4,11 @@ import {
   Switch,
   Redirect,
   Route,
-  Link,
   RouteComponentProps,
 } from 'react-router-dom';
 import {Box, Flex} from 'theme-ui';
-import {MenuItemProps} from 'antd/lib/menu/MenuItem';
 
-import {colors, Badge, Layout, Menu, Sider} from '../common';
-import {PlusOutlined, SettingOutlined} from '../icons';
+import {colors, Layout, Menu, Sider} from '../common';
 import {INBOXES_DASHBOARD_SIDER_WIDTH} from '../../utils';
 import * as API from '../../api';
 import {Inbox} from '../../types';
@@ -31,6 +28,7 @@ import InboxDetailsPage from './InboxDetailsPage';
 import InboxesOverview from './InboxesOverview';
 import InboxConversations from './InboxConversations';
 import NewInboxModal from './NewInboxModal';
+import {buildInboxesMenuItems} from './inboxesMenu';
 
 const getSectionKey = (pathname: string) => {
   const isInboxSettings =
@@ -45,33 +43,6 @@ const getSectionKey = (pathname: string) => {
   }
 };
 
-export const NewInboxModalMenuItem = ({
-  onSuccess,
-  ...props
-}: {
-  onSuccess: (inbox: Inbox) => void;
-} & MenuItemProps) => {
-  const [isModalOpen, setModalOpen] = React.useState(false);
-
-  const handleOpenModal = () => setModalOpen(true);
-  const handleCloseModal = () => setModalOpen(false);
-  const handleSuccess = (inbox: Inbox) => {
-    handleCloseModal();
-    onSuccess(inbox);
-  };
-
-  return (
-    <>
-      <Menu.Item {...props} onClick={handleOpenModal} />
-      <NewInboxModal
-        visible={isModalOpen}
-        onCancel={handleCloseModal}
-        onSuccess={handleSuccess}
-      />
-    </>
-  );
-};
-
 const InboxesDashboard = (props: RouteComponentProps) => {
   const {pathname} = useLocation();
   const {currentUser} = useAuth();
@@ -81,6 +52,7 @@ const InboxesDashboard = (props: RouteComponentProps) => {
   const [section, key] = getSectionKey(pathname);
   const totalNumUnread = unread.conversations.open || 0;
   const isAdminUser = currentUser?.role === 'admin';
+  const [isAddInboxModalOpen, setAddInboxModalOpen] = React.useState(false);
 
   React.useEffect(() => {
     API.fetchInboxes().then((inboxes) => setCustomInboxes(inboxes));
@@ -112,155 +84,22 @@ const InboxesDashboard = (props: RouteComponentProps) => {
               defaultOpenKeys={['conversations', 'channels', 'inboxes']}
               mode="inline"
               theme="dark"
-            >
-              <Menu.SubMenu key="conversations" title="Conversations">
-                <Menu.Item key="all">
-                  <Link to="/conversations/all">
-                    <Flex
-                      sx={{
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                      }}
-                    >
-                      <Box mr={2}>All</Box>
-                      <Badge
-                        count={totalNumUnread}
-                        style={{borderColor: '#FF4D4F'}}
-                      />
-                    </Flex>
-                  </Link>
-                </Menu.Item>
-                <Menu.Item key="me">
-                  <Link to="/conversations/me">
-                    <Flex
-                      sx={{
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                      }}
-                    >
-                      <Box mr={2}>Assigned to me</Box>
-                      <Badge
-                        count={unread.conversations.assigned || 0}
-                        style={{borderColor: '#FF4D4F'}}
-                      />
-                    </Flex>
-                  </Link>
-                </Menu.Item>
-                <Menu.Item key="mentions">
-                  <Link to="/conversations/mentions">
-                    <Flex
-                      sx={{
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                      }}
-                    >
-                      <Box mr={2}>Mentions</Box>
-                      <Badge
-                        count={unread.conversations.mentioned || 0}
-                        style={{borderColor: '#FF4D4F'}}
-                      />
-                    </Flex>
-                  </Link>
-                </Menu.Item>
-                <Menu.Item key="unread">
-                  <Link to="/conversations/unread">
-                    <Flex
-                      sx={{
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                      }}
-                    >
-                      <Box mr={2}>Unread</Box>
-                      <Badge
-                        count={unread.conversations.unread || 0}
-                        style={{borderColor: '#FF4D4F'}}
-                      />
-                    </Flex>
-                  </Link>
-                </Menu.Item>
-                <Menu.Item key="unassigned">
-                  <Link to="/conversations/unassigned">
-                    <Flex
-                      sx={{
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                      }}
-                    >
-                      <Box mr={2}>Unassigned</Box>
-                      <Badge
-                        count={unread.conversations.unassigned}
-                        style={{borderColor: '#FF4D4F'}}
-                      />
-                    </Flex>
-                  </Link>
-                </Menu.Item>
-                <Menu.Item key="priority">
-                  <Link to="/conversations/priority">
-                    <Flex
-                      sx={{
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                      }}
-                    >
-                      <Box mr={2}>Prioritized</Box>
-                      <Badge
-                        count={unread.conversations.priority}
-                        style={{borderColor: '#FF4D4F'}}
-                      />
-                    </Flex>
-                  </Link>
-                </Menu.Item>
-                <Menu.Item key="closed">
-                  <Link to="/conversations/closed">Closed</Link>
-                </Menu.Item>
-              </Menu.SubMenu>
-
-              <Menu.SubMenu key="inboxes" title="Inboxes">
-                {inboxes.map((inbox) => {
-                  const {id, name} = inbox;
-
-                  return (
-                    <Menu.Item key={id}>
-                      <Link to={`/inboxes/${id}/conversations`}>
-                        <Flex
-                          sx={{
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                          }}
-                        >
-                          <Box mr={2}>{name}</Box>
-                          <Badge
-                            count={unread.inboxes[id] || 0}
-                            style={{borderColor: '#FF4D4F'}}
-                          />
-                        </Flex>
-                      </Link>
-                    </Menu.Item>
-                  );
-                })}
-              </Menu.SubMenu>
-
-              {isAdminUser && (
-                <NewInboxModalMenuItem
-                  key="add-inbox"
-                  icon={<PlusOutlined />}
-                  title="Add inbox"
-                  onSuccess={handleInboxCreated}
-                >
-                  Add inbox
-                </NewInboxModalMenuItem>
-              )}
-
-              {isAdminUser && (
-                <Menu.Item
-                  key="inbox-settings"
-                  icon={<SettingOutlined />}
-                  title="Inbox settings"
-                >
-                  <Link to="/inboxes">Configure inboxes</Link>
-                </Menu.Item>
-              )}
-            </Menu>
+              items={buildInboxesMenuItems({
+                totalNumUnread,
+                unread,
+                inboxes,
+                isAdminUser,
+                onAddInbox: () => setAddInboxModalOpen(true),
+              })}
+            />
+            <NewInboxModal
+              visible={isAddInboxModalOpen}
+              onCancel={() => setAddInboxModalOpen(false)}
+              onSuccess={(inbox) => {
+                setAddInboxModalOpen(false);
+                handleInboxCreated(inbox);
+              }}
+            />
           </Box>
         </Flex>
       </Sider>
