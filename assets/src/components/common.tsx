@@ -72,7 +72,7 @@ export const colors = {
   blue: blue, // expose all blues
   gray: grey, // expose all grays
   text: 'rgba(0, 0, 0, 0.65)',
-  secondary: 'rgba(0, 0, 0, 0.45)',
+  secondary: 'rgba(0, 0, 0, 0.55)', // WCAG AA: ~4.7:1 on white
   note: '#fff1b8',
   noteSecondary: 'rgba(254,237,175,.4)',
 };
