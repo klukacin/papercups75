@@ -1,4 +1,4 @@
-FROM elixir:1.11.3-alpine as builder
+FROM elixir:1.18-otp-25-alpine as builder
 
 # build step
 ARG MIX_ENV=prod
@@ -30,7 +30,7 @@ RUN apk add --no-cache git nodejs yarn python3 npm ca-certificates wget gnupg ma
 
 # Client side
 COPY assets/package.json assets/package-lock.json ./assets/
-RUN npm install --prefix=assets
+RUN npm install --prefix=assets --legacy-peer-deps
 
 # fix because of https://github.com/facebook/create-react-app/issues/8413
 ENV GENERATE_SOURCEMAP=false
@@ -54,7 +54,7 @@ WORKDIR /app
 COPY rel rel
 RUN mix release papercups
 
-FROM alpine:3.13 AS app
+FROM alpine:3.21 AS app
 RUN apk add --no-cache openssl ncurses-libs
 ENV LANG=C.UTF-8
 EXPOSE 4000
