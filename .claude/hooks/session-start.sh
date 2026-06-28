@@ -92,7 +92,7 @@ mix deps.get
 # --- 5. Frontend dependencies --------------------------------------------
 if [ -f assets/package.json ]; then
   log "Installing frontend dependencies..."
-  npm install --prefix=assets --no-audit --no-fund
+  npm install --prefix=assets --legacy-peer-deps --no-audit --no-fund
 fi
 
 log "Setup complete."

@@ -159,6 +159,28 @@ export const TextArea = Input.TextArea;
  * Whitelist node types that we allow when we render markdown.
  * Reference https://github.com/rexxars/react-markdown#node-types
  */
+export const allowedMarkdownElements: Array<string> = [
+  'br',
+  'p',
+  'em',
+  'strong',
+  'blockquote',
+  'del',
+  'a',
+  'ul',
+  'ol',
+  'li',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+  'code',
+  'pre',
+  'img',
+];
+
 export const allowedNodeTypes: Array<any> = [
   'root',
   'text',
