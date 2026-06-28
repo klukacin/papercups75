@@ -586,8 +586,12 @@ const CodeSnippet: FunctionComponent<CodeSnippetProps> = ({
       defaultActiveKey={Languages.HTML}
       type="card"
       className="GettingStartedCode"
-    >
-      <Tabs.TabPane tab="HTML" key={Languages.HTML}>
+      items={[
+        {
+          key: Languages.HTML,
+          label: 'HTML',
+          children: (
+            <>
         <Box mb={4}>
           <Title level={4}>Usage in HTML</Title>
           <Paragraph>
@@ -643,9 +647,14 @@ window.Papercups = {
 `.trim()}
           </StandardSyntaxHighlighter>
         </Box>
-      </Tabs.TabPane>
-
-      <Tabs.TabPane tab="React" tabKey={Languages.REACT}>
+            </>
+          ),
+        },
+        {
+          key: Languages.REACT,
+          label: 'React',
+          children: (
+            <>
         <Box mb={4}>
           <Title level={4}>Usage in React</Title>
           <Box mb={3}>
@@ -737,8 +746,11 @@ const ExamplePage = () => {
 `.trim()}
           </StandardSyntaxHighlighter>
         </Box>
-      </Tabs.TabPane>
-    </Tabs>
+            </>
+          ),
+        },
+      ]}
+    />
   );
 };
 
