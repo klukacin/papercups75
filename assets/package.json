@@ -1,9 +1,9 @@
 {
-  "name": "papercups-ui",
+  "name": "papercups75-ui",
   "version": "0.1.0",
   "private": true,
   "license": "MIT",
-  "repository": "https://github.com/papercups-io/papercups",
+  "repository": "https://github.com/klukacin/papercups75",
   "dependencies": {
     "@monaco-editor/react": "^4.2.1",
     "@papercups-io/chat-builder": "0.0.12",

@@ -1,6 +1,6 @@
-**:warning: Maintenance Mode**
+**:information_source: This is papercups75 — a maintained fork**
 
-> _Papercups is in maintenance mode. This means there won't be any major new features in the near future. We will still accept pull requests and conduct major bug fixes. Read more [here](https://papercups.io/blog/papercups-maintenance)_
+> _papercups75 is a community-maintained fork of [Papercups](https://github.com/papercups-io/papercups), which is in maintenance mode upstream. This fork continues development and keeps the dependency/runtime stack up to date. Distributed under the MIT License; see [NOTICE.md](./NOTICE.md) for attribution._
 
 # Papercups
 
