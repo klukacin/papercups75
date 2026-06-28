@@ -1,5 +1,7 @@
 defmodule ChatApiWeb.SlackControllerTest do
-  use ChatApiWeb.ConnCase, async: true
+  # async: false because these tests use global :meck mocks (Mock), which would
+  # otherwise leak into concurrently running tests that call the same modules.
+  use ChatApiWeb.ConnCase, async: false
 
   import ChatApi.Factory
   import Mock

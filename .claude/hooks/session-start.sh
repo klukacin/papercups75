@@ -25,23 +25,50 @@ psql_postgres() { as_root su - postgres -c "psql -tAc \"$1\""; }
 
 log() { echo "[session-start] $*"; }
 
-# --- 1. System toolchain (Elixir/Erlang) ----------------------------------
-# Ubuntu's packaged Elixir/Erlang installs in seconds and is capable of
-# building both the current app and the target Phoenix upgrade. (A newer
-# Elixir/OTP would have to compile Erlang from source on every ephemeral
-# container, which is slow and fragile.)
-if ! command -v elixir >/dev/null 2>&1; then
-  log "Installing Elixir/Erlang via apt..."
+# --- 1. System toolchain (Erlang via apt, Elixir via precompiled release) ---
+# Erlang/OTP comes from apt: installs in seconds and provides OTP 25 plus:
+#   erlang-nox  - full runtime minus GUI/wx (xmerl etc. that sweet_xml needs);
+#                 the GUI 'erlang' meta-package pulls wx and currently 404s.
+#   erlang-dev  - yecc/leex headers (yeccpre.hrl) some Hex packages need.
+# Elixir is installed from the official *precompiled* release that runs on
+# OTP 25. This gives a modern Elixir (1.18) without compiling Erlang from
+# source on every ephemeral container. Modern deps (e.g. plug 1.20) need
+# Elixir >= 1.15, so apt's older Elixir is not enough.
+ELIXIR_DIR=/opt/elixir
+ELIXIR_VERSION=1.18.4
+
+if ! command -v erl >/dev/null 2>&1; then
+  log "Installing Erlang/OTP via apt..."
   as_root apt-get update -qq
-  # erlang-nox: full Erlang runtime minus GUI/wx (provides xmerl, etc. that
-  #   deps like sweet_xml need). The GUI 'erlang' meta-package pulls wx and
-  #   currently 404s, so we deliberately use the -nox variant.
-  # erlang-dev: yecc/leex headers (yeccpre.hrl) that some Hex packages
-  #   (e.g. earmark_parser) need to compile their grammars.
-  as_root apt-get install -y -q elixir erlang-nox erlang-dev
-else
-  log "Elixir already present: $(elixir --version | tail -1)"
+  as_root apt-get install -y -q erlang-nox erlang-dev curl unzip ca-certificates
 fi
+
+if [ ! -x "$ELIXIR_DIR/bin/elixir" ]; then
+  log "Installing precompiled Elixir ${ELIXIR_VERSION} (OTP 25)..."
+  TMP_ZIP="$(mktemp)"
+  curl -fsSL -o "$TMP_ZIP" \
+    "https://github.com/elixir-lang/elixir/releases/download/v${ELIXIR_VERSION}/elixir-otp-25.zip"
+  as_root mkdir -p "$ELIXIR_DIR"
+  as_root unzip -oq "$TMP_ZIP" -d "$ELIXIR_DIR"
+  rm -f "$TMP_ZIP"
+fi
+
+# Put Elixir on PATH and set a UTF-8 locale (+fnu avoids latin1 name-encoding
+# warnings) for the rest of this script...
+export PATH="$ELIXIR_DIR/bin:$PATH"
+export LANG="${LANG:-C.UTF-8}" LC_ALL="${LC_ALL:-C.UTF-8}" ELIXIR_ERL_OPTIONS="+fnu"
+
+# ...and persist it for the rest of the session (the agent's later shells).
+if [ -n "${CLAUDE_ENV_FILE:-}" ]; then
+  {
+    echo "export PATH=\"$ELIXIR_DIR/bin:\$PATH\""
+    echo "export LANG=C.UTF-8"
+    echo "export LC_ALL=C.UTF-8"
+    echo "export ELIXIR_ERL_OPTIONS=+fnu"
+  } >> "$CLAUDE_ENV_FILE"
+fi
+
+log "Using $("$ELIXIR_DIR/bin/elixir" --version | tail -1)"
 
 # --- 2. Hex + Rebar -------------------------------------------------------
 log "Ensuring Hex and Rebar are installed..."
