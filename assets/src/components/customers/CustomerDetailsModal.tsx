@@ -184,7 +184,7 @@ class CustomerDetailsModal extends React.Component<Props, State> {
     return (
       <Modal
         title="Customer details"
-        visible={isVisible}
+        open={isVisible}
         onCancel={this.onModalClose}
         onOk={this.onModalClose}
         footer={

@@ -145,7 +145,7 @@ const MattermostAuthorizationModal = ({
   return (
     <Modal
       title="Connect to Mattermost"
-      visible={visible}
+      open={visible}
       onOk={handleSetAuthorization}
       onCancel={handleCancel}
       footer={[

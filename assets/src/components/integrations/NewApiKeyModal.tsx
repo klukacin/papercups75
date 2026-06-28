@@ -40,7 +40,7 @@ const NewApiKeyModal = ({
   return (
     <Modal
       title="Generate new API key"
-      visible={visible}
+      open={visible}
       onOk={handleGenerateApiKey}
       onCancel={handleCancelApiKey}
       footer={[

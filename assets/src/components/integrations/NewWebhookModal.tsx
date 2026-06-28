@@ -69,7 +69,7 @@ const NewWebhookModal = ({
   return (
     <Modal
       title="Add webhook URL"
-      visible={visible}
+      open={visible}
       onOk={handleSaveWebhook}
       onCancel={handleCancelWebhook}
       footer={[

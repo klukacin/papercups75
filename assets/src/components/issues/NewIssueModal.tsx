@@ -155,7 +155,7 @@ const NewIssueModal = ({
   return (
     <Modal
       title={header || fallbackModalTitle}
-      visible={visible}
+      open={visible}
       width={400}
       onOk={handleCreateIssue}
       onCancel={handleCancelIssue}

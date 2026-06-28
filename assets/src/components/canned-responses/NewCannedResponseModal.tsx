@@ -53,7 +53,7 @@ const NewCannedResponseModal = ({
   return (
     <Modal
       title="Create new saved reply"
-      visible={visible}
+      open={visible}
       width={400}
       onOk={handleCreateCannedResponse}
       onCancel={handleCancelCannedResponse}

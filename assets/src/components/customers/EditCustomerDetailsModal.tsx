@@ -98,7 +98,7 @@ const EditCustomerDetailsModal = ({
   return (
     <Modal
       title="Edit customer"
-      visible={isVisible}
+      open={isVisible}
       onCancel={onClose}
       onOk={onClose}
       footer={
