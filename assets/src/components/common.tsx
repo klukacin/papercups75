@@ -34,7 +34,7 @@ import {
 } from 'antd';
 
 import {Prism as SyntaxHighlighter} from 'react-syntax-highlighter';
-import {prism as syntaxHighlightingLanguage} from 'react-syntax-highlighter/dist/esm/styles/prism';
+import {prism as syntaxHighlightingLanguage} from 'react-syntax-highlighter/dist/cjs/styles/prism';
 
 import {
   blue,

@@ -5,16 +5,7 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import {TablePaginationConfig} from 'antd/lib/table';
 import {Customer} from '../../types';
-import {
-  notification,
-  Badge,
-  Button,
-  Dropdown,
-  Menu,
-  Table,
-  Text,
-  Tooltip,
-} from '../common';
+import {notification, Badge, Button, Dropdown, Table, Text, Tooltip} from '../common';
 import {SettingOutlined} from '../icons';
 import {StartConversationWrapper} from '../conversations/StartConversationButton';
 import {ConversationModalRenderer} from '../conversations/ConversationModal';
@@ -63,23 +54,26 @@ const CustomerActionsDropdown = ({customer}: {customer: Customer}) => {
 
               return (
                 <Dropdown
-                  overlay={
-                    <Menu onClick={handleMenuClick}>
-                      <Menu.Item key="profile">
-                        <Link to={`/customers/${customerId}`}>
-                          View profile
-                        </Link>
-                      </Menu.Item>
-                      {!!mostRecentConversation && (
-                        <Menu.Item key="conversation">
-                          View latest conversation
-                        </Menu.Item>
-                      )}
-                      <Menu.Item key="message">
-                        Start new conversation
-                      </Menu.Item>
-                    </Menu>
-                  }
+                  menu={{
+                    onClick: handleMenuClick,
+                    items: [
+                      {
+                        key: 'profile',
+                        label: (
+                          <Link to={`/customers/${customerId}`}>
+                            View profile
+                          </Link>
+                        ),
+                      },
+                      mostRecentConversation
+                        ? {
+                            key: 'conversation',
+                            label: 'View latest conversation',
+                          }
+                        : null,
+                      {key: 'message', label: 'Start new conversation'},
+                    ],
+                  }}
                 >
                   <Button icon={<SettingOutlined />} />
                 </Dropdown>

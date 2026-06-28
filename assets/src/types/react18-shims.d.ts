@@ -14,10 +14,15 @@ declare module 'react-router-dom' {
   interface BrowserRouterProps {
     children?: React.ReactNode;
   }
+
 }
 
 declare module 'react-router' {
   interface SwitchProps {
+    children?: React.ReactNode;
+  }
+
+  interface MemoryRouterProps {
     children?: React.ReactNode;
   }
 }
