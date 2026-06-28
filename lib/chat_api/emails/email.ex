@@ -8,7 +8,7 @@ defmodule ChatApi.Emails.Email do
 
   @type t :: Swoosh.Email.t()
 
-  @from_address System.get_env("FROM_ADDRESS") || ""
+  @from_address System.get_env("FROM_ADDRESS") || "noreply@papercups.local"
   @backend_url System.get_env("BACKEND_URL", "app.papercups.io")
 
   defstruct to_address: nil, message: nil
