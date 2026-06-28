@@ -1,5 +1,5 @@
 import React from 'react';
-import {Box, Flex, SxStyleProp} from 'theme-ui';
+import {Box, Flex, ThemeUICSSObject} from 'theme-ui';
 import {
   ChatBuilder,
   ChatFooter,
@@ -175,7 +175,7 @@ const EmbeddableChat = ({
   config: Config;
   height?: number | string;
   width?: number | string;
-  sx?: SxStyleProp;
+  sx?: ThemeUICSSObject;
   onChatLoaded?: (papercups: any) => void;
   onMessageSent?: (message: any) => void;
   onMessageReceived?: (message: any) => void;

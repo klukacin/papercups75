@@ -1,4 +1,5 @@
 import React from 'react';
+import type {InputRef} from 'antd';
 import {Box, Flex} from 'theme-ui';
 import {
   notification,
@@ -31,7 +32,7 @@ type State = {
 };
 
 class TeamOverview extends React.Component<Props, State> {
-  input: Input | null = null;
+  input: InputRef | null = null;
 
   state: State = {
     account: null,
@@ -70,7 +71,7 @@ class TeamOverview extends React.Component<Props, State> {
         },
         () => this.focusAndHighlightInput()
       );
-    } catch (err) {
+    } catch (err: any) {
       const hasServerErrorMessage = !!err?.response?.body?.error?.message;
       const shouldDisplayBillingLink =
         hasServerErrorMessage && hasValidStripeKey();
@@ -112,7 +113,7 @@ class TeamOverview extends React.Component<Props, State> {
       });
 
       this.setState({inviteUserEmail: ''});
-    } catch (err) {
+    } catch (err: any) {
       // TODO: consolidate error logic with handleGenerateInviteUrl
       const hasServerErrorMessage = !!err?.response?.body?.error?.message;
       const shouldDisplayBillingLink =

@@ -58,13 +58,13 @@ const ConversationRemindersSettings = ({
     return onSave(updates).then(() => setEditing(false));
   };
 
-  const handleChangeHoursInterval = (value: string | number | undefined) => {
+  const handleChangeHoursInterval = (value: number | null) => {
     if (Number.isInteger(value)) {
       setReminderHoursInterval(Number(value));
     }
   };
 
-  const handleChangeMaxReminders = (value: string | number | undefined) => {
+  const handleChangeMaxReminders = (value: number | null) => {
     if (Number.isInteger(value)) {
       setMaxNumReminders(Number(value));
     }

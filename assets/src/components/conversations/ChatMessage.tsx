@@ -1,5 +1,5 @@
 import React from 'react';
-import {Box, Flex, SxStyleProp} from 'theme-ui';
+import {Box, Flex, ThemeUICSSObject} from 'theme-ui';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import {colors, Text, Tooltip} from '../common';
@@ -29,7 +29,7 @@ export const SenderAvatar = ({
   avatarPhotoUrl?: string | null;
   size?: number;
   color?: string;
-  sx?: SxStyleProp;
+  sx?: ThemeUICSSObject;
 }) => {
   if (avatarPhotoUrl) {
     return (

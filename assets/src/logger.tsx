@@ -138,7 +138,7 @@ const callback = (type: Level, ...args: any) => {
         description,
       });
     case 'warn':
-      return notification.warn({
+      return notification.warning({
         message: 'Warning',
         duration: null,
         description,
