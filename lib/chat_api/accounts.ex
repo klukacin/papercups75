@@ -54,6 +54,18 @@ defmodule ChatApi.Accounts do
     Repo.get_by(AccountUser, user_id: user_id, account_id: account_id)
   end
 
+  @doc """
+  Returns the resolved account id assigned by `ChatApiWeb.CurrentAccountPlug`.
+  Raises if the plug was not applied to the conn.
+  """
+  @spec get_current_account_id!(Plug.Conn.t()) :: binary()
+  def get_current_account_id!(%Plug.Conn{assigns: %{current_account_id: account_id}}),
+    do: account_id
+
+  def get_current_account_id!(%Plug.Conn{}) do
+    raise "current_account_id not assigned: ChatApiWeb.CurrentAccountPlug must run before calling get_current_account_id!/1"
+  end
+
   @spec list_accounts() :: [Account.t()]
   def list_accounts do
     Repo.all(Account)

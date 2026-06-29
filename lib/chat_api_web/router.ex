@@ -20,6 +20,12 @@ defmodule ChatApiWeb.Router do
     plug(ChatApiWeb.EnsureUserEnabledPlug)
   end
 
+  pipeline :api_protected_multi_account do
+    plug(Pow.Plug.RequireAuthenticated, error_handler: ChatApiWeb.APIAuthErrorHandler)
+    plug(ChatApiWeb.EnsureUserEnabledPlug)
+    plug(ChatApiWeb.CurrentAccountPlug)
+  end
+
   pipeline :public_api do
     plug(ChatApiWeb.IPAddressPlug)
     plug(:accepts, ["json"])
