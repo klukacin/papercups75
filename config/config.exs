@@ -76,6 +76,9 @@ config :chat_api, Oban,
 
 config :chat_api, ChatApi.Mailers.Gmail, adapter: Swoosh.Adapters.Gmail
 
+# Route ex_aws (AWS S3/SES/Lambda) HTTP through Tesla/Finch instead of hackney.
+config :ex_aws, http_client: ChatApi.ExAwsHttpClient
+
 # PromEx exposes Prometheus metrics at /metrics (see ChatApiWeb.Endpoint).
 # Metrics are served via the endpoint plug, and Grafana dashboards are
 # provisioned by the operator, so PromEx's own server/Grafana uploader are off.
