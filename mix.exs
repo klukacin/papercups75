@@ -79,7 +79,7 @@ defmodule ChatApi.MixProject do
       {:uuid, "~> 1.1"},
       {:ex_json_schema, "~> 0.5"},
       {:pow_postgres_store, "~> 1.0.0-rc2"},
-      {:tzdata, "~> 1.0.5"},
+      {:tz, "~> 0.28"},
       {:scrivener_ecto, "~> 2.0"},
       {:floki, "~> 0.30.0"},
       {:paginator, "~> 1.0.3"},
