@@ -1,6 +1,5 @@
 defmodule ChatApiWeb.ConversationChannel do
   use ChatApiWeb, :channel
-  use Appsignal.Instrumentation.Decorators
 
   alias ChatApiWeb.Presence
   alias ChatApi.{Messages, Conversations}
@@ -76,7 +75,6 @@ defmodule ChatApiWeb.ConversationChannel do
     {:reply, {:ok, payload}, socket}
   end
 
-  @decorate channel_action()
   def handle_in("shout", payload, socket) do
     with %{conversation: conversation} <- socket.assigns,
          %{id: conversation_id, account_id: account_id} <- conversation,
@@ -100,7 +98,6 @@ defmodule ChatApiWeb.ConversationChannel do
     {:noreply, socket}
   end
 
-  @decorate channel_action()
   def handle_in("messages:seen", _payload, socket) do
     with %{conversation: conversation} <- socket.assigns,
          %{id: conversation_id} <- conversation do

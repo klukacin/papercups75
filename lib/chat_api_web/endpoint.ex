@@ -1,7 +1,6 @@
 defmodule ChatApiWeb.Endpoint do
   use Sentry.PlugCapture
   use Phoenix.Endpoint, otp_app: :chat_api
-  use Appsignal.Phoenix
 
   # The session will be stored in the cookie and signed,
   # this means its contents can be read but not tampered with.
@@ -43,6 +42,8 @@ defmodule ChatApiWeb.Endpoint do
   )
 
   plug(Plug.RequestId)
+  # Expose Prometheus metrics at /metrics for a self-hosted Grafana stack
+  plug(PromEx.Plug, prom_ex_module: ChatApi.PromEx)
   plug(Plug.Telemetry, event_prefix: [:phoenix, :endpoint])
 
   plug(Plug.Parsers,

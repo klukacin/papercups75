@@ -76,6 +76,15 @@ config :chat_api, Oban,
 
 config :chat_api, ChatApi.Mailers.Gmail, adapter: Swoosh.Adapters.Gmail
 
+# PromEx exposes Prometheus metrics at /metrics (see ChatApiWeb.Endpoint).
+# Metrics are served via the endpoint plug, and Grafana dashboards are
+# provisioned by the operator, so PromEx's own server/Grafana uploader are off.
+config :chat_api, ChatApi.PromEx,
+  manual_metrics_start_delay: :no_delay,
+  drop_metrics_groups: [],
+  grafana: :disabled,
+  metrics_server: :disabled
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{Mix.env()}.exs"

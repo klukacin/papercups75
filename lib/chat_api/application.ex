@@ -40,6 +40,8 @@ defmodule ChatApi.Application do
     children = [
       # Start the Finch HTTP pool (used as the Tesla adapter, replacing hackney)
       {Finch, name: ChatApi.Finch},
+      # Start the PromEx telemetry/Prometheus exporter
+      ChatApi.PromEx,
       # Start the Ecto repository
       ChatApi.Repo,
       # Start the Telemetry supervisor
