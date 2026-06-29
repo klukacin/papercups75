@@ -42,6 +42,8 @@ defmodule ChatApi.Users.User do
     belongs_to(:account, Account, type: :binary_id)
     has_one(:profile, UserProfile)
     has_one(:settings, UserSettings)
+    has_many(:account_users, ChatApi.Accounts.AccountUser)
+    has_many(:accounts, through: [:account_users, :account])
 
     has_many(:mentions, Mention)
     has_many(:mentioned_conversations, through: [:mentions, :conversation])

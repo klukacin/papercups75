@@ -283,6 +283,14 @@ defmodule ChatApi.Factory do
     }
   end
 
+  def account_user_factory do
+    %ChatApi.Accounts.AccountUser{
+      account: build(:account),
+      user: build(:user),
+      role: "user"
+    }
+  end
+
   def user_factory do
     %ChatApi.Users.User{
       email: sequence(:email, &"company_name-#{&1}@example.com"),

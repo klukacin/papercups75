@@ -7,8 +7,52 @@ defmodule ChatApi.Accounts do
   require Logger
   alias ChatApi.Repo
 
-  alias ChatApi.Accounts.{Account, Settings, WorkingHours}
+  alias ChatApi.Accounts.{Account, AccountUser, Settings, WorkingHours}
   alias ChatApi.Users.User
+
+  @doc """
+  Adds a user as a member of an account (Phase A multi-account membership).
+  Idempotent: a repeated (account_id, user_id) is a no-op.
+  """
+  @spec create_account_user(binary(), integer(), String.t()) ::
+          {:ok, AccountUser.t()} | {:error, Ecto.Changeset.t()}
+  def create_account_user(account_id, user_id, role \\ "user") do
+    %AccountUser{}
+    |> AccountUser.changeset(%{
+      account_id: account_id,
+      user_id: user_id,
+      role: role || "user"
+    })
+    |> Repo.insert(on_conflict: :nothing, conflict_target: [:account_id, :user_id])
+  end
+
+  @doc "Returns true if the user is a member of the given account."
+  @spec user_member_of?(User.t() | integer(), binary()) :: boolean()
+  def user_member_of?(%User{id: user_id}, account_id), do: user_member_of?(user_id, account_id)
+
+  def user_member_of?(user_id, account_id)
+      when not is_nil(user_id) and is_binary(account_id) do
+    AccountUser
+    |> where(user_id: ^user_id, account_id: ^account_id)
+    |> Repo.exists?()
+  end
+
+  @doc "Lists all accounts a user is a member of."
+  @spec list_accounts_for_user(User.t() | integer()) :: [Account.t()]
+  def list_accounts_for_user(%User{id: user_id}), do: list_accounts_for_user(user_id)
+
+  def list_accounts_for_user(user_id) when not is_nil(user_id) do
+    Account
+    |> join(:inner, [a], au in AccountUser, on: au.account_id == a.id)
+    |> where([_a, au], au.user_id == ^user_id)
+    |> select([a, _au], a)
+    |> Repo.all()
+  end
+
+  @spec get_account_user(integer(), binary()) :: AccountUser.t() | nil
+  def get_account_user(user_id, account_id) do
+    Repo.get_by(AccountUser, user_id: user_id, account_id: account_id)
+  end
 
   @spec list_accounts() :: [Account.t()]
   def list_accounts do

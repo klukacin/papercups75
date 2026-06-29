@@ -131,7 +131,21 @@ defmodule ChatApi.Users do
     %User{}
     |> User.changeset(params)
     |> Repo.insert()
+    |> mirror_primary_account_membership()
   end
+
+  # Phase A multi-account membership: reflect the user's primary account
+  # (users.account_id) into the account_users join table on creation.
+  defp mirror_primary_account_membership(
+         {:ok, %User{id: user_id, account_id: account_id, role: role} = user}
+       )
+       when not is_nil(account_id) do
+    ChatApi.Accounts.create_account_user(account_id, user_id, role || "user")
+
+    {:ok, user}
+  end
+
+  defp mirror_primary_account_membership(result), do: result
 
   @spec delete_user(User.t()) :: {:ok, User.t()} | {:error, Ecto.Changeset.t()}
   def delete_user(user) do
