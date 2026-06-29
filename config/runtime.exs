@@ -82,23 +82,21 @@ sentry_dsn = System.get_env("SENTRY_DSN")
 mailer_adapter = System.get_env("MAILER_ADAPTER", "Swoosh.Adapters.Local")
 
 # Configure Sentry
+#
+# NOTE (sentry 13 upgrade): `included_environments` was removed in sentry 9.
+# Sentry now only sends events when a `dsn` is configured (it is left nil here
+# unless SENTRY_DSN is set), so no environment gating config is needed.
 config :sentry,
   dsn: sentry_dsn,
   environment_name: config_env(),
-  included_environments: [:prod],
   enable_source_code_context: true,
   root_source_code_path: File.cwd!()
 
-config :logger,
-  backends: [:console, Sentry.LoggerBackend]
-
-config :logger, Sentry.LoggerBackend,
-  # Also send warn messages
-  level: :warn,
-  # Send messages from Plug/Cowboy
-  excluded_domains: [],
-  # Send messages like `Logger.error("error")` to Sentry
-  capture_log_messages: true
+# NOTE (sentry 13 upgrade): the old `Sentry.LoggerBackend` Logger backend was
+# replaced by the `Sentry.LoggerHandler` `:logger` handler. The handler is
+# attached in ChatApi.Application.start/2 before the supervisor starts. The
+# previous behavior (also send warning-level messages and capture
+# `Logger.error/1` style messages) maps to the handler options below.
 
 case mailer_adapter do
   "Swoosh.Adapters.Mailgun" ->
