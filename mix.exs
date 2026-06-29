@@ -60,6 +60,7 @@ defmodule ChatApi.MixProject do
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 0.11"},
       {:tesla, "~> 1.3"},
+      {:finch, "~> 0.18"},
       {:hackney, "~> 1.17"},
       {:jason, "~> 1.0"},
       # jose >= 1.11.10 uses the OTP 26 dynamic() type; cap it for OTP 25.

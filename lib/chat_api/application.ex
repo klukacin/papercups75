@@ -38,6 +38,8 @@ defmodule ChatApi.Application do
     Logger.debug("Inspecting PubSub configuration: #{inspect(pub_sub_opts)}")
 
     children = [
+      # Start the Finch HTTP pool (used as the Tesla adapter, replacing hackney)
+      {Finch, name: ChatApi.Finch},
       # Start the Ecto repository
       ChatApi.Repo,
       # Start the Telemetry supervisor
