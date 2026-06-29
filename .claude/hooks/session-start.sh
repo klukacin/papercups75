@@ -25,43 +25,57 @@ psql_postgres() { as_root su - postgres -c "psql -tAc \"$1\""; }
 
 log() { echo "[session-start] $*"; }
 
-# --- 1. System toolchain (Erlang via apt, Elixir via precompiled release) ---
-# Erlang/OTP comes from apt: installs in seconds and provides OTP 25 plus:
-#   erlang-nox  - full runtime minus GUI/wx (xmerl etc. that sweet_xml needs);
-#                 the GUI 'erlang' meta-package pulls wx and currently 404s.
-#   erlang-dev  - yecc/leex headers (yeccpre.hrl) some Hex packages need.
-# Elixir is installed from the official *precompiled* release that runs on
-# OTP 25. This gives a modern Elixir (1.18) without compiling Erlang from
-# source on every ephemeral container. Modern deps (e.g. plug 1.20) need
-# Elixir >= 1.15, so apt's older Elixir is not enough.
+# --- 1. System toolchain (precompiled OTP + Elixir, no source builds) ---
+# Both Erlang/OTP and Elixir come from official *precompiled* releases, so
+# nothing is built from source on each ephemeral container:
+#   - OTP from builds.hex.pm (the same artifacts setup-beam uses in CI)
+#   - Elixir from the elixir-lang GitHub release built for the matching OTP
+# We use OTP 27 so current deps compile (e.g. jose >= 1.11.10 uses the OTP 26
+# `dynamic()` type). The full OTP tarball includes parsetools (yecc headers)
+# and xmerl, which some Hex packages need.
+OTP_DIR=/opt/otp
 ELIXIR_DIR=/opt/elixir
+OTP_VERSION=27.3.4.13
 ELIXIR_VERSION=1.18.4
 
-if ! command -v erl >/dev/null 2>&1; then
-  log "Installing Erlang/OTP via apt..."
-  as_root apt-get update -qq
-  as_root apt-get install -y -q erlang-nox erlang-dev curl unzip ca-certificates
+# Runtime libraries the precompiled OTP links against (OpenSSL 3, ncurses/tinfo)
+# plus the download tools.
+as_root apt-get update -qq
+as_root apt-get install -y -q libssl3 libtinfo6 ca-certificates curl unzip
+
+if [ ! -x "$OTP_DIR/bin/erl" ]; then
+  log "Installing precompiled Erlang/OTP ${OTP_VERSION}..."
+  TMP_TGZ="$(mktemp)"
+  curl -fsSL -o "$TMP_TGZ" \
+    "https://builds.hex.pm/builds/otp/ubuntu-24.04/OTP-${OTP_VERSION}.tar.gz"
+  as_root mkdir -p "$OTP_DIR"
+  as_root tar -xzf "$TMP_TGZ" -C "$OTP_DIR" --strip-components=1
+  rm -f "$TMP_TGZ"
+  # Fix the absolute paths baked into the OTP scripts (erl, etc.).
+  (cd "$OTP_DIR" && as_root ./Install -minimal "$OTP_DIR" >/dev/null)
 fi
 
+export PATH="$OTP_DIR/bin:$PATH"
+
 if [ ! -x "$ELIXIR_DIR/bin/elixir" ]; then
-  log "Installing precompiled Elixir ${ELIXIR_VERSION} (OTP 25)..."
+  log "Installing precompiled Elixir ${ELIXIR_VERSION} (OTP 27)..."
   TMP_ZIP="$(mktemp)"
   curl -fsSL -o "$TMP_ZIP" \
-    "https://github.com/elixir-lang/elixir/releases/download/v${ELIXIR_VERSION}/elixir-otp-25.zip"
+    "https://github.com/elixir-lang/elixir/releases/download/v${ELIXIR_VERSION}/elixir-otp-27.zip"
   as_root mkdir -p "$ELIXIR_DIR"
   as_root unzip -oq "$TMP_ZIP" -d "$ELIXIR_DIR"
   rm -f "$TMP_ZIP"
 fi
 
-# Put Elixir on PATH and set a UTF-8 locale (+fnu avoids latin1 name-encoding
-# warnings) for the rest of this script...
+# Put Erlang + Elixir on PATH and set a UTF-8 locale (+fnu avoids latin1
+# name-encoding warnings) for the rest of this script...
 export PATH="$ELIXIR_DIR/bin:$PATH"
 export LANG="${LANG:-C.UTF-8}" LC_ALL="${LC_ALL:-C.UTF-8}" ELIXIR_ERL_OPTIONS="+fnu"
 
 # ...and persist it for the rest of the session (the agent's later shells).
 if [ -n "${CLAUDE_ENV_FILE:-}" ]; then
   {
-    echo "export PATH=\"$ELIXIR_DIR/bin:\$PATH\""
+    echo "export PATH=\"$OTP_DIR/bin:$ELIXIR_DIR/bin:\$PATH\""
     echo "export LANG=C.UTF-8"
     echo "export LC_ALL=C.UTF-8"
     echo "export ELIXIR_ERL_OPTIONS=+fnu"

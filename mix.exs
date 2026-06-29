@@ -61,9 +61,7 @@ defmodule ChatApi.MixProject do
       {:tesla, "~> 1.3"},
       {:finch, "~> 0.18"},
       {:jason, "~> 1.0"},
-      # jose >= 1.11.10 uses the OTP 26 dynamic() type; cap it for OTP 25.
-      {:jose, ">= 1.11.2 and < 1.11.10"},
-      {:joken, ">= 2.0.0 and < 2.6.2"},
+      {:joken, "~> 2.6"},
       {:plug_cowboy, "~> 2.0"},
       {:corsica, "~> 1.0"},
       {:pow, "~> 1.0.18"},
