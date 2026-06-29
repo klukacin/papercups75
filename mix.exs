@@ -43,7 +43,6 @@ defmodule ChatApi.MixProject do
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
       {:ex_machina, "~> 2.4", only: [:test]},
       {:mock, "~> 0.3.0", only: :test},
-      {:customerio, "~> 0.2"},
       {:ex_aws, "~> 2.1"},
       {:ex_aws_s3, "~> 2.0"},
       {:ex_aws_lambda, "~> 2.0"},

@@ -131,12 +131,8 @@ case mailer_adapter do
     raise "Unknown mailer_adapter; expected Swoosh.Adapters.Mailgun or Swoosh.Adapters.SMTP"
 end
 
-site_id = System.get_env("CUSTOMER_IO_SITE_ID")
-customerio_api_key = System.get_env("CUSTOMER_IO_API_KEY")
-
-config :customerio,
-  site_id: site_id,
-  api_key: customerio_api_key
+# Customer.io credentials are read directly from CUSTOMER_IO_SITE_ID and
+# CUSTOMER_IO_API_KEY by ChatApi.Emails.CustomerIO (no library config needed).
 
 aws_key_id = System.get_env("AWS_ACCESS_KEY_ID")
 aws_secret_key = System.get_env("AWS_SECRET_ACCESS_KEY")

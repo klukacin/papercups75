@@ -1,5 +1,8 @@
 import Config
 
+# Use Tesla's mock adapter in tests; HTTP-calling code sets up mocks per test.
+config :tesla, adapter: Tesla.Mock
+
 # Configure your database
 #
 # The MIX_TEST_PARTITION environment variable can be used

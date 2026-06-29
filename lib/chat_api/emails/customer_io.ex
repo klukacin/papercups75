@@ -1,10 +1,15 @@
 defmodule ChatApi.Emails.CustomerIO do
   @moduledoc """
-  A module to handle email automation with customer.io
+  A module to handle email automation with customer.io.
+
+  Talks to the Customer.io Track API directly over Tesla (Finch adapter) rather
+  than the unmaintained `customerio` Hex package, which pinned an old hackney.
   """
 
   alias ChatApi.Users
   require Logger
+
+  @base_url "https://track.customer.io/api/v1"
 
   # TODO: how should we handled disabled/archived users?
 
@@ -21,31 +26,30 @@ defmodule ChatApi.Emails.CustomerIO do
     end
   end
 
-  @spec identify(any(), any()) :: {:error, Customerio.Error.t()} | {:ok, binary()}
+  @spec identify(any(), map()) :: {:ok, any()} | {:error, any()}
   def identify(user_id, attrs \\ %{}) do
     if enabled?() do
-      Customerio.identify(user_id, attrs)
+      client()
+      |> Tesla.put("/customers/#{URI.encode(to_string(user_id))}", attrs)
+      |> handle_response()
     else
-      msg = "Would have identified user #{inspect(user_id)} with data: #{inspect(attrs)}"
-      Logger.info("[Customer IO] #{msg}")
-
-      {:ok, msg}
+      log_disabled("identified user #{inspect(user_id)} with data: #{inspect(attrs)}")
     end
   end
 
-  @spec track(any(), binary(), any()) :: {:error, Customerio.Error.t()} | {:ok, binary()}
+  @spec track(any(), binary(), map()) :: {:ok, any()} | {:error, any()}
   def track(user_id, event, attrs \\ %{}) do
     if enabled?() do
-      Customerio.track(user_id, event, attrs)
+      client()
+      |> Tesla.post("/customers/#{URI.encode(to_string(user_id))}/events", %{
+        name: event,
+        data: attrs
+      })
+      |> handle_response()
     else
-      msg =
-        "Would have tracked event #{inspect(event)} " <>
-          "for user #{inspect(user_id)} " <>
-          "with data: #{inspect(attrs)}"
-
-      Logger.info("[Customer IO] #{msg}")
-
-      {:ok, msg}
+      log_disabled(
+        "tracked event #{inspect(event)} for user #{inspect(user_id)} with data: #{inspect(attrs)}"
+      )
     end
   end
 
@@ -55,6 +59,30 @@ defmodule ChatApi.Emails.CustomerIO do
       key when is_binary(key) -> String.length(key) > 0
       _ -> false
     end
+  end
+
+  defp client() do
+    Tesla.client([
+      {Tesla.Middleware.BaseUrl, @base_url},
+      Tesla.Middleware.JSON,
+      {Tesla.Middleware.BasicAuth,
+       username: System.get_env("CUSTOMER_IO_SITE_ID") || "",
+       password: System.get_env("CUSTOMER_IO_API_KEY") || ""}
+    ])
+  end
+
+  defp handle_response({:ok, %Tesla.Env{status: status} = env}) when status in 200..299,
+    do: {:ok, env}
+
+  defp handle_response({:ok, %Tesla.Env{status: status, body: body}}),
+    do: {:error, %{status: status, body: body}}
+
+  defp handle_response({:error, reason}), do: {:error, reason}
+
+  defp log_disabled(message) do
+    Logger.info("[Customer IO] Would have #{message}")
+
+    {:ok, message}
   end
 
   @spec format_user(Users.User.t(), binary(), integer()) :: map()
