@@ -65,7 +65,7 @@ defmodule ChatApi.Workers.SendPushNotifications do
       }
 
       # Send it to Expo
-      case ExponentServerSdk.PushNotification.push(params) do
+      case ChatApi.Expo.push(params) do
         {:ok, result} ->
           result
 
@@ -97,7 +97,7 @@ defmodule ChatApi.Workers.SendPushNotifications do
       }
 
       # Send it to Expo
-      case ExponentServerSdk.PushNotification.push(params) do
+      case ChatApi.Expo.push(params) do
         {:ok, result} ->
           result
 

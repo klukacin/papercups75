@@ -87,7 +87,6 @@ defmodule ChatApi.MixProject do
       {:earmark, "~> 1.4.15"},
       {:sweet_xml, "~> 0.7.1"},
       # TODO: just copy code over?
-      {:exponent_server_sdk, "~> 0.2.0"},
       {:mix_test_watch, "~> 1.0", only: :dev, runtime: false}
     ]
   end
