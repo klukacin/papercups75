@@ -1,6 +1,6 @@
 import React from 'react';
 import dayjs from 'dayjs';
-import {Button, Dropdown, Menu, Table} from '../common';
+import {Button, Dropdown, Table} from '../common';
 import {SettingOutlined} from '../icons';
 import {User, Alignment} from '../../types';
 
@@ -84,12 +84,13 @@ const DisabledUsersTable = ({
 
         return (
           <Dropdown
-            overlay={
-              <Menu onClick={handleMenuClick}>
-                <Menu.Item key="enable">Enable user</Menu.Item>
-                <Menu.Item key="archive">Archive user</Menu.Item>
-              </Menu>
-            }
+            menu={{
+              onClick: handleMenuClick,
+              items: [
+                {key: 'enable', label: 'Enable user'},
+                {key: 'archive', label: 'Archive user'},
+              ],
+            }}
           >
             <Button icon={<SettingOutlined />} />
           </Dropdown>

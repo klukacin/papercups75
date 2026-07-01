@@ -155,7 +155,7 @@ defmodule ChatApi.Billing do
 
   def cancel_subscription_plan(account) do
     with {:ok, _} <-
-           Stripe.Subscription.delete(account.stripe_subscription_id) do
+           Stripe.Subscription.cancel(account.stripe_subscription_id) do
       Accounts.update_billing_info(account, %{
         stripe_subscription_id: nil,
         stripe_product_id: nil,

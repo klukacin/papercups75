@@ -7,7 +7,6 @@ import CustomerDetailsConversations from './CustomerDetailsConversations';
 import CustomerDetailsNotes from './CustomerDetailsNotes';
 import CustomerDetailsIssues from './CustomerDetailsIssues';
 
-const {TabPane} = Tabs;
 
 enum TabKey {
   Conversations = 'Conversations',
@@ -39,20 +38,29 @@ const CustomerDetailsMainSection = ({customerId, history}: Props) => {
       <Tabs
         defaultActiveKey={defaultActiveKey}
         tabBarStyle={{paddingLeft: '16px', marginBottom: '0'}}
-      >
-        <TabPane tab={TabKey.Conversations} key={TabKey.Conversations}>
-          <CustomerDetailsConversations
-            customerId={customerId}
-            history={history}
-          />
-        </TabPane>
-        <TabPane tab={TabKey.Notes} key={TabKey.Notes}>
-          <CustomerDetailsNotes customerId={customerId} />
-        </TabPane>
-        <TabPane tab={TabKey.Issues} key={TabKey.Issues}>
-          <CustomerDetailsIssues customerId={customerId} />
-        </TabPane>
-      </Tabs>
+        items={[
+          {
+            key: TabKey.Conversations,
+            label: TabKey.Conversations,
+            children: (
+              <CustomerDetailsConversations
+                customerId={customerId}
+                history={history}
+              />
+            ),
+          },
+          {
+            key: TabKey.Notes,
+            label: TabKey.Notes,
+            children: <CustomerDetailsNotes customerId={customerId} />,
+          },
+          {
+            key: TabKey.Issues,
+            label: TabKey.Issues,
+            children: <CustomerDetailsIssues customerId={customerId} />,
+          },
+        ]}
+      />
     </Card>
   );
 };

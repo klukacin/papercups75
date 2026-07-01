@@ -21,6 +21,11 @@ defmodule ChatApiWeb.GoogleController do
           _ -> nil
         end
 
+      # NOTE (oauth2 2.x upgrade): `get_access_token!/1` still returns an
+      # `%OAuth2.Client{}` whose `token` is an `%OAuth2.AccessToken{}` with the
+      # same fields used below (`access_token`, `refresh_token`, `token_type`,
+      # `expires_at`, `other_params`). The token-exchange + JSON decoding can only
+      # be verified with live Google OAuth credentials.
       client = Google.Auth.get_access_token!(code: code, redirect_uri: get_redirect_uri(type))
       Logger.debug("Gmail access token: #{inspect(client.token)}")
       scope = client.token.other_params["scope"] || params["scope"] || ""

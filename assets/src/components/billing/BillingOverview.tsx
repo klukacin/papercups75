@@ -400,7 +400,7 @@ class BillingOverview extends React.Component<Props, State> {
 
             <Modal
               title="Select plan"
-              visible={displayPricingModal}
+              open={displayPricingModal}
               width={1000}
               onCancel={this.handleCancelPricingModal}
               footer={[
@@ -460,7 +460,7 @@ class BillingOverview extends React.Component<Props, State> {
 
         <Modal
           title="Update credit card information"
-          visible={displayCreditCardModal}
+          open={displayCreditCardModal}
           onCancel={this.handleCloseCreditCardModal}
           footer={null}
         >

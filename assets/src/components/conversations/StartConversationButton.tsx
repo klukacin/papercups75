@@ -92,7 +92,7 @@ const NewConversationModal = ({
   return (
     <Modal
       title="Start a new conversation"
-      visible={visible}
+      open={visible}
       onCancel={onCancel}
       footer={[
         <Button key="cancel" onClick={onCancel}>

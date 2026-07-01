@@ -59,7 +59,7 @@ class ConversationModal extends React.Component<Props> {
     return (
       <Modal
         title={title}
-        visible={visible}
+        open={visible}
         bodyStyle={{padding: 0}}
         onCancel={onClose}
         footer={

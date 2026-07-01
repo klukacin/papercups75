@@ -1,38 +1,40 @@
 import React, {FunctionComponent} from 'react';
-import Alert from 'antd/lib/alert';
-import AutoComplete from 'antd/lib/auto-complete';
-import Badge from 'antd/lib/badge';
-import Button from 'antd/lib/button';
-import Checkbox from 'antd/lib/checkbox';
-import Divider from 'antd/lib/divider';
-import Drawer from 'antd/lib/drawer';
-import Dropdown from 'antd/lib/dropdown';
-import Empty from 'antd/lib/empty';
-import Input from 'antd/lib/input';
-import InputNumber from 'antd/lib/input-number';
-import Layout from 'antd/lib/layout';
-import List from 'antd/lib/list';
-import Mentions from 'antd/lib/mentions';
-import Menu from 'antd/lib/menu';
-import Modal from 'antd/lib/modal';
-import notification from 'antd/lib/notification';
-import Popconfirm from 'antd/lib/popconfirm';
-import Popover from 'antd/lib/popover';
-import Radio from 'antd/lib/radio';
-import Result from 'antd/lib/result';
-import Select from 'antd/lib/select';
-import Spin from 'antd/lib/spin';
-import Statistic from 'antd/lib/statistic';
-import Switch from 'antd/lib/switch';
-import Table from 'antd/lib/table';
-import Tabs from 'antd/lib/tabs';
-import Tag from 'antd/lib/tag';
-import Tooltip from 'antd/lib/tooltip';
-import Typography from 'antd/lib/typography';
-import Upload from 'antd/lib/upload';
+import {
+  Alert,
+  AutoComplete,
+  Badge,
+  Button,
+  Checkbox,
+  Divider,
+  Drawer,
+  Dropdown,
+  Empty,
+  Input,
+  InputNumber,
+  Layout,
+  List,
+  Mentions,
+  Menu,
+  Modal,
+  notification,
+  Popconfirm,
+  Popover,
+  Radio,
+  Result,
+  Select,
+  Spin,
+  Statistic,
+  Switch,
+  Table,
+  Tabs,
+  Tag,
+  Tooltip,
+  Typography,
+  Upload,
+} from 'antd';
 
 import {Prism as SyntaxHighlighter} from 'react-syntax-highlighter';
-import {prism as syntaxHighlightingLanguage} from 'react-syntax-highlighter/dist/esm/styles/prism';
+import {prism as syntaxHighlightingLanguage} from 'react-syntax-highlighter/dist/cjs/styles/prism';
 
 import {
   blue,
@@ -46,12 +48,11 @@ import {
   grey,
 } from '@ant-design/colors';
 
-import {Box, BoxProps, Flex, SxStyleProp} from 'theme-ui';
+import {Box, BoxProps, Flex, ThemeUICSSObject} from 'theme-ui';
 import DatePicker from './DatePicker';
 import MarkdownRenderer from './MarkdownRenderer';
 
-export type {UploadChangeParam} from 'antd/lib/upload';
-export type {UploadFile} from 'antd/lib/upload/interface';
+export type {UploadChangeParam, UploadFile} from 'antd/es/upload/interface';
 
 const {Title, Text, Paragraph} = Typography;
 const {Header, Content, Footer, Sider} = Layout;
@@ -71,7 +72,7 @@ export const colors = {
   blue: blue, // expose all blues
   gray: grey, // expose all grays
   text: 'rgba(0, 0, 0, 0.65)',
-  secondary: 'rgba(0, 0, 0, 0.45)',
+  secondary: 'rgba(0, 0, 0, 0.55)', // WCAG AA: ~4.7:1 on white
   note: '#fff1b8',
   noteSecondary: 'rgba(254,237,175,.4)',
 };
@@ -89,6 +90,7 @@ export const shadows = {
 export const StandardSyntaxHighlighter: FunctionComponent<{
   language: string;
   style?: any;
+  children: string | string[];
 }> = ({language, children, style = {}}) => {
   return (
     <SyntaxHighlighter
@@ -109,7 +111,7 @@ export const Card = ({
 }: {
   children: any;
   shadow?: boolean | 'small' | 'medium' | 'large';
-  sx?: SxStyleProp;
+  sx?: ThemeUICSSObject;
 } & BoxProps) => {
   const shadowKey = shadow && typeof shadow === 'boolean' ? 'primary' : shadow;
   const boxShadow = shadowKey ? shadows[shadowKey] || shadows.primary : 'none';
@@ -135,7 +137,7 @@ export const Container = ({
   sx = {},
 }: {
   children: any;
-  sx?: SxStyleProp;
+  sx?: ThemeUICSSObject;
 }) => {
   return (
     <Flex
@@ -159,6 +161,28 @@ export const TextArea = Input.TextArea;
  * Whitelist node types that we allow when we render markdown.
  * Reference https://github.com/rexxars/react-markdown#node-types
  */
+export const allowedMarkdownElements: Array<string> = [
+  'br',
+  'p',
+  'em',
+  'strong',
+  'blockquote',
+  'del',
+  'a',
+  'ul',
+  'ol',
+  'li',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+  'code',
+  'pre',
+  'img',
+];
+
 export const allowedNodeTypes: Array<any> = [
   'root',
   'text',

@@ -1,6 +1,14 @@
 defmodule ChatApi.Google.Gmail do
   require Logger
 
+  # NOTE (oauth2 2.x upgrade): all `OAuth2.Client.get/post` calls below return
+  # `{:ok, %OAuth2.Response{}}` / `{:error, ...}` as before, and `response.body`
+  # is a decoded JSON map only because `ChatApi.Google.Auth` now registers a
+  # Jason serializer for "application/json" (oauth2 2.x has no default
+  # serializer). Callers that pattern-match on `response.body` as a map
+  # (e.g. `download_message_attachment/2`, `format_thread/2`) depend on that
+  # decoding and can only be verified end-to-end with live Google OAuth.
+
   @spec send_message(binary(), map()) :: {:error, any()} | {:ok, OAuth2.Response.t()}
   def send_message(refresh_token, %{to: _, from: _, subject: _, text: _} = params) do
     with {:ok, client} <- ChatApi.Google.Auth.get_access_token(refresh_token: refresh_token),

@@ -1,7 +1,7 @@
 import React from 'react';
 import {Flex} from 'theme-ui';
 import dayjs from 'dayjs';
-import {colors, Button, Table, Tag, Text, Menu, Dropdown} from '../common';
+import {colors, Button, Table, Tag, Text, Dropdown} from '../common';
 import {SettingOutlined, SmileTwoTone} from '../icons';
 import {User, Alignment} from '../../types';
 
@@ -115,16 +115,15 @@ const AccountUsersTable = ({
 
         return (
           <Dropdown
-            overlay={
-              <Menu onClick={handleMenuClick}>
-                {record.role === 'user' ? (
-                  <Menu.Item key="admin">Grant admin permissions</Menu.Item>
-                ) : (
-                  <Menu.Item key="user">Remove admin permissions</Menu.Item>
-                )}
-                <Menu.Item key="disable">Disable user</Menu.Item>
-              </Menu>
-            }
+            menu={{
+              onClick: handleMenuClick,
+              items: [
+                record.role === 'user'
+                  ? {key: 'admin', label: 'Grant admin permissions'}
+                  : {key: 'user', label: 'Remove admin permissions'},
+                {key: 'disable', label: 'Disable user'},
+              ],
+            }}
           >
             <Button icon={<SettingOutlined />} />
           </Dropdown>

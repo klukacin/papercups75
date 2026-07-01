@@ -264,75 +264,7 @@ defmodule ChatApi.Reporting.Internal do
       num_customers_by_account: Reporting.group_customers_by_account(filters),
       num_customers_by_host: Reporting.group_customers_by_host(filters),
       num_new_integrations: Reporting.count_new_integrations(filters)
-      # stripe_subscription_metrics: stripe_subscription_metrics(filters)
     }
-  end
-
-  def stripe_subscription_metrics(filters \\ %{}) do
-    case Stripe.Subscription.list(%{limit: 100}) do
-      {:ok, %{data: data}} ->
-        paid_subscriptions = Enum.filter(data, &is_paid_subscription?/1)
-
-        # TODO: include comparisons with previous week?
-        metrics = %{
-          total: Enum.count(paid_subscriptions),
-          current:
-            paid_subscriptions
-            |> Enum.filter(fn sub ->
-              case filters do
-                %{from_date: from, to_date: to} -> sub.start_date > from && sub.start_date < to
-                %{from_date: from} -> sub.start_date > from
-                %{to_date: to} -> sub.start_date < to
-                _ -> true
-              end
-            end)
-            |> Enum.count(),
-          mrr:
-            paid_subscriptions
-            |> Enum.filter(&is_active_subscription?/1)
-            |> Enum.reduce(0, fn sub, total ->
-              total + calculate_subscription_mrr(sub)
-            end)
-        }
-
-        {:ok, metrics}
-
-      error ->
-        error
-    end
-  end
-
-  def is_paid_subscription?(%Stripe.Subscription{plan: %Stripe.Plan{active: true, amount: amount}}),
-      do: amount > 0
-
-  def is_paid_subscription?(_), do: false
-
-  def is_active_subscription?(%Stripe.Subscription{status: "active"}), do: true
-  def is_active_subscription?(_), do: false
-
-  def calculate_subscription_mrr(%Stripe.Subscription{} = subscription) do
-    case subscription do
-      %{
-        plan: %Stripe.Plan{active: true, amount: amount},
-        discount: %Stripe.Discount{
-          coupon: %Stripe.Coupon{
-            duration: "forever",
-            amount_off: amount_off,
-            percent_off: percent_off
-          }
-        }
-      } ->
-        a = min(amount_off || 0, amount)
-        p = min(amount * ((percent_off || 0) / 100), amount)
-
-        amount - a - p
-
-      %{plan: %Stripe.Plan{active: true, amount: amount}} ->
-        amount
-
-      _ ->
-        0
-    end
   end
 
   # Optional:

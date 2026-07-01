@@ -246,30 +246,38 @@ const ConversationFooter = ({
         return mentionableUsers.map(({id, email, display_name, full_name}) => {
           const value = display_name || full_name || email;
 
-          return (
-            <Mentions.Option key={id} value={value}>
-              <Box>
-                <Text>{value}</Text>
-              </Box>
-              <Box>
-                <Text type="secondary">{email}</Text>
-              </Box>
-            </Mentions.Option>
-          );
+          return {
+            key: String(id),
+            value: String(value),
+            label: (
+              <>
+                <Box>
+                  <Text>{value}</Text>
+                </Box>
+                <Box>
+                  <Text type="secondary">{email}</Text>
+                </Box>
+              </>
+            ),
+          };
         });
       case '#':
       case '/':
         return cannedResponses.map(({name, content}) => {
-          return (
-            <Mentions.Option key={name} value={name}>
-              <Box>
-                <Text>{name}</Text>
-              </Box>
-              <Box>
-                <Text type="secondary">{content}</Text>
-              </Box>
-            </Mentions.Option>
-          );
+          return {
+            key: name,
+            value: name,
+            label: (
+              <>
+                <Box>
+                  <Text>{name}</Text>
+                </Box>
+                <Box>
+                  <Text type="secondary">{content}</Text>
+                </Box>
+              </>
+            ),
+          };
         });
       default:
         return [];
@@ -312,20 +320,19 @@ const ConversationFooter = ({
                 defaultSelectedKeys={['reply']}
                 selectedKeys={[messageType]}
                 onClick={handleSetMessageType}
-              >
-                <Menu.Item
-                  key="reply"
-                  style={{padding: '0 4px', marginRight: 20}}
-                >
-                  Reply
-                </Menu.Item>
-                <Menu.Item
-                  key="note"
-                  style={{padding: '0 4px', marginRight: 20}}
-                >
-                  Note
-                </Menu.Item>
-              </Menu>
+                items={[
+                  {
+                    key: 'reply',
+                    label: 'Reply',
+                    style: {padding: '0 4px', marginRight: 20},
+                  },
+                  {
+                    key: 'note',
+                    label: 'Note',
+                    style: {padding: '0 4px', marginRight: 20},
+                  },
+                ]}
+              />
 
               <Box sx={{position: 'absolute', right: 0, top: 0, opacity: 0.8}}>
                 <DashboardShortcutsRenderer>
@@ -381,9 +388,8 @@ const ConversationFooter = ({
                 onChange={handleChangeMessage}
                 onSelect={handleSelectMentionOption}
                 onSearch={handleSearchMentions}
-              >
-                {getMentionOptions()}
-              </Mentions>
+                options={getMentionOptions()}
+              />
             </Box>
             {shouldDisplayUploadButton ? (
               <Flex

@@ -9,12 +9,16 @@ defmodule ChatApiWeb.SessionControllerTest do
   @invalid_params %{"user" => %{"email" => "test@example.com", "password" => "invalid"}}
 
   setup do
-    {:ok, user} =
+    params =
       params_with_assocs(:user)
       |> with_password_confirmation()
-      |> Users.create_user()
 
-    {:ok, user: user}
+    {:ok, user} = Users.create_user(params)
+
+    # Pow clears the virtual :password field after hashing it into
+    # :password_hash, so restore the plaintext password on the struct to let
+    # these tests authenticate with it via auth_params/1.
+    {:ok, user: %{user | password: params.password}}
   end
 
   def auth_params(%User{} = user) do

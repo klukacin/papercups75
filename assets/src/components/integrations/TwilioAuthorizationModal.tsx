@@ -90,7 +90,7 @@ const TwilioAuthorizationModal = ({
   return (
     <Modal
       title="Connect to Twilio"
-      visible={visible}
+      open={visible}
       onOk={handleSetAuthorization}
       onCancel={handleCancel}
       footer={[

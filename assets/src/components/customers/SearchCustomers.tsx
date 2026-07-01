@@ -100,7 +100,7 @@ export const SearchCustomersModal = ({
   return (
     <Modal
       title={title}
-      visible={visible}
+      open={visible}
       width={400}
       onOk={handleSuccess}
       onCancel={onCancel}

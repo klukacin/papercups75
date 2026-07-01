@@ -64,7 +64,7 @@ const UpdateTagModal = ({
   return (
     <Modal
       title="Edit tag details"
-      visible={visible}
+      open={visible}
       width={400}
       onOk={handleCreateTag}
       onCancel={handleCancelTag}

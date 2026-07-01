@@ -8,7 +8,7 @@ defmodule ChatApi.Emails.Email do
 
   @type t :: Swoosh.Email.t()
 
-  @from_address System.get_env("FROM_ADDRESS") || ""
+  @from_address System.get_env("FROM_ADDRESS") || "noreply@papercups.local"
   @backend_url System.get_env("BACKEND_URL", "app.papercups.io")
 
   defstruct to_address: nil, message: nil
@@ -189,10 +189,16 @@ defmodule ChatApi.Emails.Email do
     </p>
     """
 
-    case Earmark.as_html(markdown) do
-      {:ok, html, _} -> html
-      _ -> fallback
-    end
+    html =
+      case Earmark.as_html(markdown) do
+        {:ok, html, _} -> html
+        _ -> fallback
+      end
+
+    # Message bodies are user-supplied and Earmark (retired) has a stored-XSS
+    # advisory for unescaped HTML attribute values, so sanitize the rendered
+    # HTML before it goes into a notification email.
+    HtmlSanitizeEx.basic_html(html)
   end
 
   def mention_notification(

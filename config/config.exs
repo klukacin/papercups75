@@ -1,4 +1,4 @@
-use Mix.Config
+import Config
 
 config :chat_api,
   environment: Mix.env(),
@@ -24,9 +24,9 @@ config :logger, :console,
 config :phoenix, :json_library, Jason
 
 # Set up timezone database
-config :elixir, :time_zone_database, Tzdata.TimeZoneDatabase
+config :elixir, :time_zone_database, Tz.TimeZoneDatabase
 
-config :tesla, adapter: Tesla.Adapter.Hackney
+config :tesla, adapter: {Tesla.Adapter.Finch, name: ChatApi.Finch}
 
 # Configure Swagger
 config :phoenix_swagger, json_library: Jason
@@ -75,6 +75,18 @@ config :chat_api, Oban,
   ]
 
 config :chat_api, ChatApi.Mailers.Gmail, adapter: Swoosh.Adapters.Gmail
+
+# Route ex_aws (AWS S3/SES/Lambda) HTTP through Tesla/Finch instead of hackney.
+config :ex_aws, http_client: ChatApi.ExAwsHttpClient
+
+# PromEx exposes Prometheus metrics at /metrics (see ChatApiWeb.Endpoint).
+# Metrics are served via the endpoint plug, and Grafana dashboards are
+# provisioned by the operator, so PromEx's own server/Grafana uploader are off.
+config :chat_api, ChatApi.PromEx,
+  manual_metrics_start_delay: :no_delay,
+  drop_metrics_groups: [],
+  grafana: :disabled,
+  metrics_server: :disabled
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

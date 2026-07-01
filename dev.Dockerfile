@@ -1,11 +1,11 @@
 ARG MIX_ENV=dev
-FROM elixir:1.10 as dev
+FROM elixir:1.18-otp-25 as dev
 ENV MIX_HOME=/opt/mix
 
 WORKDIR /usr/src/app
 ENV LANG=C.UTF-8
 
-RUN curl -sL https://deb.nodesource.com/setup_12.x | bash - && \
+RUN curl -sL https://deb.nodesource.com/setup_22.x | bash - && \
     apt-get install -y nodejs fswatch && \
     mix local.hex --force && \
     mix local.rebar --force
@@ -18,7 +18,7 @@ COPY config config
 RUN mix do deps.get, deps.compile
 
 COPY assets/package.json assets/package-lock.json ./assets/
-RUN npm install --prefix=assets
+RUN npm install --prefix=assets --legacy-peer-deps
 
 # Temporary fix because of https://github.com/facebook/create-react-app/issues/8413
 ENV GENERATE_SOURCEMAP=false

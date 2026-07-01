@@ -55,7 +55,7 @@ const NewTagModal = ({
   return (
     <Modal
       title="Create new tag"
-      visible={visible}
+      open={visible}
       width={400}
       onOk={handleCreateTag}
       onCancel={handleCancelTag}

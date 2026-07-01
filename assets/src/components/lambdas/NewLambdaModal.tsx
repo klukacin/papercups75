@@ -54,7 +54,7 @@ const NewLambdaModal = ({
   return (
     <Modal
       title="Create new function"
-      visible={visible}
+      open={visible}
       width={400}
       onOk={handleCreateLambda}
       onCancel={handleCancelLambda}

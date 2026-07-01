@@ -1,5 +1,7 @@
 defmodule ChatApi.SlackConversationThreadsTest do
-  use ChatApi.DataCase, async: true
+  # async: false because these tests use global :meck mocks (Mock), which would
+  # otherwise leak into concurrently running tests that call the same modules.
+  use ChatApi.DataCase, async: false
 
   import ChatApi.Factory
   import Mock

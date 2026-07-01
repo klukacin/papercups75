@@ -2,7 +2,7 @@
 
 > _papercups75 is a community-maintained fork of [Papercups](https://github.com/papercups-io/papercups), which is in maintenance mode upstream. This fork continues development and keeps the dependency/runtime stack up to date. Distributed under the MIT License; see [NOTICE.md](./NOTICE.md) for attribution._
 
-# Papercups
+# papercups75
 
 Papercups is an open source live customer support tool web app written in Elixir. We offer a hosted version at [app.papercups.io](https://app.papercups.io/).
 
@@ -15,7 +15,7 @@ _Watch how easy it is to get set up with our Slack integration 🚀 :_
 
 The fastest way to get started is one click deploy on Heroku with:
 
-<a href="https://heroku.com/deploy?template=https://github.com/papercups-io/papercups"><img src="https://www.herokucdn.com/deploy/button.svg" width="200px" /></a>
+<a href="https://heroku.com/deploy?template=https://github.com/klukacin/papercups75"><img src="https://www.herokucdn.com/deploy/button.svg" width="200px" /></a>
 
 ## Philosophy
 
@@ -36,6 +36,22 @@ We wanted to make a self-hosted customer support tool like Zendesk and Intercom 
 - **Conversation management** - close, assign, and prioritize conversations
 - **Built on Elixir** - optimized for responsiveness, fault-tolerance, and support for realtime updates
 
+## Related open-source components
+
+The chat widget and its companions are separate upstream repositories, consumed
+here as npm packages. papercups75 currently uses:
+
+| Component | Repository | npm package (version used) |
+|---|---|---|
+| Chat widget (React/HTML) | [papercups-io/chat-widget](https://github.com/papercups-io/chat-widget) | `@papercups-io/chat-widget` `^1.3.1` |
+| Chat builder | [papercups-io/chat-builder](https://github.com/papercups-io/chat-builder) | `@papercups-io/chat-builder` `0.0.12` |
+| Storytime (session replay) | [papercups-io/storytime](https://github.com/papercups-io/storytime) | `@papercups-io/storytime` `^1.0.6` |
+| React Native widget | [papercups-io/chat-widget-native](https://github.com/papercups-io/chat-widget-native) | _(not used by the backend)_ |
+| Flutter widget | [papercups-io/papercups_flutter](https://github.com/papercups-io/papercups_flutter) | _(not used by the backend)_ |
+
+These are also unmaintained upstream; if papercups75 needs changes to them, fork
+the relevant repo separately.
+
 ## Demo
 
 We set up a [simple page](https://app.papercups.io/demo) that demonstrates how Papercups works.
@@ -52,7 +68,7 @@ Check out our docs at [docs.papercups.io](https://docs.papercups.io/)
 
 ## Contributing
 
-We :heart: contributions big or small. See [CONTRIBUTING.md](https://github.com/papercups-io/papercups/blob/master/CONTRIBUTING.md) for a guide on how to get started.
+We :heart: contributions big or small. See [CONTRIBUTING.md](https://github.com/klukacin/papercups75/blob/master/CONTRIBUTING.md) for a guide on how to get started.
 
 ## Thanks to all of our contributors!
 

@@ -60,7 +60,7 @@ const NewForwardingAddressModal = ({
   return (
     <Modal
       title="Create new forwarding address"
-      visible={visible}
+      open={visible}
       width={400}
       onOk={handleCreateForwardingAddress}
       onCancel={handleCancelForwardingAddress}

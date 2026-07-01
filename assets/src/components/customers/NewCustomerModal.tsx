@@ -66,7 +66,7 @@ const NewCustomerModal = ({
   return (
     <Modal
       title="Create new customer"
-      visible={visible}
+      open={visible}
       width={400}
       onOk={handleCreateCustomer}
       onCancel={handleCancelCustomer}

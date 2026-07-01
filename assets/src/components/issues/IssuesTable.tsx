@@ -3,7 +3,7 @@ import {Link} from 'react-router-dom';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import {Flex} from 'theme-ui';
-import {Button, Dropdown, Menu, Table, Tag, Text} from '../common';
+import {Button, Dropdown, Table, Tag, Text} from '../common';
 import {SettingOutlined} from '../icons';
 import * as API from '../../api';
 import * as T from '../../types';
@@ -109,33 +109,38 @@ export const IssuesTable = ({
         return (
           <Flex sx={{justifyContent: 'flex-end'}}>
             <Dropdown
-              overlay={
-                <Menu onClick={handleMenuClick}>
-                  <Menu.Item key="info">
-                    <Link to={`/issues/${issueId}`}>View details</Link>
-                  </Menu.Item>
-                  {!!githubIssueUrl && (
-                    <Menu.Item key="github">
-                      <a
-                        href={githubIssueUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        View on GitHub
-                      </a>
-                    </Menu.Item>
-                  )}
-                  {state !== 'done' && (
-                    <Menu.Item key="done">Move to done</Menu.Item>
-                  )}
-                  {state !== 'closed' && (
-                    <Menu.Item key="closed">Move to closed</Menu.Item>
-                  )}
-                  {state !== 'unstarted' && state !== 'in_progress' && (
-                    <Menu.Item key="unstarted">Move to unstarted</Menu.Item>
-                  )}
-                </Menu>
-              }
+              menu={{
+                onClick: handleMenuClick,
+                items: [
+                  {
+                    key: 'info',
+                    label: <Link to={`/issues/${issueId}`}>View details</Link>,
+                  },
+                  githubIssueUrl
+                    ? {
+                        key: 'github',
+                        label: (
+                          <a
+                            href={githubIssueUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            View on GitHub
+                          </a>
+                        ),
+                      }
+                    : null,
+                  state !== 'done'
+                    ? {key: 'done', label: 'Move to done'}
+                    : null,
+                  state !== 'closed'
+                    ? {key: 'closed', label: 'Move to closed'}
+                    : null,
+                  state !== 'unstarted' && state !== 'in_progress'
+                    ? {key: 'unstarted', label: 'Move to unstarted'}
+                    : null,
+                ],
+              }}
             >
               <Button icon={<SettingOutlined />} />
             </Dropdown>

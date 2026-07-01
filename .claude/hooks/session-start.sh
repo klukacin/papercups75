@@ -25,23 +25,64 @@ psql_postgres() { as_root su - postgres -c "psql -tAc \"$1\""; }
 
 log() { echo "[session-start] $*"; }
 
-# --- 1. System toolchain (Elixir/Erlang) ----------------------------------
-# Ubuntu's packaged Elixir/Erlang installs in seconds and is capable of
-# building both the current app and the target Phoenix upgrade. (A newer
-# Elixir/OTP would have to compile Erlang from source on every ephemeral
-# container, which is slow and fragile.)
-if ! command -v elixir >/dev/null 2>&1; then
-  log "Installing Elixir/Erlang via apt..."
-  as_root apt-get update -qq
-  # erlang-nox: full Erlang runtime minus GUI/wx (provides xmerl, etc. that
-  #   deps like sweet_xml need). The GUI 'erlang' meta-package pulls wx and
-  #   currently 404s, so we deliberately use the -nox variant.
-  # erlang-dev: yecc/leex headers (yeccpre.hrl) that some Hex packages
-  #   (e.g. earmark_parser) need to compile their grammars.
-  as_root apt-get install -y -q elixir erlang-nox erlang-dev
-else
-  log "Elixir already present: $(elixir --version | tail -1)"
+# --- 1. System toolchain (precompiled OTP + Elixir, no source builds) ---
+# Both Erlang/OTP and Elixir come from official *precompiled* releases, so
+# nothing is built from source on each ephemeral container:
+#   - OTP from builds.hex.pm (the same artifacts setup-beam uses in CI)
+#   - Elixir from the elixir-lang GitHub release built for the matching OTP
+# We use OTP 27 so current deps compile (e.g. jose >= 1.11.10 uses the OTP 26
+# `dynamic()` type). The full OTP tarball includes parsetools (yecc headers)
+# and xmerl, which some Hex packages need.
+OTP_DIR=/opt/otp
+ELIXIR_DIR=/opt/elixir
+OTP_VERSION=27.3.4.13
+ELIXIR_VERSION=1.18.4
+
+# Runtime libraries the precompiled OTP links against (OpenSSL 3, ncurses/tinfo)
+# plus the download tools.
+as_root apt-get update -qq
+as_root apt-get install -y -q libssl3 libtinfo6 ca-certificates curl unzip
+
+if [ ! -x "$OTP_DIR/bin/erl" ]; then
+  log "Installing precompiled Erlang/OTP ${OTP_VERSION}..."
+  TMP_TGZ="$(mktemp)"
+  curl -fsSL -o "$TMP_TGZ" \
+    "https://builds.hex.pm/builds/otp/ubuntu-24.04/OTP-${OTP_VERSION}.tar.gz"
+  as_root mkdir -p "$OTP_DIR"
+  as_root tar -xzf "$TMP_TGZ" -C "$OTP_DIR" --strip-components=1
+  rm -f "$TMP_TGZ"
+  # Fix the absolute paths baked into the OTP scripts (erl, etc.).
+  (cd "$OTP_DIR" && as_root ./Install -minimal "$OTP_DIR" >/dev/null)
 fi
+
+export PATH="$OTP_DIR/bin:$PATH"
+
+if [ ! -x "$ELIXIR_DIR/bin/elixir" ]; then
+  log "Installing precompiled Elixir ${ELIXIR_VERSION} (OTP 27)..."
+  TMP_ZIP="$(mktemp)"
+  curl -fsSL -o "$TMP_ZIP" \
+    "https://github.com/elixir-lang/elixir/releases/download/v${ELIXIR_VERSION}/elixir-otp-27.zip"
+  as_root mkdir -p "$ELIXIR_DIR"
+  as_root unzip -oq "$TMP_ZIP" -d "$ELIXIR_DIR"
+  rm -f "$TMP_ZIP"
+fi
+
+# Put Erlang + Elixir on PATH and set a UTF-8 locale (+fnu avoids latin1
+# name-encoding warnings) for the rest of this script...
+export PATH="$ELIXIR_DIR/bin:$PATH"
+export LANG="${LANG:-C.UTF-8}" LC_ALL="${LC_ALL:-C.UTF-8}" ELIXIR_ERL_OPTIONS="+fnu"
+
+# ...and persist it for the rest of the session (the agent's later shells).
+if [ -n "${CLAUDE_ENV_FILE:-}" ]; then
+  {
+    echo "export PATH=\"$OTP_DIR/bin:$ELIXIR_DIR/bin:\$PATH\""
+    echo "export LANG=C.UTF-8"
+    echo "export LC_ALL=C.UTF-8"
+    echo "export ELIXIR_ERL_OPTIONS=+fnu"
+  } >> "$CLAUDE_ENV_FILE"
+fi
+
+log "Using $("$ELIXIR_DIR/bin/elixir" --version | tail -1)"
 
 # --- 2. Hex + Rebar -------------------------------------------------------
 log "Ensuring Hex and Rebar are installed..."
@@ -52,17 +93,9 @@ mix local.rebar --force >/dev/null
 if command -v pg_ctlcluster >/dev/null 2>&1; then
   log "Starting Postgres..."
   PG_VER="$(pg_lsclusters -h | awk 'NR==1{print $1}')"
-  # The Postgrex version pinned for the current app predates Postgres 16's
-  # default scram-sha-256 auth and dies with {:case_clause, []} against it.
-  # Switch localhost auth to trust so the dev/test DB connections work without
-  # touching the locked dependency. (Local dev container only.)
-  HBA="/etc/postgresql/${PG_VER}/main/pg_hba.conf"
-  if [ -f "$HBA" ]; then
-    as_root sed -i -E 's|^(host[[:space:]]+all[[:space:]]+all[[:space:]]+(127\.0\.0\.1/32|::1/128)[[:space:]]+)scram-sha-256|\1trust|' "$HBA"
-  fi
   as_root pg_ctlcluster "$PG_VER" main start || true
-  psql_postgres "SELECT pg_reload_conf();" >/dev/null 2>&1 || true
-  # Keep a password on the role too, in case auth is later tightened.
+  # Give the postgres role the password the dev/test config expects. The
+  # default localhost scram-sha-256 auth works with the upgraded Postgrex.
   psql_postgres "ALTER USER postgres PASSWORD 'postgres';" >/dev/null 2>&1 || true
 fi
 
@@ -73,7 +106,7 @@ mix deps.get
 # --- 5. Frontend dependencies --------------------------------------------
 if [ -f assets/package.json ]; then
   log "Installing frontend dependencies..."
-  npm install --prefix=assets --no-audit --no-fund
+  npm install --prefix=assets --legacy-peer-deps --no-audit --no-fund
 fi
 
 log "Setup complete."

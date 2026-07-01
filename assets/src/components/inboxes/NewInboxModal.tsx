@@ -54,7 +54,7 @@ const NewInboxModal = ({
   return (
     <Modal
       title="Create new inbox"
-      visible={visible}
+      open={visible}
       width={400}
       onOk={handleCreateInbox}
       onCancel={handleCancelInbox}

@@ -71,7 +71,7 @@ const UpdateIssueModal = ({
   return (
     <Modal
       title="Update issue"
-      visible={visible}
+      open={visible}
       width={400}
       onOk={handleUpdateIssue}
       onCancel={handleCancelIssue}

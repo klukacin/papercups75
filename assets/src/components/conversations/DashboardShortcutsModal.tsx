@@ -71,7 +71,7 @@ const DashboardShortcutsModal = ({
   return (
     <Modal
       title="Keyboard Shortcuts"
-      visible={visible}
+      open={visible}
       onCancel={onCancel}
       footer={[
         <Button key="cancel" onClick={onCancel}>

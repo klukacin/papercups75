@@ -37,7 +37,27 @@ defmodule ChatApi.Application do
 
     Logger.debug("Inspecting PubSub configuration: #{inspect(pub_sub_opts)}")
 
+    # NOTE (sentry 13 upgrade): the old `Sentry.LoggerBackend` Logger backend was
+    # replaced by the `Sentry.LoggerHandler` `:logger` handler, which must be
+    # attached this way (instead of via `config :logger, backends: ...`). Sentry
+    # only actually sends events when a `dsn` is configured, so attaching the
+    # handler unconditionally is safe in all environments. The options below
+    # preserve the previous behavior: also report warning-level messages and
+    # capture `Logger.error/1`-style messages (not just process crashes).
+    # Can only be confirmed end-to-end with a live Sentry/GlitchTip DSN.
+    :logger.add_handler(:sentry_handler, Sentry.LoggerHandler, %{
+      config: %{
+        metadata: [:file, :line],
+        level: :warning,
+        capture_log_messages: true
+      }
+    })
+
     children = [
+      # Start the Finch HTTP pool (used as the Tesla adapter, replacing hackney)
+      {Finch, name: ChatApi.Finch},
+      # Start the PromEx telemetry/Prometheus exporter
+      ChatApi.PromEx,
       # Start the Ecto repository
       ChatApi.Repo,
       # Start the Telemetry supervisor

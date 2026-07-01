@@ -1,4 +1,7 @@
-use Mix.Config
+import Config
+
+# Use Tesla's mock adapter in tests; HTTP-calling code sets up mocks per test.
+config :tesla, adapter: Tesla.Mock
 
 # Configure your database
 #
@@ -28,7 +31,6 @@ config :chat_api, Oban, crontab: false, queues: false, plugins: false
 config :sentry,
   dsn: System.get_env("SENTRY_DSN"),
   environment_name: Mix.env(),
-  included_environments: [:prod],
   enable_source_code_context: true,
   root_source_code_path: File.cwd!()
 
