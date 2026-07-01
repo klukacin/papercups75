@@ -36,6 +36,22 @@ We wanted to make a self-hosted customer support tool like Zendesk and Intercom 
 - **Conversation management** - close, assign, and prioritize conversations
 - **Built on Elixir** - optimized for responsiveness, fault-tolerance, and support for realtime updates
 
+## Related open-source components
+
+The chat widget and its companions are separate upstream repositories, consumed
+here as npm packages. papercups75 currently uses:
+
+| Component | Repository | npm package (version used) |
+|---|---|---|
+| Chat widget (React/HTML) | [papercups-io/chat-widget](https://github.com/papercups-io/chat-widget) | `@papercups-io/chat-widget` `^1.3.1` |
+| Chat builder | [papercups-io/chat-builder](https://github.com/papercups-io/chat-builder) | `@papercups-io/chat-builder` `0.0.12` |
+| Storytime (session replay) | [papercups-io/storytime](https://github.com/papercups-io/storytime) | `@papercups-io/storytime` `^1.0.6` |
+| React Native widget | [papercups-io/chat-widget-native](https://github.com/papercups-io/chat-widget-native) | _(not used by the backend)_ |
+| Flutter widget | [papercups-io/papercups_flutter](https://github.com/papercups-io/papercups_flutter) | _(not used by the backend)_ |
+
+These are also unmaintained upstream; if papercups75 needs changes to them, fork
+the relevant repo separately.
+
 ## Demo
 
 We set up a [simple page](https://app.papercups.io/demo) that demonstrates how Papercups works.
