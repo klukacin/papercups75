@@ -5,18 +5,34 @@ on:
     branches: [master]
   pull_request:
 
+env:
+  # Keep in sync with .tool-versions / the SessionStart hook and Dockerfile.
+  ELIXIR_VERSION: "1.18.4"
+  OTP_VERSION: "27.3"
+  NODE_VERSION: "22"
+
 jobs:
   mix-format:
     name: Mix Format
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-      - name: Initial setup
-        uses: erlef/setup-elixir@v1
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
         with:
-          elixir-version: "1.11.4"
-          otp-version: "23.0.3"
+          elixir-version: ${{ env.ELIXIR_VERSION }}
+          otp-version: ${{ env.OTP_VERSION }}
+
+      - name: Restore deps cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-mix-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-${{ hashFiles('mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-mix-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-
 
       - name: Install dependencies
         run: mix deps.get
@@ -28,16 +44,17 @@ jobs:
     name: Prettier
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-      - name: Initial setup
-        uses: erlef/setup-elixir@v1
+      - name: Set up Node
+        uses: actions/setup-node@v4
         with:
-          elixir-version: "1.10.4"
-          otp-version: "22.2.6"
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: assets/package-lock.json
 
       - name: Install dependencies
-        run: npm install --prefix assets
+        run: npm install --prefix assets --legacy-peer-deps
 
       - name: Run format check
         run: npm run prettier:check --prefix assets
@@ -46,19 +63,41 @@ jobs:
     name: Build UI
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-      - name: Initial setup
-        uses: erlef/setup-elixir@v1
+      - name: Set up Node
+        uses: actions/setup-node@v4
         with:
-          elixir-version: "1.10.4"
-          otp-version: "22.2.6"
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: assets/package-lock.json
 
       - name: Install dependencies
-        run: npm install --prefix assets
+        run: npm install --prefix assets --legacy-peer-deps
 
       - name: Run build
         run: npm run build --prefix assets
+
+  ui-test:
+    name: UI Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: assets/package-lock.json
+
+      - name: Install dependencies
+        run: npm install --prefix assets --legacy-peer-deps
+
+      - name: Run tests
+        run: npm test --prefix assets -- --watchAll=false
+        env:
+          CI: "true"
 
   mix-test:
     name: Mix Test
@@ -72,7 +111,7 @@ jobs:
       DATABASE_PASSWORD: postgres
     services:
       postgres:
-        image: postgres:10.4
+        image: postgres:16
         env:
           POSTGRES_PASSWORD: "postgres"
         ports:
@@ -83,13 +122,23 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-      - name: Initial setup
-        uses: erlef/setup-elixir@v1
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
         with:
-          elixir-version: "1.10.4"
-          otp-version: "22.2.6"
+          elixir-version: ${{ env.ELIXIR_VERSION }}
+          otp-version: ${{ env.OTP_VERSION }}
+
+      - name: Restore deps cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-mix-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-${{ hashFiles('mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-mix-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-
 
       - name: Install dependencies
         run: mix deps.get
