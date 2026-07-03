@@ -123,6 +123,23 @@ defmodule ChatApi.Accounts do
     raise "current_account_id not assigned: ChatApiWeb.CurrentAccountPlug must run before calling get_current_account_id!/1"
   end
 
+  @doc """
+  Non-raising account resolution for controllers. Returns the account id
+  assigned by `ChatApiWeb.CurrentAccountPlug` (from the `x-account-id` header,
+  membership-checked), falling back to the current user's primary account, and
+  finally `nil` when neither is available. Safe to call from any action.
+  """
+  @spec get_current_account_id(Plug.Conn.t()) :: binary() | nil
+  def get_current_account_id(%Plug.Conn{assigns: assigns}) do
+    case assigns do
+      %{current_account_id: account_id} when not is_nil(account_id) -> account_id
+      %{current_user: %{account_id: account_id}} when not is_nil(account_id) -> account_id
+      _ -> nil
+    end
+  end
+
+  def get_current_account_id(%Plug.Conn{}), do: nil
+
   @spec list_accounts() :: [Account.t()]
   def list_accounts do
     Repo.all(Account)
