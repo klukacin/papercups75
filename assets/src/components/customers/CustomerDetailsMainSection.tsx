@@ -7,7 +7,6 @@ import CustomerDetailsConversations from './CustomerDetailsConversations';
 import CustomerDetailsNotes from './CustomerDetailsNotes';
 import CustomerDetailsIssues from './CustomerDetailsIssues';
 
-
 enum TabKey {
   Conversations = 'Conversations',
   Notes = 'Notes',

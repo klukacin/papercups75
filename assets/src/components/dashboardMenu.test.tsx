@@ -1,7 +1,4 @@
-import {
-  buildPrimaryMenuItems,
-  buildSecondaryMenuItems,
-} from './dashboardMenu';
+import {buildPrimaryMenuItems, buildSecondaryMenuItems} from './dashboardMenu';
 
 const keysOf = (items: any[]): string[] =>
   (items || []).filter(Boolean).map((i: any) => i.key);
@@ -29,7 +26,9 @@ describe('dashboard menu builders', () => {
       ])
     );
 
-    const settings: any = (items as any[]).find((i) => i && i.key === 'settings');
+    const settings: any = (items as any[]).find(
+      (i) => i && i.key === 'settings'
+    );
     expect(keysOf(settings.children)).toContain('billing');
   });
 
@@ -47,7 +46,9 @@ describe('dashboard menu builders', () => {
     expect(keys).not.toContain('developers');
     expect(keys).toContain('conversations');
 
-    const settings: any = (items as any[]).find((i) => i && i.key === 'settings');
+    const settings: any = (items as any[]).find(
+      (i) => i && i.key === 'settings'
+    );
     // Non-admin settings submenu is limited to profile + saved replies.
     expect(keysOf(settings.children)).toEqual(['profile', 'saved-replies']);
   });
@@ -59,7 +60,9 @@ describe('dashboard menu builders', () => {
       totalNumUnread: 0,
       shouldDisplayBilling: false,
     });
-    const settings: any = (items as any[]).find((i) => i && i.key === 'settings');
+    const settings: any = (items as any[]).find(
+      (i) => i && i.key === 'settings'
+    );
     expect(keysOf(settings.children)).not.toContain('billing');
   });
 

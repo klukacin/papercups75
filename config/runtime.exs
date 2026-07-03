@@ -164,7 +164,7 @@ config :ex_aws,
 
 case System.get_env("PAPERCUPS_STRIPE_SECRET") do
   "sk_" <> _rest = api_key ->
-    config :stripity_stripe, api_key: api_key
+    config :chat_api, :stripe_api_key, api_key
 
   _ ->
     nil

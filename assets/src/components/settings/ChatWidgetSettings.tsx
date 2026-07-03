@@ -592,17 +592,18 @@ const CodeSnippet: FunctionComponent<CodeSnippetProps> = ({
           label: 'HTML',
           children: (
             <>
-        <Box mb={4}>
-          <Title level={4}>Usage in HTML</Title>
-          <Paragraph>
-            <Text>
-              Paste the code below between your <Text code>{'<head>'}</Text> and{' '}
-              <Text code>{'</head>'}</Text> tags:
-            </Text>
-          </Paragraph>
+              <Box mb={4}>
+                <Title level={4}>Usage in HTML</Title>
+                <Paragraph>
+                  <Text>
+                    Paste the code below between your{' '}
+                    <Text code>{'<head>'}</Text> and{' '}
+                    <Text code>{'</head>'}</Text> tags:
+                  </Text>
+                </Paragraph>
 
-          <StandardSyntaxHighlighter language="html">
-            {`
+                <StandardSyntaxHighlighter language="html">
+                  {`
 <script>
 window.Papercups = {
   config: {
@@ -645,8 +646,8 @@ window.Papercups = {
   src="${FRONTEND_BASE_URL}/widget.js"
 ></script>
 `.trim()}
-          </StandardSyntaxHighlighter>
-        </Box>
+                </StandardSyntaxHighlighter>
+              </Box>
             </>
           ),
         },
@@ -655,45 +656,45 @@ window.Papercups = {
           label: 'React',
           children: (
             <>
-        <Box mb={4}>
-          <Title level={4}>Usage in React</Title>
-          <Box mb={3}>
-            <Alert
-              message={
-                <Text>
-                  If you've already installed a previous version of{' '}
-                  <Text code>@papercups-io/chat-widget</Text>, please upgrade to
-                  version <Text code>^1.2.0</Text> in order to receive inbox
-                  support.
-                </Text>
-              }
-              type="warning"
-              showIcon
-            />
-          </Box>
-          <Paragraph>
-            <Text>
-              First, install the <Text code>@papercups-io/chat-widget</Text>{' '}
-              package:
-            </Text>
-          </Paragraph>
+              <Box mb={4}>
+                <Title level={4}>Usage in React</Title>
+                <Box mb={3}>
+                  <Alert
+                    message={
+                      <Text>
+                        If you've already installed a previous version of{' '}
+                        <Text code>@papercups-io/chat-widget</Text>, please
+                        upgrade to version <Text code>^1.2.0</Text> in order to
+                        receive inbox support.
+                      </Text>
+                    }
+                    type="warning"
+                    showIcon
+                  />
+                </Box>
+                <Paragraph>
+                  <Text>
+                    First, install the{' '}
+                    <Text code>@papercups-io/chat-widget</Text> package:
+                  </Text>
+                </Paragraph>
 
-          <Paragraph>
-            <StandardSyntaxHighlighter language="bash">
-              npm install --save @papercups-io/chat-widget
-            </StandardSyntaxHighlighter>
-          </Paragraph>
+                <Paragraph>
+                  <StandardSyntaxHighlighter language="bash">
+                    npm install --save @papercups-io/chat-widget
+                  </StandardSyntaxHighlighter>
+                </Paragraph>
 
-          <Paragraph>
-            <Text>
-              Your account token has been prefilled in the code below. Simply
-              copy and paste the code into whichever pages you would like to
-              display the chat widget!
-            </Text>
-          </Paragraph>
+                <Paragraph>
+                  <Text>
+                    Your account token has been prefilled in the code below.
+                    Simply copy and paste the code into whichever pages you
+                    would like to display the chat widget!
+                  </Text>
+                </Paragraph>
 
-          <StandardSyntaxHighlighter language="typescript">
-            {`
+                <StandardSyntaxHighlighter language="typescript">
+                  {`
 import React from "react";
 import {ChatWidget} from "@papercups-io/chat-widget";
 
@@ -744,8 +745,8 @@ const ExamplePage = () => {
   );
 };
 `.trim()}
-          </StandardSyntaxHighlighter>
-        </Box>
+                </StandardSyntaxHighlighter>
+              </Box>
             </>
           ),
         },

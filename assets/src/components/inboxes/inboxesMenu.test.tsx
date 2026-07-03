@@ -1,7 +1,13 @@
 import {buildInboxesMenuItems} from './inboxesMenu';
 
 const baseUnread: any = {
-  conversations: {assigned: 1, mentioned: 2, unread: 3, unassigned: 4, priority: 5},
+  conversations: {
+    assigned: 1,
+    mentioned: 2,
+    unread: 3,
+    unassigned: 4,
+    priority: 5,
+  },
   inboxes: {'inbox-1': 7},
 };
 
@@ -27,7 +33,9 @@ describe('buildInboxesMenuItems', () => {
       ])
     );
 
-    const inboxesSub: any = (items as any[]).find((i) => i && i.key === 'inboxes');
+    const inboxesSub: any = (items as any[]).find(
+      (i) => i && i.key === 'inboxes'
+    );
     expect(keysOf(inboxesSub.children)).toEqual(['inbox-1']);
   });
 
@@ -56,7 +64,9 @@ describe('buildInboxesMenuItems', () => {
         called = true;
       },
     });
-    const addInbox: any = (items as any[]).find((i) => i && i.key === 'add-inbox');
+    const addInbox: any = (items as any[]).find(
+      (i) => i && i.key === 'add-inbox'
+    );
     addInbox.onClick();
     expect(called).toBe(true);
   });

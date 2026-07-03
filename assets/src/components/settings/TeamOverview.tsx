@@ -71,7 +71,7 @@ class TeamOverview extends React.Component<Props, State> {
         },
         () => this.focusAndHighlightInput()
       );
-    } catch (err: any) {
+    } catch (err) {
       const hasServerErrorMessage = !!err?.response?.body?.error?.message;
       const shouldDisplayBillingLink =
         hasServerErrorMessage && hasValidStripeKey();
@@ -113,7 +113,7 @@ class TeamOverview extends React.Component<Props, State> {
       });
 
       this.setState({inviteUserEmail: ''});
-    } catch (err: any) {
+    } catch (err) {
       // TODO: consolidate error logic with handleGenerateInviteUrl
       const hasServerErrorMessage = !!err?.response?.body?.error?.message;
       const shouldDisplayBillingLink =
