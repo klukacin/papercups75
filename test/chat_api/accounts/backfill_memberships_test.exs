@@ -6,14 +6,21 @@ defmodule ChatApi.Accounts.BackfillMembershipsTest do
   alias ChatApi.Accounts.AccountUser
   alias ChatApi.Repo
 
-  # NB: `insert(:user, ...)` goes straight through the factory/Repo and does NOT
-  # run `Users.create_user/1`, so it never mirrors a membership row. That makes a
-  # factory-inserted user a faithful stand-in for a pre-Phase-A "legacy" user.
+  # NB: `insert(:user, ...)` now mirrors primary-account membership (matching
+  # `Users.create_user/1`). To faithfully reproduce a pre-Phase-A "legacy" user
+  # that has NO membership row, we insert normally and then strip the membership
+  # via `legacy_user/1`.
+  defp legacy_user(attrs) do
+    user = insert(:user, attrs)
+    Repo.delete_all(from(au in AccountUser, where: au.user_id == ^user.id))
+
+    user
+  end
 
   describe "backfill_account_memberships/0" do
     test "creates a membership for a legacy user that has none" do
       account = insert(:account)
-      user = insert(:user, account: account)
+      user = legacy_user(account: account)
 
       refute Accounts.user_member_of?(user, account.id)
 
@@ -23,7 +30,7 @@ defmodule ChatApi.Accounts.BackfillMembershipsTest do
 
     test "running twice does not create duplicates and does not crash" do
       account = insert(:account)
-      user = insert(:user, account: account)
+      user = legacy_user(account: account)
 
       assert Accounts.backfill_account_memberships() >= 1
       count_after_first = Repo.aggregate(AccountUser, :count)
@@ -41,7 +48,7 @@ defmodule ChatApi.Accounts.BackfillMembershipsTest do
 
     test "second run returns 0 created (idempotent)" do
       account = insert(:account)
-      insert(:user, account: account)
+      legacy_user(account: account)
 
       assert Accounts.backfill_account_memberships() >= 1
       assert Accounts.backfill_account_memberships() == 0
@@ -49,7 +56,7 @@ defmodule ChatApi.Accounts.BackfillMembershipsTest do
 
     test "leaves an existing membership untouched and preserves its role" do
       account = insert(:account)
-      user = insert(:user, account: account)
+      user = legacy_user(account: account)
       existing = insert(:account_user, user: user, account: account, role: "admin")
 
       created = Accounts.backfill_account_memberships()
@@ -67,11 +74,11 @@ defmodule ChatApi.Accounts.BackfillMembershipsTest do
     test "backfills a legacy user while skipping one that already has membership" do
       # Legacy user (no membership)
       account1 = insert(:account)
-      legacy = insert(:user, account: account1)
+      legacy = legacy_user(account: account1)
 
       # Already-a-member user
       account2 = insert(:account)
-      member = insert(:user, account: account2)
+      member = legacy_user(account: account2)
       insert(:account_user, user: member, account: account2, role: "admin")
 
       # Only the legacy user should get a new row.
@@ -84,7 +91,7 @@ defmodule ChatApi.Accounts.BackfillMembershipsTest do
 
     test "preserves the user's role on the backfilled membership" do
       account = insert(:account)
-      user = insert(:user, account: account, role: "admin")
+      user = legacy_user(account: account, role: "admin")
 
       assert Accounts.backfill_account_memberships() >= 1
 

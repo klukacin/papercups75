@@ -13,11 +13,13 @@ defmodule ChatApiWeb.AccountControllerTest do
   @invalid_attrs %{company_name: nil}
 
   def update_current_user_account(conn, account_id) do
-    user = %ChatApi.Users.User{email: "test@example.com", account_id: account_id}
-    # conn = put_req_header(conn, "accept", "application/json")
-    authed_conn = Pow.Plug.assign_current_user(conn, user, [])
-
-    authed_conn
+    # `CurrentAccountPlug` (in the `:api_protected` pipeline) authorizes the
+    # request by verifying the current user is a member of the resolved account,
+    # so we need a persisted user that is a member of `account_id` (the factory
+    # mirrors primary-account membership on insert).
+    account = ChatApi.Accounts.get_account!(account_id)
+    user = insert(:user, account: account)
+    Pow.Plug.assign_current_user(conn, user, [])
   end
 
   setup %{conn: conn} do
@@ -91,9 +93,11 @@ defmodule ChatApiWeb.AccountControllerTest do
       conn = delete(authed_conn, Routes.account_path(authed_conn, :delete, account))
       assert response(conn, 204)
 
-      assert_error_sent 404, fn ->
-        get(authed_conn, Routes.account_path(authed_conn, :me))
-      end
+      # Deleting the account cascade-deletes the user's membership row, so the
+      # user is no longer a member of their (now-gone) primary account and
+      # `CurrentAccountPlug` forbids the request before it reaches the controller.
+      resp = get(authed_conn, Routes.account_path(authed_conn, :me))
+      assert json_response(resp, 403)
     end
   end
 end

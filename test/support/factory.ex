@@ -1,6 +1,46 @@
 defmodule ChatApi.Factory do
   use ExMachina.Ecto, repo: ChatApi.Repo
 
+  # Phase C: `CurrentAccountPlug` authorizes requests by verifying the current
+  # user is a member of the resolved account (via `account_users`). Production
+  # code keeps that table in sync (`Users.create_user/1` mirrors membership for
+  # the primary account, and `Accounts.backfill_account_memberships/0` covers
+  # legacy users), but `insert(:user)` goes straight through Ecto and would
+  # otherwise leave the user membership-less -> a 403 on every protected route.
+  #
+  # We therefore mirror the primary-account membership after inserting a user,
+  # exactly like `Users.create_user/1`. `Accounts.create_account_user/3` is
+  # idempotent (`on_conflict: :nothing`), so it is safe even when the membership
+  # already exists (e.g. a user built via `Users.create_user/1`).
+  #
+  # NOTE: only the top-level `insert/*` calls are wrapped. `build(:user)` and
+  # users inserted as nested associations of another factory are intentionally
+  # left untouched (they mimic legacy/unpersisted users).
+  defoverridable insert: 1, insert: 2, insert: 3
+
+  def insert(factory_name_or_record) do
+    factory_name_or_record |> super() |> mirror_primary_account_membership()
+  end
+
+  def insert(factory_name, attrs) do
+    factory_name |> super(attrs) |> mirror_primary_account_membership()
+  end
+
+  def insert(factory_name, attrs, opts) do
+    factory_name |> super(attrs, opts) |> mirror_primary_account_membership()
+  end
+
+  defp mirror_primary_account_membership(
+         %ChatApi.Users.User{id: id, account_id: account_id, role: role} = user
+       )
+       when not is_nil(id) and not is_nil(account_id) do
+    ChatApi.Accounts.create_account_user(account_id, id, role || "user")
+
+    user
+  end
+
+  defp mirror_primary_account_membership(record), do: record
+
   # Factories
   def account_factory do
     %ChatApi.Accounts.Account{
