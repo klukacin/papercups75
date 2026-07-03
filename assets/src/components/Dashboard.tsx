@@ -35,6 +35,7 @@ import {
 import {Account, User} from '../types';
 import {useAuth} from './auth/AuthProvider';
 import {SocketProvider, SocketContext} from './auth/SocketProvider';
+import AccountSwitcher from './account/AccountSwitcher';
 import AccountOverview from './settings/AccountOverview';
 import TeamOverview from './settings/TeamOverview';
 import UserProfile from './settings/UserProfile';
@@ -299,6 +300,10 @@ const Dashboard = (props: RouteComponentProps) => {
               })}
             />
           </Box>
+
+          <Flex sx={{justifyContent: 'center'}}>
+            <AccountSwitcher />
+          </Flex>
 
           <Box py={3}>
             <Menu

@@ -1,6 +1,6 @@
 import request from 'superagent';
 import qs from 'query-string';
-import {getAuthTokens} from './storage';
+import {getAuthTokens, getCurrentAccountId} from './storage';
 import {
   Account,
   BrowserSession,
@@ -77,6 +77,7 @@ export const me = async (token = getAccessToken()): Promise<User> => {
   return request
     .get(`/api/me`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -120,6 +121,7 @@ export const renew = async (token = getRefreshToken()) => {
   return request
     .post(`/api/session/renew`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -180,6 +182,7 @@ export const fetchCustomers = async (
     .get(`/api/customers`)
     .query(qs.stringify(filters, {arrayFormat: 'bracket'}))
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body);
 };
 
@@ -198,6 +201,7 @@ export const fetchCustomer = async (
     .get(`/api/customers/${id}`)
     .query(qs.stringify({expand}, {arrayFormat: 'bracket'}))
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -213,6 +217,7 @@ export const updateCustomer = async (
   return request
     .put(`/api/customers/${id}`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .send({
       customer: updates,
     })
@@ -227,6 +232,7 @@ export const deleteCustomer = async (id: string, token = getAccessToken()) => {
   return request
     .delete(`/api/customers/${id}`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body);
 };
 
@@ -242,6 +248,7 @@ export const createNewCompany = async (
     .post(`/api/companies`)
     .send({company: params})
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -253,6 +260,7 @@ export const fetchCompanies = async (token = getAccessToken()) => {
   return request
     .get(`/api/companies`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -264,6 +272,7 @@ export const fetchCompany = async (id: string, token = getAccessToken()) => {
   return request
     .get(`/api/companies/${id}`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -279,6 +288,7 @@ export const updateCompany = async (
   return request
     .put(`/api/companies/${id}`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .send({company: updates})
     .then((res) => res.body.data);
 };
@@ -288,7 +298,10 @@ export const deleteCompany = async (id: string, token = getAccessToken()) => {
     throw new Error('Invalid token!');
   }
 
-  return request.delete(`/api/companies/${id}`).set('Authorization', token);
+  return request
+    .delete(`/api/companies/${id}`)
+    .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '');
 };
 
 export const createNewConversation = async (
@@ -303,6 +316,7 @@ export const createNewConversation = async (
   return request
     .post(`/api/conversations`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .send({
       conversation: {
         customer_id: customerId,
@@ -322,6 +336,21 @@ export const fetchAccountInfo = async (
   return request
     .get(`/api/accounts/me`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
+    .then((res) => res.body.data);
+};
+
+export const fetchAccounts = async (
+  token = getAccessToken()
+): Promise<Array<Account>> => {
+  if (!token) {
+    throw new Error('Invalid token!');
+  }
+
+  return request
+    .get(`/api/accounts`)
+    .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -336,6 +365,7 @@ export const updateAccountInfo = async (
   return request
     .put(`/api/accounts/me`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .send({
       account: updates,
     })
@@ -350,6 +380,7 @@ export const deleteMyAccount = async (token = getAccessToken()) => {
   return request
     .delete(`/api/accounts/me`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body);
 };
 
@@ -361,6 +392,7 @@ export const fetchUserProfile = async (token = getAccessToken()) => {
   return request
     .get(`/api/profile`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -375,6 +407,7 @@ export const updateUserProfile = async (
   return request
     .put(`/api/profile`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .send({
       user_profile: updates,
     })
@@ -391,6 +424,7 @@ export const fetchUserSettings = async (
   return request
     .get('/api/user_settings')
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -405,6 +439,7 @@ export const updateUserSettings = async (
   return request
     .put('/api/user_settings')
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .send({
       user_settings: updates,
     })
@@ -434,6 +469,7 @@ export const countUnreadConversations = async (
   return request
     .get(`/api/conversations/unread`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -449,6 +485,7 @@ export const fetchConversations = async (
     .get(`/api/conversations`)
     .query(query)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body);
 };
 
@@ -550,6 +587,7 @@ export const fetchConversation = async (
   return request
     .get(`/api/conversations/${id}`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -564,6 +602,7 @@ export const fetchPreviousConversation = async (
   return request
     .get(`/api/conversations/${id}/previous`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -578,6 +617,7 @@ export const fetchRelatedConversations = async (
   return request
     .get(`/api/conversations/${id}/related`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -593,6 +633,7 @@ export const fetchSlackConversationThreads = async (
     .get(`/api/slack_conversation_threads`)
     .query({conversation_id: conversationId})
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -607,6 +648,7 @@ export const generateShareConversationToken = async (
   return request
     .post(`/api/conversations/${conversationId}/share`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -636,6 +678,7 @@ export const updateConversation = async (
   return request
     .put(`/api/conversations/${conversationId}`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .send(updates)
     .then((res) => res.body.data);
 };
@@ -651,6 +694,7 @@ export const deleteConversation = async (
   return request
     .delete(`/api/conversations/${conversationId}`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body);
 };
 
@@ -665,6 +709,7 @@ export const archiveConversation = async (
   return request
     .post(`/api/conversations/${conversationId}/archive`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body);
 };
 
@@ -679,6 +724,7 @@ export const createNewMessage = async (
   return request
     .post(`/api/messages`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .send({
       message: {
         sent_at: new Date().toISOString(),
@@ -696,6 +742,7 @@ export const countMessages = async (token = getAccessToken()) => {
   return request
     .get(`/api/messages/count`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -711,6 +758,7 @@ export const countAllConversations = async (
     .get(`/api/conversations/count`)
     .query(query)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -733,6 +781,7 @@ export const generateUserInvitation = async (token = getAccessToken()) => {
     .post(`/api/user_invitations`)
     .send({user_invitation: {}})
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -748,6 +797,7 @@ export const sendUserInvitationEmail = async (
     .post(`/api/user_invitation_emails`)
     .send({to_address})
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -767,6 +817,7 @@ export const sendSlackNotification = async (
     .post(`/api/slack/notify`)
     .send(params)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -783,6 +834,7 @@ export const fetchSlackAuthorization = async (
     .get(`/api/slack/authorization`)
     .query({type, ...query})
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -799,6 +851,7 @@ export const listSlackAuthorizations = async (
     .get(`/api/slack/authorizations`)
     .query({type, ...query})
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -815,6 +868,7 @@ export const updateSlackAuthorizationSettings = async (
     .post(`/api/slack/authorizations/${authorizationId}/settings`)
     .send({settings})
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -828,7 +882,8 @@ export const deleteSlackAuthorization = async (
 
   return request
     .delete(`/api/slack/authorizations/${authorizationId}`)
-    .set('Authorization', token);
+    .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '');
 };
 
 export const fetchSlackChannels = async (
@@ -843,6 +898,7 @@ export const fetchSlackChannels = async (
     .get(`/api/slack/channels`)
     .query(query)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -858,6 +914,7 @@ export const fetchMattermostChannels = async (
     .get(`/api/mattermost/channels`)
     .query(query)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -873,6 +930,7 @@ export const createMattermostAuthorization = async (
     .post(`/api/mattermost/auth`)
     .send({authorization})
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -888,6 +946,7 @@ export const fetchMattermostAuthorization = async (
     .get(`/api/mattermost/authorization`)
     .query(query)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -901,7 +960,8 @@ export const deleteMattermostAuthorization = async (
 
   return request
     .delete(`/api/mattermost/authorizations/${authorizationId}`)
-    .set('Authorization', token);
+    .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '');
 };
 
 export const createTwilioAuthorization = async (
@@ -916,6 +976,7 @@ export const createTwilioAuthorization = async (
     .post(`/api/twilio/auth`)
     .send({authorization})
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -931,6 +992,7 @@ export const fetchTwilioAuthorization = async (
     .get(`/api/twilio/authorization`)
     .query(query)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -944,7 +1006,8 @@ export const deleteTwilioAuthorization = async (
 
   return request
     .delete(`/api/twilio/authorizations/${authorizationId}`)
-    .set('Authorization', token);
+    .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '');
 };
 
 export const sendTwilioSms = async (
@@ -959,6 +1022,7 @@ export const sendTwilioSms = async (
     .post(`/api/twilio/send`)
     .send(params)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -974,6 +1038,7 @@ export const fetchGoogleAuthorization = async (
     .get(`/api/google/authorization`)
     .query(query)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -987,7 +1052,8 @@ export const deleteGoogleAuthorization = async (
 
   return request
     .delete(`/api/google/authorizations/${authorizationId}`)
-    .set('Authorization', token);
+    .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '');
 };
 
 export const fetchGithubAuthorization = async (token = getAccessToken()) => {
@@ -998,6 +1064,7 @@ export const fetchGithubAuthorization = async (token = getAccessToken()) => {
   return request
     .get(`/api/github/authorization`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1011,7 +1078,8 @@ export const deleteGithubAuthorization = async (
 
   return request
     .delete(`/api/github/authorizations/${authorizationId}`)
-    .set('Authorization', token);
+    .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '');
 };
 
 export const fetchGithubRepos = async (token = getAccessToken()) => {
@@ -1022,6 +1090,7 @@ export const fetchGithubRepos = async (token = getAccessToken()) => {
   return request
     .get(`/api/github/repos`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1041,6 +1110,7 @@ export const findGithubIssues = async (
     .get(`/api/github/issues`)
     .query(query)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1056,6 +1126,7 @@ export const fetchGmailProfile = async (
     .get(`/api/gmail/profile`)
     .query(query)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1077,6 +1148,7 @@ export const sendGmailNotification = async (
     .post(`/api/gmail/send`)
     .send({recipient, subject, message})
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1088,6 +1160,7 @@ export const fetchHubspotAuthorization = async (token = getAccessToken()) => {
   return request
     .get(`/api/hubspot/authorization`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1103,6 +1176,7 @@ export const createHubspotContact = async (
     .post(`/api/hubspot/contacts`)
     .send(params)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1118,6 +1192,7 @@ export const fetchHubspotContacts = async (
     .get(`/api/hubspot/contacts`)
     .query(query)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1140,7 +1215,8 @@ export const deleteHubspotAuthorization = async (
 
   return request
     .delete(`/api/hubspot/authorizations/${authorizationId}`)
-    .set('Authorization', token);
+    .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '');
 };
 
 export const fetchIntercomAuthorization = async (token = getAccessToken()) => {
@@ -1151,6 +1227,7 @@ export const fetchIntercomAuthorization = async (token = getAccessToken()) => {
   return request
     .get(`/api/intercom/authorization`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1166,6 +1243,7 @@ export const createIntercomContact = async (
     .post(`/api/intercom/contacts`)
     .send(params)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1181,6 +1259,7 @@ export const fetchIntercomContacts = async (
     .get(`/api/intercom/contacts`)
     .query(query)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1203,7 +1282,8 @@ export const deleteIntercomAuthorization = async (
 
   return request
     .delete(`/api/intercom/authorizations/${authorizationId}`)
-    .set('Authorization', token);
+    .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '');
 };
 
 export const fetchEventSubscriptions = async (token = getAccessToken()) => {
@@ -1214,6 +1294,7 @@ export const fetchEventSubscriptions = async (token = getAccessToken()) => {
   return request
     .get(`/api/event_subscriptions`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1228,6 +1309,7 @@ export const verifyWebhookUrl = async (
   return request
     .post(`/api/event_subscriptions/verify`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .send({url})
     .then((res) => res.body.data);
 };
@@ -1243,6 +1325,7 @@ export const createEventSubscription = async (
   return request
     .post(`/api/event_subscriptions`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .send({
       event_subscription: params,
     })
@@ -1261,6 +1344,7 @@ export const updateEventSubscription = async (
   return request
     .put(`/api/event_subscriptions/${id}`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .send({
       event_subscription: updates,
     })
@@ -1277,7 +1361,8 @@ export const deleteEventSubscription = async (
 
   return request
     .delete(`/api/event_subscriptions/${id}`)
-    .set('Authorization', token);
+    .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '');
 };
 
 export const fetchForwardingAddresses = async (
@@ -1292,6 +1377,7 @@ export const fetchForwardingAddresses = async (
     .get(`/api/forwarding_addresses`)
     .query(query)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1306,6 +1392,7 @@ export const createForwardingAddress = async (
   return request
     .post(`/api/forwarding_addresses`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .send({
       forwarding_address: params,
     })
@@ -1324,6 +1411,7 @@ export const updateForwardingAddress = async (
   return request
     .put(`/api/forwarding_addresses/${id}`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .send({
       forwarding_address: updates,
     })
@@ -1340,7 +1428,8 @@ export const deleteForwardingAddress = async (
 
   return request
     .delete(`/api/forwarding_addresses/${id}`)
-    .set('Authorization', token);
+    .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '');
 };
 
 type SlackAuthorizationParams = {
@@ -1362,6 +1451,7 @@ export const authorizeSlackIntegration = async (
     .get(`/api/slack/oauth`)
     .query(params)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1377,6 +1467,7 @@ export const authorizeGmailIntegration = async (
     .get(`/api/gmail/oauth`)
     .query({code})
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1392,6 +1483,7 @@ export const authorizeGoogleIntegration = async (
     .get(`/api/google/oauth`)
     .query(query)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1407,6 +1499,7 @@ export const authorizeGithubIntegration = async (
     .get(`/api/github/oauth`)
     .query(query)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body);
 };
 
@@ -1422,6 +1515,7 @@ export const authorizeHubspotIntegration = async (
     .get(`/api/hubspot/oauth`)
     .query(query)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body);
 };
 
@@ -1437,6 +1531,7 @@ export const authorizeIntercomIntegration = async (
     .get(`/api/intercom/callback`)
     .query(query)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body);
 };
 
@@ -1455,6 +1550,7 @@ export const fetchWidgetSettings = async (
     .get(`/api/widget_settings`)
     .query(query)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1470,6 +1566,7 @@ export const updateWidgetSettings = async (
     .put(`/api/widget_settings`)
     .send({widget_settings: widgetSettingsParams})
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1481,6 +1578,7 @@ export const fetchDefaultPaymentMethod = async (token = getAccessToken()) => {
   return request
     .get(`/api/payment_methods`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1492,6 +1590,7 @@ export const fetchBillingInfo = async (token = getAccessToken()) => {
   return request
     .get(`/api/billing`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1507,6 +1606,7 @@ export const createSubscriptionPlan = async (
     .post(`/api/billing`)
     .send({plan})
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1522,6 +1622,7 @@ export const updateSubscriptionPlan = async (
     .put(`/api/billing`)
     .send({plan})
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1533,6 +1634,7 @@ export const cancelSubscriptionPlan = async (token = getAccessToken()) => {
   return request
     .delete(`/api/billing`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1548,6 +1650,7 @@ export const createPaymentMethod = async (
     .post(`/api/payment_methods`)
     .send({payment_method: paymentMethod})
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1559,6 +1662,7 @@ export const fetchAccountUsers = async (token = getAccessToken()) => {
   return request
     .get(`/api/users`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1573,6 +1677,7 @@ export const fetchAccountUser = async (
   return request
     .get(`/api/users/${id}`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1587,6 +1692,7 @@ export const disableAccountUser = async (
   return request
     .post(`/api/users/${userId}/disable`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1602,6 +1708,7 @@ export const setAccountUserRole = async (
   return request
     .put(`/api/users/${userId}/role`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .send({role})
     .then((res) => res.body.data);
 };
@@ -1617,6 +1724,7 @@ export const enableAccountUser = async (
   return request
     .post(`/api/users/${userId}/enable`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1631,6 +1739,7 @@ export const archiveAccountUser = async (
   return request
     .post(`/api/users/${userId}/archive`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1646,6 +1755,7 @@ export const fetchNotes = async (
     .get('/api/notes')
     .query(query)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1673,6 +1783,7 @@ export const createCustomerNote = async (
   return request
     .post(`/api/notes`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .send({
       note: {
         body,
@@ -1690,7 +1801,10 @@ export const deleteCustomerNote = async (
     throw new Error('Invalid token!');
   }
 
-  return request.delete(`/api/notes/${noteId}`).set('Authorization', token);
+  return request
+    .delete(`/api/notes/${noteId}`)
+    .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '');
 };
 
 export const fetchAllTags = async (token = getAccessToken()) => {
@@ -1701,6 +1815,7 @@ export const fetchAllTags = async (token = getAccessToken()) => {
   return request
     .get(`/api/tags`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1712,6 +1827,7 @@ export const fetchTagById = async (id: string, token = getAccessToken()) => {
   return request
     .get(`/api/tags/${id}`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1727,6 +1843,7 @@ export const createTag = async (
     .post(`/api/tags`)
     .send({tag})
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1743,6 +1860,7 @@ export const updateTag = async (
     .put(`/api/tags/${id}`)
     .send({tag})
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1754,6 +1872,7 @@ export const deleteTag = async (id: string, token = getAccessToken()) => {
   return request
     .delete(`/api/tags/${id}`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body);
 };
 
@@ -1770,6 +1889,7 @@ export const addConversationTag = async (
     .post(`/api/conversations/${conversationId}/tags`)
     .send({tag_id: tagId})
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1785,6 +1905,7 @@ export const removeConversationTag = async (
   return request
     .delete(`/api/conversations/${conversationId}/tags/${tagId}`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1801,6 +1922,7 @@ export const addCustomerTag = async (
     .post(`/api/customers/${customerId}/tags`)
     .send({tag_id: tagId})
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1816,6 +1938,7 @@ export const removeCustomerTag = async (
   return request
     .delete(`/api/customers/${customerId}/tags/${tagId}`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1830,6 +1953,7 @@ export const fetchAllIssues = async (
   return request
     .get(`/api/issues`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .query(query)
     .then((res) => res.body.data);
 };
@@ -1842,6 +1966,7 @@ export const fetchIssueById = async (id: string, token = getAccessToken()) => {
   return request
     .get(`/api/issues/${id}`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1857,6 +1982,7 @@ export const createIssue = async (
     .post(`/api/issues`)
     .send({issue})
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1873,6 +1999,7 @@ export const updateIssue = async (
     .put(`/api/issues/${id}`)
     .send({issue})
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1884,6 +2011,7 @@ export const deleteIssue = async (id: string, token = getAccessToken()) => {
   return request
     .delete(`/api/issues/${id}`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body);
 };
 
@@ -1900,6 +2028,7 @@ export const addCustomerIssue = async (
     .post(`/api/customers/${customerId}/issues`)
     .send({issue_id: issueId})
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1915,6 +2044,7 @@ export const removeCustomerIssue = async (
   return request
     .delete(`/api/customers/${customerId}/issues/${issueId}`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1947,6 +2077,7 @@ export const fetchBrowserSessions = async (
       )
     )
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1970,6 +2101,7 @@ export const countBrowserSessions = async (
       )
     )
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -1984,6 +2116,7 @@ export const fetchBrowserSession = async (
   return request
     .get(`/api/browser_sessions/${id}`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -2004,6 +2137,7 @@ export const fetchReportingData = async (
     .get(`/api/reporting`)
     .query(filters)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -2015,6 +2149,7 @@ export const fetchPersonalApiKeys = async (token = getAccessToken()) => {
   return request
     .get(`/api/personal_api_keys`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -2030,6 +2165,7 @@ export const createPersonalApiKey = async (
     .post(`/api/personal_api_keys`)
     .send({label})
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -2044,6 +2180,7 @@ export const deletePersonalApiKey = async (
   return request
     .delete(`/api/personal_api_keys/${id}`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body);
 };
 
@@ -2057,6 +2194,7 @@ export const getOnboardingStatus = async (
   return request
     .get(`/api/onboarding_status`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body);
 };
 
@@ -2068,6 +2206,7 @@ export const fetchCannedResponses = async (token = getAccessToken()) => {
   return request
     .get(`/api/canned_responses`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -2083,6 +2222,7 @@ export const createCannedResponse = async (
     .post(`/api/canned_responses`)
     .send({canned_response: params})
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -2099,6 +2239,7 @@ export const updateCannedResponse = async (
     .put(`/api/canned_responses/${id}`)
     .send({canned_response: updates})
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -2113,6 +2254,7 @@ export const deleteCannedResponse = async (
   return request
     .delete(`/api/canned_responses/${id}`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body);
 };
 
@@ -2124,6 +2266,7 @@ export const fetchLambdas = async (token = getAccessToken()) => {
   return request
     .get(`/api/lambdas`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -2135,6 +2278,7 @@ export const fetchLambda = async (id: string, token = getAccessToken()) => {
   return request
     .get(`/api/lambdas/${id}`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -2150,6 +2294,7 @@ export const createNewLambda = async (
     .post(`/api/lambdas`)
     .send({lambda: params})
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -2166,6 +2311,7 @@ export const updateLambda = async (
     .put(`/api/lambdas/${id}`)
     .send({lambda: updates})
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -2177,6 +2323,7 @@ export const deleteLambda = async (id: string, token = getAccessToken()) => {
   return request
     .delete(`/api/lambdas/${id}`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body);
 };
 
@@ -2193,6 +2340,7 @@ export const deployLambda = async (
     .post(`/api/lambdas/${id}/deploy`)
     .send(params)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -2209,6 +2357,7 @@ export const invokeLambda = async (
     .post(`/api/lambdas/${id}/invoke`)
     .send(params)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -2224,6 +2373,7 @@ export const sendAdminNotification = async (
     .post(`/api/admin/notifications`)
     .send(params)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -2237,6 +2387,7 @@ export const fetchInboxes = async (
   return request
     .get(`/api/inboxes`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -2250,6 +2401,7 @@ export const fetchPrimaryInbox = async (
   return request
     .get(`/api/inboxes/primary`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -2264,6 +2416,7 @@ export const fetchInbox = async (
   return request
     .get(`/api/inboxes/${id}`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -2279,6 +2432,7 @@ export const createInbox = async (
     .post(`/api/inboxes`)
     .send({inbox: params})
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -2295,6 +2449,7 @@ export const updateInbox = async (
     .put(`/api/inboxes/${id}`)
     .send({inbox: updates})
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
@@ -2306,5 +2461,6 @@ export const deleteInbox = async (id: string, token = getAccessToken()) => {
   return request
     .delete(`/api/inboxes/${id}`)
     .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body);
 };

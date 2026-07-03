@@ -16,6 +16,18 @@ defmodule ChatApiWeb.AccountController do
     end
   end
 
+  @spec index(Plug.Conn.t(), map()) :: Plug.Conn.t()
+  def index(conn, _params) do
+    with current_user when not is_nil(current_user) <- Pow.Plug.current_user(conn) do
+      accounts =
+        current_user
+        |> Accounts.list_accounts_for_user()
+        |> Enum.map(fn %Account{id: id} -> Accounts.get_account!(id) end)
+
+      render(conn, "index.json", accounts: accounts)
+    end
+  end
+
   @spec show(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def show(conn, _params) do
     with current_user <- Pow.Plug.current_user(conn),

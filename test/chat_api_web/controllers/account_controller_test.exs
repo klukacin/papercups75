@@ -29,6 +29,44 @@ defmodule ChatApiWeb.AccountControllerTest do
     {:ok, conn: conn, account: account}
   end
 
+  describe "index accounts (list current user's accounts)" do
+    test "returns all accounts the current user is a member of", %{
+      conn: conn,
+      account: account
+    } do
+      # `account` is the user's primary account; add membership to a second one.
+      second_account = insert(:account)
+      user = insert(:user, account: account)
+      {:ok, _} = ChatApi.Accounts.create_account_user(second_account.id, user.id, "user")
+
+      authed_conn = Pow.Plug.assign_current_user(conn, user, [])
+      resp = get(authed_conn, Routes.account_path(authed_conn, :index))
+
+      ids =
+        resp
+        |> json_response(200)
+        |> Map.fetch!("data")
+        |> Enum.map(& &1["id"])
+        |> Enum.sort()
+
+      assert Enum.sort([account.id, second_account.id]) == ids
+    end
+
+    test "returns a single account for a single-account user", %{
+      conn: conn,
+      account: account
+    } do
+      user = insert(:user, account: account)
+      authed_conn = Pow.Plug.assign_current_user(conn, user, [])
+
+      resp = get(authed_conn, Routes.account_path(authed_conn, :index))
+      data = json_response(resp, 200)["data"]
+
+      assert [%{"id" => id}] = data
+      assert id == account.id
+    end
+  end
+
   describe "create account" do
     test "renders account when data is valid", %{conn: conn} do
       resp = post(conn, Routes.account_path(conn, :create), account: @create_attrs)

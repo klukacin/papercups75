@@ -30,6 +30,18 @@ export const setAuthTokens = (tokens: any) => set('__AUTH_TOKENS__', tokens);
 
 export const removeAuthTokens = () => remove('__AUTH_TOKENS__');
 
+// Multi-account: tracks which account the app is currently scoped to. The id is
+// sent as the `X-Account-Id` header on authenticated requests (see api.ts). When
+// unset, the backend falls back to the user's primary account.
+const CURRENT_ACCOUNT_KEY = '__CURRENT_ACCOUNT__';
+
+export const getCurrentAccountId = (): string | null =>
+  get(CURRENT_ACCOUNT_KEY);
+
+export const setCurrentAccountId = (id: string) => set(CURRENT_ACCOUNT_KEY, id);
+
+export const clearCurrentAccountId = () => remove(CURRENT_ACCOUNT_KEY);
+
 export const getCustomerId = () => get('__CUSTOMER_ID__');
 
 export const setCustomerId = (id: string) => set('__CUSTOMER_ID__', id);

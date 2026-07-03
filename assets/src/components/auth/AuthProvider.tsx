@@ -1,5 +1,10 @@
 import React, {useContext} from 'react';
-import {getAuthTokens, setAuthTokens, removeAuthTokens} from '../../storage';
+import {
+  getAuthTokens,
+  setAuthTokens,
+  removeAuthTokens,
+  clearCurrentAccountId,
+} from '../../storage';
 import * as API from '../../api';
 import logger from '../../logger';
 import {Account, User} from '../../types';
@@ -104,6 +109,8 @@ export class AuthProvider extends React.Component<Props, State> {
 
   handleClearAuth = () => {
     removeAuthTokens();
+    // Reset the selected account so a fresh login starts on the primary account
+    clearCurrentAccountId();
 
     this.setState({
       tokens: null,
