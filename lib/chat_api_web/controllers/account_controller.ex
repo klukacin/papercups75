@@ -27,9 +27,8 @@ defmodule ChatApiWeb.AccountController do
 
   @spec update(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def update(conn, %{"account" => account_params}) do
-    with current_user <- Pow.Plug.current_user(conn),
-         %{account_id: id} <- current_user do
-      account = Accounts.get_account!(id)
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
+      account = Accounts.get_account!(account_id)
 
       with {:ok, %Account{} = account} <- Accounts.update_account(account, account_params) do
         render(conn, "show.json", account: account)
@@ -39,9 +38,8 @@ defmodule ChatApiWeb.AccountController do
 
   @spec delete(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def delete(conn, _params) do
-    with current_user <- Pow.Plug.current_user(conn),
-         %{account_id: id} <- current_user do
-      account = Accounts.get_account!(id)
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
+      account = Accounts.get_account!(account_id)
 
       with {:ok, %Account{}} <- Accounts.delete_account(account) do
         send_resp(conn, :no_content, "")
@@ -52,15 +50,15 @@ defmodule ChatApiWeb.AccountController do
   @spec me(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def me(conn, _params) do
     case conn.assigns.current_user do
-      %{account_id: account_id} ->
-        account = Accounts.get_account!(account_id)
-
-        render(conn, "show.json", account: account)
-
       nil ->
         conn
         |> put_status(401)
         |> json(%{error: %{status: 401, message: "Invalid token"}})
+
+      _current_user ->
+        account = Accounts.get_account!(Accounts.get_current_account_id(conn))
+
+        render(conn, "show.json", account: account)
     end
   end
 end

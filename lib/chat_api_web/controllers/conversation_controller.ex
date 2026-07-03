@@ -2,7 +2,7 @@ defmodule ChatApiWeb.ConversationController do
   use ChatApiWeb, :controller
   use PhoenixSwagger
 
-  alias ChatApi.{Conversations, Inboxes, Messages}
+  alias ChatApi.{Accounts, Conversations, Inboxes, Messages}
   alias ChatApi.Conversations.{Conversation, Helpers}
 
   action_fallback(ChatApiWeb.FallbackController)
@@ -12,7 +12,7 @@ defmodule ChatApiWeb.ConversationController do
   defp authorize(conn, _) do
     id = conn.path_params["id"] || conn.params["conversation_id"]
 
-    with %{account_id: account_id} <- conn.assigns.current_user,
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          conversation = %{account_id: ^account_id} <- Conversations.get_conversation!(id) do
       assign(conn, :current_conversation, conversation)
     else
@@ -73,7 +73,7 @@ defmodule ChatApiWeb.ConversationController do
 
   @spec index(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def index(conn, params) do
-    with %{account_id: account_id} <- conn.assigns.current_user,
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          filters <- format_filter_options(params, conn.assigns.current_user),
          pagination_options <- format_pagination_options(params),
          %{entries: conversations, metadata: pagination} <-
@@ -88,7 +88,7 @@ defmodule ChatApiWeb.ConversationController do
 
   @spec count(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def count(conn, filters) do
-    with %{account_id: account_id} <- conn.assigns.current_user do
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
       count = Conversations.count_conversations_where(account_id, filters)
 
       json(conn, %{data: %{count: count}})
@@ -97,7 +97,8 @@ defmodule ChatApiWeb.ConversationController do
 
   @spec unread(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def unread(conn, _params) do
-    with %{id: user_id, account_id: account_id} <- conn.assigns.current_user do
+    with %{id: user_id} <- conn.assigns.current_user,
+         account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
       inboxes = Inboxes.list_inboxes(account_id)
 
       unread_by_inbox =
@@ -197,7 +198,7 @@ defmodule ChatApiWeb.ConversationController do
 
   @spec share(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def share(conn, %{"conversation_id" => conversation_id}) do
-    with %{account_id: account_id} <- conn.assigns.current_user,
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          %{customer_id: customer_id} <- Conversations.get_conversation!(conversation_id) do
       token = Phoenix.Token.sign(ChatApiWeb.Endpoint, conversation_id, {account_id, customer_id})
 

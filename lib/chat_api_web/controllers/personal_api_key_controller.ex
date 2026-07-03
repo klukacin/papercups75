@@ -1,6 +1,7 @@
 defmodule ChatApiWeb.PersonalApiKeyController do
   use ChatApiWeb, :controller
 
+  alias ChatApi.Accounts
   alias ChatApi.ApiKeys
   alias ChatApi.ApiKeys.PersonalApiKey
 
@@ -8,17 +9,20 @@ defmodule ChatApiWeb.PersonalApiKeyController do
 
   @spec index(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def index(
-        %{assigns: %{current_user: %{account_id: account_id, id: user_id}}} = conn,
+        %{assigns: %{current_user: %{id: user_id}}} = conn,
         _params
       ) do
+    account_id = Accounts.get_current_account_id(conn)
     personal_api_keys = ApiKeys.list_personal_api_keys(user_id, account_id)
     render(conn, "index.json", personal_api_keys: personal_api_keys)
   end
 
   @spec create(Plug.Conn.t(), map()) :: Plug.Conn.t()
-  def create(%{assigns: %{current_user: %{account_id: account_id, id: user_id}}} = conn, %{
+  def create(%{assigns: %{current_user: %{id: user_id}}} = conn, %{
         "label" => personal_api_key_label
       }) do
+    account_id = Accounts.get_current_account_id(conn)
+
     with {:ok, %PersonalApiKey{} = personal_api_key} <-
            ApiKeys.create_personal_api_key(%{
              label: personal_api_key_label,

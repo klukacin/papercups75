@@ -1,6 +1,7 @@
 defmodule ChatApiWeb.EventSubscriptionController do
   use ChatApiWeb, :controller
 
+  alias ChatApi.Accounts
   alias ChatApi.EventSubscriptions
   alias ChatApi.EventSubscriptions.EventSubscription
 
@@ -8,7 +9,7 @@ defmodule ChatApiWeb.EventSubscriptionController do
 
   @spec index(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def index(conn, _params) do
-    with %{account_id: account_id} <- conn.assigns.current_user do
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
       event_subscriptions = EventSubscriptions.list_event_subscriptions(account_id)
       render(conn, "index.json", event_subscriptions: event_subscriptions)
     end
@@ -16,7 +17,7 @@ defmodule ChatApiWeb.EventSubscriptionController do
 
   @spec create(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def create(conn, %{"event_subscription" => event_subscription_params}) do
-    with %{account_id: account_id} <- conn.assigns.current_user,
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          params <- Map.merge(event_subscription_params, %{"account_id" => account_id}),
          {:ok, %EventSubscription{} = event_subscription} <-
            EventSubscriptions.create_event_subscription(params) do

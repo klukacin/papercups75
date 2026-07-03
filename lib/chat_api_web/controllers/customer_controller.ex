@@ -18,7 +18,7 @@ defmodule ChatApiWeb.CustomerController do
       |> Enum.map(&String.to_existing_atom/1)
       |> Enum.filter(&Customers.is_valid_association?/1)
 
-    with %{account_id: account_id} <- conn.assigns.current_user,
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          customer = %{account_id: ^account_id} <-
            Customers.get_customer!(id, preloads) do
       assign(conn, :current_customer, customer)
@@ -29,7 +29,7 @@ defmodule ChatApiWeb.CustomerController do
 
   @spec index(Plug.Conn.t(), map) :: Plug.Conn.t()
   def index(conn, params) do
-    with %{account_id: account_id} <- conn.assigns.current_user do
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
       page = Customers.list_customers(account_id, params, format_pagination_options(params))
       render(conn, "index.#{resp_format(params)}", page: page)
     end

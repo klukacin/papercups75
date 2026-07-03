@@ -2,6 +2,7 @@ defmodule ChatApiWeb.MessageController do
   use ChatApiWeb, :controller
   use PhoenixSwagger
 
+  alias ChatApi.Accounts
   alias ChatApi.Messages
   alias ChatApi.Messages.Message
 
@@ -12,7 +13,7 @@ defmodule ChatApiWeb.MessageController do
   defp authorize(conn, _) do
     id = conn.path_params["id"]
 
-    with %{id: _user_id, account_id: account_id} <- conn.assigns.current_user,
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          message = %{account_id: ^account_id} <- Messages.get_message!(id) do
       assign(conn, :current_message, message)
     else
@@ -62,7 +63,7 @@ defmodule ChatApiWeb.MessageController do
 
   @spec index(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def index(conn, params) do
-    with %{account_id: account_id} <- conn.assigns.current_user do
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
       messages = Messages.list_messages(account_id, params)
       render(conn, "index.json", messages: messages)
     end
@@ -70,7 +71,7 @@ defmodule ChatApiWeb.MessageController do
 
   @spec count(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def count(conn, _params) do
-    with %{account_id: account_id} <- conn.assigns.current_user do
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
       count = Messages.count_messages_by_account(account_id)
 
       json(conn, %{data: %{count: count}})
@@ -127,7 +128,7 @@ defmodule ChatApiWeb.MessageController do
   def update(conn, %{"message" => message_params}) do
     message = conn.assigns.current_message
 
-    with %{account_id: account_id} <- conn.assigns.current_user,
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          sanitized_updates <- Map.merge(message_params, %{"account_id" => account_id}),
          {:ok, %Message{} = message} <- Messages.update_message(message, sanitized_updates) do
       render(conn, "show.json", message: message)
@@ -156,7 +157,7 @@ defmodule ChatApiWeb.MessageController do
 
   defp sanitize_new_message_params(conn, %{"customer_id" => customer_id} = params)
        when is_binary(customer_id) do
-    account_id = conn.assigns.current_user.account_id
+    account_id = Accounts.get_current_account_id(conn)
     customer = ChatApi.Customers.get_customer!(customer_id, [])
 
     case customer do
@@ -170,7 +171,8 @@ defmodule ChatApiWeb.MessageController do
 
   defp sanitize_new_message_params(conn, params) do
     case conn.assigns.current_user do
-      %{id: user_id, account_id: account_id} ->
+      %{id: user_id} ->
+        account_id = Accounts.get_current_account_id(conn)
         {:ok, Map.merge(params, %{"user_id" => user_id, "account_id" => account_id})}
 
       _ ->

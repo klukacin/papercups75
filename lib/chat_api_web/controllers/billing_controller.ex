@@ -7,7 +7,7 @@ defmodule ChatApiWeb.BillingController do
 
   @spec show(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def show(conn, _params) do
-    with %{account_id: account_id} <- conn.assigns.current_user,
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          account <- Accounts.get_account!(account_id),
          # NB: `get_billing_info/1` returns `{:error, %Stripe.Error{}}` when Stripe
          # is unreachable/misconfigured or a stored id is stale; matching a map
@@ -20,7 +20,7 @@ defmodule ChatApiWeb.BillingController do
 
   @spec create(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def create(conn, %{"plan" => plan}) do
-    with %{account_id: account_id} <- conn.assigns.current_user,
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          account <- Accounts.get_account!(account_id),
          plan <- format_plan_by_edition(plan),
          {:ok, _account} <- Billing.create_subscription_plan(account, plan) do
@@ -32,7 +32,7 @@ defmodule ChatApiWeb.BillingController do
 
   @spec update(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def update(conn, %{"plan" => plan}) do
-    with %{account_id: account_id} <- conn.assigns.current_user,
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          account <- Accounts.get_account!(account_id),
          plan <- format_plan_by_edition(plan),
          {:ok, _account} <- Billing.update_subscription_plan(account, plan) do
@@ -44,7 +44,7 @@ defmodule ChatApiWeb.BillingController do
 
   @spec delete(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def delete(conn, _params) do
-    with %{account_id: account_id} <- conn.assigns.current_user,
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          account <- Accounts.get_account!(account_id),
          {:ok, _account} <- Billing.cancel_subscription_plan(account) do
       conn

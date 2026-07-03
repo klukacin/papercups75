@@ -1,7 +1,7 @@
 defmodule ChatApiWeb.MattermostController do
   use ChatApiWeb, :controller
 
-  alias ChatApi.{Mattermost, Messages, Slack}
+  alias ChatApi.{Accounts, Mattermost, Messages, Slack}
   alias ChatApi.Mattermost.MattermostAuthorization
 
   require Logger
@@ -13,7 +13,8 @@ defmodule ChatApiWeb.MattermostController do
     Logger.info("Params from Mattermost auth: #{inspect(authorization)}")
 
     # TODO: verify that auth info works with Mattermost API before creating?
-    with %{account_id: account_id, id: user_id} <- conn.assigns.current_user,
+    with %{id: user_id} <- conn.assigns.current_user,
+         account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          params <- Map.merge(authorization, %{"account_id" => account_id, "user_id" => user_id}),
          {:ok, result} <- Mattermost.create_or_update_authorization!(params) do
       json(conn, %{data: %{ok: true, id: result.id}})
@@ -22,8 +23,7 @@ defmodule ChatApiWeb.MattermostController do
 
   @spec authorization(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def authorization(conn, params) do
-    current_user = Pow.Plug.current_user(conn)
-    account_id = current_user.account_id
+    account_id = Accounts.get_current_account_id(conn)
     filters = Map.new(params, fn {key, value} -> {String.to_atom(key), value} end)
 
     case Mattermost.get_authorization_by_account(account_id, filters) do
@@ -52,7 +52,7 @@ defmodule ChatApiWeb.MattermostController do
       authorization = %MattermostAuthorization{
         access_token: access_token,
         mattermost_url: mattermost_url,
-        account_id: conn.assigns.current_user.account_id,
+        account_id: Accounts.get_current_account_id(conn),
         user_id: conn.assigns.current_user.id
       }
 

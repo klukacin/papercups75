@@ -1,7 +1,7 @@
 defmodule ChatApiWeb.TwilioController do
   use ChatApiWeb, :controller
 
-  alias ChatApi.{Conversations, Customers, Messages, Twilio}
+  alias ChatApi.{Accounts, Conversations, Customers, Messages, Twilio}
   alias ChatApi.Twilio.TwilioAuthorization
 
   require Logger
@@ -10,7 +10,7 @@ defmodule ChatApiWeb.TwilioController do
 
   @spec send(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def send(conn, %{"to" => to, "body" => body}) do
-    with %{account_id: account_id} <- conn.assigns.current_user,
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          %TwilioAuthorization{from_phone_number: from_phone_number} = auth <-
            Twilio.get_authorization_by_account(account_id),
          {:ok, %{body: json}} <-
@@ -24,7 +24,8 @@ defmodule ChatApiWeb.TwilioController do
   def auth(conn, %{"authorization" => authorization}) do
     Logger.info("Params from Twilio auth: #{inspect(authorization)}")
 
-    with %{account_id: account_id, id: user_id} <- conn.assigns.current_user,
+    with %{id: user_id} <- conn.assigns.current_user,
+         account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          params <- Map.merge(authorization, %{"account_id" => account_id, "user_id" => user_id}),
          :ok <- verify_authorization(params),
          {:ok, result} <- Twilio.create_or_update_authorization!(params) do
@@ -40,8 +41,7 @@ defmodule ChatApiWeb.TwilioController do
 
   @spec authorization(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def authorization(conn, params) do
-    current_user = Pow.Plug.current_user(conn)
-    account_id = current_user.account_id
+    account_id = Accounts.get_current_account_id(conn)
     filters = Map.new(params, fn {key, value} -> {String.to_atom(key), value} end)
 
     case Twilio.get_authorization_by_account(account_id, filters) do

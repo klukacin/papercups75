@@ -1,6 +1,7 @@
 defmodule ChatApiWeb.IssueController do
   use ChatApiWeb, :controller
 
+  alias ChatApi.Accounts
   alias ChatApi.Issues
   alias ChatApi.Issues.Issue
 
@@ -11,7 +12,7 @@ defmodule ChatApiWeb.IssueController do
   defp authorize(conn, _) do
     id = conn.path_params["id"]
 
-    with %{account_id: account_id} <- conn.assigns.current_user,
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          issue = %{account_id: ^account_id} <- Issues.get_issue!(id) do
       assign(conn, :current_issue, issue)
     else
@@ -20,16 +21,19 @@ defmodule ChatApiWeb.IssueController do
   end
 
   @spec index(Plug.Conn.t(), map()) :: Plug.Conn.t()
-  def index(%{assigns: %{current_user: %{account_id: account_id}}} = conn, params) do
+  def index(conn, params) do
+    account_id = Accounts.get_current_account_id(conn)
     issues = Issues.list_issues(account_id, params)
 
     render(conn, "index.json", issues: issues)
   end
 
   @spec create(Plug.Conn.t(), map()) :: Plug.Conn.t()
-  def create(%{assigns: %{current_user: %{account_id: account_id, id: creator_id}}} = conn, %{
+  def create(%{assigns: %{current_user: %{id: creator_id}}} = conn, %{
         "issue" => issue_params
       }) do
+    account_id = Accounts.get_current_account_id(conn)
+
     with {:ok, %Issue{} = issue} <-
            issue_params
            |> Map.merge(%{"creator_id" => creator_id, "account_id" => account_id})

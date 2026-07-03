@@ -3,12 +3,13 @@ defmodule ChatApiWeb.GmailController do
 
   require Logger
 
+  alias ChatApi.Accounts
   alias ChatApi.Google
   alias ChatApi.Google.GoogleAuthorization
 
   @spec profile(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def profile(conn, params) do
-    with %{account_id: account_id} <- conn.assigns.current_user,
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          %GoogleAuthorization{refresh_token: refresh_token} <-
            Google.get_authorization_by_account(account_id, %{
              client: "gmail",
@@ -32,7 +33,8 @@ defmodule ChatApiWeb.GmailController do
 
   @spec send(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def send(conn, params) do
-    with %{account_id: account_id, email: email} <- conn.assigns.current_user,
+    with %{email: email} <- conn.assigns.current_user,
+         account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          %GoogleAuthorization{refresh_token: refresh_token} <-
            Google.get_authorization_by_account(account_id, %{
              client: "gmail",

@@ -1,7 +1,7 @@
 defmodule ChatApiWeb.GithubController do
   use ChatApiWeb, :controller
 
-  alias ChatApi.{Conversations, Github, Issues, Messages}
+  alias ChatApi.{Accounts, Conversations, Github, Issues, Messages}
   alias ChatApi.Conversations.Conversation
   alias ChatApi.Github.GithubAuthorization
   alias ChatApi.Issues.Issue
@@ -14,7 +14,8 @@ defmodule ChatApiWeb.GithubController do
   def oauth(conn, %{"code" => code}) do
     Logger.debug("Code from Github oauth: #{inspect(code)}")
 
-    with %{account_id: account_id, id: user_id} <- conn.assigns.current_user,
+    with %{id: user_id} <- conn.assigns.current_user,
+         account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          {:ok,
           %{body: %{"access_token" => access_token, "scope" => scope, "token_type" => token_type}}} <-
            Github.Client.get_access_token(code),
@@ -34,7 +35,8 @@ defmodule ChatApiWeb.GithubController do
     # TODO: generate the access token/refresh token using the `installation_id` plus the generated JWT
     Logger.debug("Setting up authorization for Github installation #{inspect(installation_id)}")
 
-    with %{account_id: account_id, id: user_id} <- conn.assigns.current_user,
+    with %{id: user_id} <- conn.assigns.current_user,
+         account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          {:ok, %{body: %{"token" => access_token, "expires_at" => expires_at} = metadata}} <-
            Github.Client.generate_installation_access_token(installation_id),
          {:ok, result} <-
@@ -54,8 +56,7 @@ defmodule ChatApiWeb.GithubController do
   def authorization(conn, _payload) do
     authorization =
       conn
-      |> Pow.Plug.current_user()
-      |> Map.get(:account_id)
+      |> Accounts.get_current_account_id()
       |> Github.get_authorization_by_account()
 
     case authorization do
@@ -76,7 +77,7 @@ defmodule ChatApiWeb.GithubController do
 
   @spec list_repos(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def list_repos(conn, _payload) do
-    with %{account_id: account_id} <- conn.assigns.current_user,
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          %GithubAuthorization{} = auth <- Github.get_authorization_by_account(account_id),
          {:ok, %{body: %{"repositories" => repos}}} <- Github.Client.list_installation_repos(auth) do
       json(conn, %{data: repos})
@@ -92,8 +93,7 @@ defmodule ChatApiWeb.GithubController do
   def list_issues(conn, %{"url" => url}) do
     authorization =
       conn
-      |> Pow.Plug.current_user()
-      |> Map.get(:account_id)
+      |> Accounts.get_current_account_id()
       |> Github.get_authorization_by_account()
 
     with {:ok, %{owner: owner, repo: repo, id: issue_id}} <-
@@ -115,8 +115,7 @@ defmodule ChatApiWeb.GithubController do
   def list_issues(conn, %{"owner" => owner, "repo" => repo}) do
     authorization =
       conn
-      |> Pow.Plug.current_user()
-      |> Map.get(:account_id)
+      |> Accounts.get_current_account_id()
       |> Github.get_authorization_by_account()
 
     with {:ok, %{body: body}} <-
@@ -133,8 +132,7 @@ defmodule ChatApiWeb.GithubController do
   def create_issue(conn, %{"owner" => owner, "repo" => repo, "issue" => issue}) do
     authorization =
       conn
-      |> Pow.Plug.current_user()
-      |> Map.get(:account_id)
+      |> Accounts.get_current_account_id()
       |> Github.get_authorization_by_account()
 
     with {:ok, %{body: body}} <-

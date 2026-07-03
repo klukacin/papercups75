@@ -10,7 +10,7 @@ defmodule ChatApiWeb.UserInvitationController do
 
   @spec index(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def index(conn, _params) do
-    with %{account_id: account_id} <- conn.assigns.current_user do
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
       user_invitations = UserInvitations.list_user_invitations(account_id)
       render(conn, "index.json", user_invitations: user_invitations)
     end
@@ -18,9 +18,9 @@ defmodule ChatApiWeb.UserInvitationController do
 
   @spec create(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def create(conn, _params) do
-    current_user = Pow.Plug.current_user(conn)
+    account_id = Accounts.get_current_account_id(conn)
 
-    if Accounts.has_reached_user_capacity?(current_user.account_id) do
+    if Accounts.has_reached_user_capacity?(account_id) do
       conn
       |> put_status(403)
       |> json(%{
@@ -33,7 +33,7 @@ defmodule ChatApiWeb.UserInvitationController do
       })
     else
       with {:ok, %UserInvitation{} = user_invitation} <-
-             UserInvitations.create_user_invitation(%{account_id: current_user.account_id}) do
+             UserInvitations.create_user_invitation(%{account_id: account_id}) do
         conn
         |> put_status(:created)
         |> put_resp_header("location", Routes.user_invitation_path(conn, :show, user_invitation))

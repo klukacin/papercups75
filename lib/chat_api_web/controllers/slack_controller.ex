@@ -3,14 +3,14 @@ defmodule ChatApiWeb.SlackController do
 
   require Logger
   alias ChatApiWeb.SlackAuthorizationView
-  alias ChatApi.{Conversations, Slack, SlackAuthorizations}
+  alias ChatApi.{Accounts, Conversations, Slack, SlackAuthorizations}
   alias ChatApi.SlackAuthorizations.SlackAuthorization
 
   action_fallback(ChatApiWeb.FallbackController)
 
   @spec notify(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def notify(conn, %{"text" => text} = params) do
-    with %{account_id: account_id} <- conn.assigns.current_user,
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          %SlackAuthorization{access_token: access_token, channel: channel} <-
            SlackAuthorizations.get_authorization_by_account(account_id, %{
              type: Map.get(params, "type", "reply"),
@@ -35,7 +35,8 @@ defmodule ChatApiWeb.SlackController do
     Logger.info("Code from Slack OAuth: #{inspect(code)}")
 
     # TODO: improve error handling?
-    with %{account_id: account_id, email: email} <- conn.assigns.current_user,
+    with %{email: email} <- conn.assigns.current_user,
+         account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          redirect_uri <- Map.get(params, "redirect_url"),
          {:ok, response} <- Slack.Client.get_access_token(code, redirect_uri),
          :ok <- Logger.info("Slack OAuth response: #{inspect(response)}"),
@@ -153,8 +154,7 @@ defmodule ChatApiWeb.SlackController do
       })
 
     conn
-    |> Pow.Plug.current_user()
-    |> Map.get(:account_id)
+    |> Accounts.get_current_account_id()
     |> SlackAuthorizations.get_authorization_by_account(filters)
     |> case do
       nil ->
@@ -176,7 +176,7 @@ defmodule ChatApiWeb.SlackController do
         type: Map.get(payload, "type", "support")
       })
 
-    account_id = conn.assigns.current_user.account_id
+    account_id = Accounts.get_current_account_id(conn)
     authorizations = SlackAuthorizations.list_slack_authorizations_by_account(account_id, filters)
 
     conn
@@ -243,7 +243,7 @@ defmodule ChatApiWeb.SlackController do
 
   @spec channels(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def channels(conn, payload) do
-    account_id = conn.assigns.current_user.account_id
+    account_id = Accounts.get_current_account_id(conn)
 
     filters =
       payload

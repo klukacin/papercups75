@@ -1,6 +1,7 @@
 defmodule ChatApiWeb.CompanyController do
   use ChatApiWeb, :controller
 
+  alias ChatApi.Accounts
   alias ChatApi.Companies
   alias ChatApi.Companies.Company
 
@@ -11,7 +12,7 @@ defmodule ChatApiWeb.CompanyController do
   defp authorize(conn, _) do
     id = conn.path_params["id"]
 
-    with %{account_id: account_id} <- conn.assigns.current_user,
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          company = %{account_id: ^account_id} <- Companies.get_company!(id) do
       assign(conn, :current_company, company)
     else
@@ -21,7 +22,7 @@ defmodule ChatApiWeb.CompanyController do
 
   @spec index(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def index(conn, _params) do
-    with %{account_id: account_id} <- conn.assigns.current_user do
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
       companies = Companies.list_companies(account_id)
       render(conn, "index.json", companies: companies)
     end
@@ -29,7 +30,7 @@ defmodule ChatApiWeb.CompanyController do
 
   @spec create(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def create(conn, %{"company" => company_params}) do
-    with %{account_id: account_id} <- conn.assigns.current_user,
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          {:ok, %Company{} = company} <-
            company_params
            |> Map.merge(%{"account_id" => account_id})
