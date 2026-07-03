@@ -62,7 +62,7 @@ defmodule ChatApi.MixProject do
       {:finch, "~> 0.18"},
       {:jason, "~> 1.0"},
       {:joken, "~> 2.6"},
-      {:plug_cowboy, "~> 2.0"},
+      {:bandit, "~> 1.0"},
       {:corsica, "~> 1.0"},
       {:pow, "~> 1.0.18"},
       {:oban, "~> 2.17"},
@@ -80,7 +80,14 @@ defmodule ChatApi.MixProject do
       {:paginator, "~> 1.0.3"},
       {:phoenix_pubsub_redis, "~> 3.0.0"},
       {:prom_ex, "~> 1.12"},
-      {:earmark, "~> 1.4.15"},
+      {:mdex, "~> 0.13"},
+      # mdex ships its Rust NIF (mdex_native) as a precompiled binary downloaded
+      # from GitHub releases; that is the default and needs no Rust toolchain.
+      # rustler is only pulled in as a fallback so the NIF can be built from
+      # source in environments that cannot reach GitHub releases (e.g. the
+      # Claude Code sandbox, which sets RUSTLER_PRECOMPILED_FORCE_BUILD_ALL in
+      # its SessionStart hook). Not used at runtime.
+      {:rustler, ">= 0.0.0", optional: true, runtime: false},
       {:html_sanitize_ex, "~> 1.4"},
       {:sweet_xml, "~> 0.7.1"},
       # TODO: just copy code over?

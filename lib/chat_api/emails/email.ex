@@ -186,14 +186,14 @@ defmodule ChatApi.Emails.Email do
     """
 
     html =
-      case Earmark.as_html(markdown) do
-        {:ok, html, _} -> html
+      case MDEx.to_html(markdown) do
+        {:ok, html} -> html
         _ -> fallback
       end
 
-    # Message bodies are user-supplied and Earmark (retired) has a stored-XSS
-    # advisory for unescaped HTML attribute values, so sanitize the rendered
-    # HTML before it goes into a notification email.
+    # Message bodies are user-supplied, so sanitize the rendered HTML before it
+    # goes into a notification email (defense in depth on top of the markdown
+    # renderer).
     HtmlSanitizeEx.basic_html(html)
   end
 
