@@ -35,6 +35,7 @@ defmodule ChatApiWeb.BillingView do
       prices:
         subscription.items.data
         |> Enum.map(fn item -> item.price end)
+        |> Enum.reject(&is_nil/1)
         |> render_many(BillingView, "price.json", as: :price)
     }
   end
@@ -62,6 +63,10 @@ defmodule ChatApiWeb.BillingView do
       code: product.metadata["name"] || nil
     }
   end
+
+  # Stripe may return a discount without a coupon; render nothing rather than
+  # dereferencing `discount.coupon.id` on nil.
+  def render("discount.json", %{discount: %{coupon: nil}}), do: nil
 
   def render("discount.json", %{discount: discount}) do
     %{

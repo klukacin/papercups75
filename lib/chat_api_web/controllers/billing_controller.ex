@@ -9,7 +9,11 @@ defmodule ChatApiWeb.BillingController do
   def show(conn, _params) do
     with %{account_id: account_id} <- conn.assigns.current_user,
          account <- Accounts.get_account!(account_id),
-         billing_info <- Billing.get_billing_info(account) do
+         # NB: `get_billing_info/1` returns `{:error, %Stripe.Error{}}` when Stripe
+         # is unreachable/misconfigured or a stored id is stale; matching a map
+         # here lets that error fall through to the FallbackController instead of
+         # blowing up the view with a BadMapError.
+         %{} = billing_info <- Billing.get_billing_info(account) do
       render(conn, "show.json", billing_info: billing_info)
     end
   end
