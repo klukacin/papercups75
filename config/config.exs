@@ -28,6 +28,10 @@ config :elixir, :time_zone_database, Tz.TimeZoneDatabase
 
 config :tesla, adapter: {Tesla.Adapter.Finch, name: ChatApi.Finch}
 
+# Swoosh's default API client is hackney; route it through the shared Finch
+# pool instead so hackney is no longer required.
+config :swoosh, api_client: Swoosh.ApiClient.Finch, finch_name: ChatApi.Finch
+
 # Configure Swagger
 config :phoenix_swagger, json_library: Jason
 

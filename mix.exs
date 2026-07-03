@@ -65,7 +65,6 @@ defmodule ChatApi.MixProject do
       {:plug_cowboy, "~> 2.0"},
       {:corsica, "~> 1.0"},
       {:pow, "~> 1.0.18"},
-      {:stripity_stripe, "~> 3.2"},
       {:oban, "~> 2.17"},
       {:sentry, "~> 13.0"},
       {:google_api_gmail, "~> 0.13"},
