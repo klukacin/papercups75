@@ -14,6 +14,8 @@ defmodule Stripe.Product do
 
   @spec list(map()) :: {:ok, %{data: [t()]}} | {:error, Stripe.Error.t()}
   def list(params \\ %{}) do
-    "/products" |> Http.get(params) |> Http.map(fn raw -> Resource.list(raw, &Resource.product/1) end)
+    "/products"
+    |> Http.get(params)
+    |> Http.map(fn raw -> Resource.list(raw, &Resource.product/1) end)
   end
 end

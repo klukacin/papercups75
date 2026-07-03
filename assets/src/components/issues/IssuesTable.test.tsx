@@ -22,7 +22,9 @@ describe('IssuesTable', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText('Investigate the flaky webhook')).toBeInTheDocument();
+    expect(
+      screen.getByText('Investigate the flaky webhook')
+    ).toBeInTheDocument();
     expect(screen.getByText('in progress')).toBeInTheDocument();
     // The actions Dropdown renders a button trigger in the last column.
     expect(document.querySelector('.ant-dropdown-trigger')).toBeInTheDocument();

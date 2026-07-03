@@ -14,7 +14,6 @@ declare module 'react-router-dom' {
   interface BrowserRouterProps {
     children?: React.ReactNode;
   }
-
 }
 
 declare module 'react-router' {

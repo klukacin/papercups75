@@ -6,9 +6,7 @@ import NewApiKeyModal from './NewApiKeyModal';
 // modal content is shown when its `visible` prop is true.
 describe('NewApiKeyModal', () => {
   it('renders modal content when visible', () => {
-    render(
-      <NewApiKeyModal visible onSuccess={() => {}} onCancel={() => {}} />
-    );
+    render(<NewApiKeyModal visible onSuccess={() => {}} onCancel={() => {}} />);
 
     // Modal renders (in a portal) with API-key-related content when open.
     expect(screen.getAllByText(/api key/i).length).toBeGreaterThan(0);

@@ -57,7 +57,7 @@ const EditCustomerDetailsModal = ({
         duration: 10,
       });
       onUpdate();
-    } catch (err: any) {
+    } catch (err) {
       logger.error('Failed to update customer', err);
       const error =
         err.response?.body?.error?.message ||
@@ -83,7 +83,7 @@ const EditCustomerDetailsModal = ({
         duration: 10,
       });
       history.push('/customers');
-    } catch (err: any) {
+    } catch (err) {
       logger.error('Failed to delete customer', err);
       const error =
         err.response?.body?.error?.message ||

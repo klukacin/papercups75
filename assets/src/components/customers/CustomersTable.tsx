@@ -5,7 +5,15 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import {TablePaginationConfig} from 'antd/lib/table';
 import {Customer} from '../../types';
-import {notification, Badge, Button, Dropdown, Table, Text, Tooltip} from '../common';
+import {
+  notification,
+  Badge,
+  Button,
+  Dropdown,
+  Table,
+  Text,
+  Tooltip,
+} from '../common';
 import {SettingOutlined} from '../icons';
 import {StartConversationWrapper} from '../conversations/StartConversationButton';
 import {ConversationModalRenderer} from '../conversations/ConversationModal';

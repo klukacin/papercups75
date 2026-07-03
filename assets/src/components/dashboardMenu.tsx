@@ -84,9 +84,7 @@ export const buildPrimaryMenuItems = ({
           children: [
             {
               key: 'personal-api-keys',
-              label: (
-                <Link to="/developers/personal-api-keys">API keys</Link>
-              ),
+              label: <Link to="/developers/personal-api-keys">API keys</Link>,
             },
             {
               key: 'event-subscriptions',
@@ -107,7 +105,10 @@ export const buildPrimaryMenuItems = ({
           title: 'Sessions',
           label: 'Sessions',
           children: [
-            {key: 'list', label: <Link to="/sessions/list">Live sessions</Link>},
+            {
+              key: 'list',
+              label: <Link to="/sessions/list">Live sessions</Link>,
+            },
             {
               key: 'setup',
               label: <Link to="/sessions/setup">Set up Storytime</Link>,
@@ -122,7 +123,10 @@ export const buildPrimaryMenuItems = ({
           title: 'Settings',
           label: 'Settings',
           children: [
-            {key: 'account', label: <Link to="/settings/account">Account</Link>},
+            {
+              key: 'account',
+              label: <Link to="/settings/account">Account</Link>,
+            },
             {key: 'team', label: <Link to="/settings/team">My team</Link>},
             {
               key: 'profile',

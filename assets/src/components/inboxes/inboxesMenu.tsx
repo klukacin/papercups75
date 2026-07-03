@@ -51,7 +51,10 @@ export const buildInboxesMenuItems = ({
       key: 'conversations',
       label: 'Conversations',
       children: [
-        {key: 'all', label: badgeLink('/conversations/all', 'All', totalNumUnread)},
+        {
+          key: 'all',
+          label: badgeLink('/conversations/all', 'All', totalNumUnread),
+        },
         {
           key: 'me',
           label: badgeLink(

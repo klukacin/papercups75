@@ -40,7 +40,8 @@ defmodule ChatApi.Stripe.ClientTest do
     end
 
     test "product/1 keeps metadata string-keyed" do
-      product = Resource.product(%{"id" => "prod_1", "name" => "Team", "metadata" => %{"name" => "team"}})
+      product =
+        Resource.product(%{"id" => "prod_1", "name" => "Team", "metadata" => %{"name" => "team"}})
 
       assert product.id == "prod_1"
       assert product.name == "Team"
