@@ -20,7 +20,7 @@ defmodule ChatApi.Repo.Migrations.CreateLambdas do
 
       add(:metadata, :map)
 
-      add(:account_id, references(:accounts, null: false, type: :uuid, on_delete: :delete_all))
+      add(:account_id, references(:accounts, type: :uuid, on_delete: :delete_all))
       add(:creator_id, references(:users, type: :integer))
 
       timestamps()

@@ -8,7 +8,7 @@ defmodule ChatApi.Repo.Migrations.CreateTags do
       add(:description, :string)
       add(:color, :string)
 
-      add(:account_id, references(:accounts, null: false, type: :uuid, on_delete: :delete_all))
+      add(:account_id, references(:accounts, type: :uuid, on_delete: :delete_all))
       add(:creator_id, references(:users, type: :integer))
 
       timestamps()
@@ -21,7 +21,7 @@ defmodule ChatApi.Repo.Migrations.CreateTags do
     create table(:conversation_tags, primary_key: false) do
       add(:id, :binary_id, primary_key: true)
 
-      add(:account_id, references(:accounts, null: false, type: :uuid, on_delete: :delete_all))
+      add(:account_id, references(:accounts, type: :uuid, on_delete: :delete_all))
       add(:conversation_id, references(:conversations, type: :uuid, on_delete: :delete_all))
       add(:tag_id, references(:tags, type: :uuid, on_delete: :delete_all))
       add(:creator_id, references(:users, type: :integer))
@@ -38,7 +38,7 @@ defmodule ChatApi.Repo.Migrations.CreateTags do
     create table(:customer_tags, primary_key: false) do
       add(:id, :binary_id, primary_key: true)
 
-      add(:account_id, references(:accounts, null: false, type: :uuid, on_delete: :delete_all))
+      add(:account_id, references(:accounts, type: :uuid, on_delete: :delete_all))
       add(:customer_id, references(:customers, type: :uuid, on_delete: :delete_all))
       add(:tag_id, references(:tags, type: :uuid, on_delete: :delete_all))
       add(:creator_id, references(:users, type: :integer))

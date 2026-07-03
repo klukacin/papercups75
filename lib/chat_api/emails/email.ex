@@ -95,7 +95,11 @@ defmodule ChatApi.Emails.Email do
     link =
       "<a href=\"https://#{@backend_url}/conversations/#{conversation_id}\">View in dashboard</a>"
 
-    html = intro <> "<br />" <> "<b>#{body}</b>" <> "<br /><br />" <> link
+    # `body` is customer-supplied; sanitize before interpolating into HTML to
+    # avoid HTML/script injection in the agent notification email (mirrors
+    # `format_message_html/2`). The plain-text body is safe as-is.
+    safe_body = HtmlSanitizeEx.basic_html(body)
+    html = intro <> "<br />" <> "<b>#{safe_body}</b>" <> "<br /><br />" <> link
     text = intro <> " " <> body
 
     new()
