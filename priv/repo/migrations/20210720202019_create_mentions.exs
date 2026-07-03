@@ -6,14 +6,14 @@ defmodule ChatApi.Repo.Migrations.CreateMentions do
       add(:id, :binary_id, primary_key: true)
       add(:seen_at, :utc_datetime)
 
-      add(:account_id, references(:accounts, null: false, type: :uuid, on_delete: :delete_all))
+      add(:account_id, references(:accounts, type: :uuid, on_delete: :delete_all))
 
       add(
         :conversation_id,
-        references(:conversations, null: false, type: :uuid, on_delete: :delete_all)
+        references(:conversations, type: :uuid, on_delete: :delete_all)
       )
 
-      add(:message_id, references(:messages, null: false, type: :uuid, on_delete: :delete_all))
+      add(:message_id, references(:messages, type: :uuid, on_delete: :delete_all))
       add(:user_id, references(:users, type: :integer))
 
       timestamps()

@@ -12,7 +12,7 @@ defmodule ChatApi.Repo.Migrations.CreateIssues do
       add(:closed_at, :utc_datetime)
       add(:metadata, :map)
 
-      add(:account_id, references(:accounts, null: false, type: :uuid, on_delete: :delete_all))
+      add(:account_id, references(:accounts, type: :uuid, on_delete: :delete_all))
       add(:creator_id, references(:users, type: :integer))
       add(:assignee_id, references(:users, type: :integer))
 
@@ -26,7 +26,7 @@ defmodule ChatApi.Repo.Migrations.CreateIssues do
     create table(:conversation_issues, primary_key: false) do
       add(:id, :binary_id, primary_key: true)
 
-      add(:account_id, references(:accounts, null: false, type: :uuid, on_delete: :delete_all))
+      add(:account_id, references(:accounts, type: :uuid, on_delete: :delete_all))
       add(:conversation_id, references(:conversations, type: :uuid, on_delete: :delete_all))
       add(:issue_id, references(:issues, type: :uuid, on_delete: :delete_all))
       add(:creator_id, references(:users, type: :integer))
@@ -43,7 +43,7 @@ defmodule ChatApi.Repo.Migrations.CreateIssues do
     create table(:customer_issues, primary_key: false) do
       add(:id, :binary_id, primary_key: true)
 
-      add(:account_id, references(:accounts, null: false, type: :uuid, on_delete: :delete_all))
+      add(:account_id, references(:accounts, type: :uuid, on_delete: :delete_all))
       add(:customer_id, references(:customers, type: :uuid, on_delete: :delete_all))
       add(:issue_id, references(:issues, type: :uuid, on_delete: :delete_all))
       add(:creator_id, references(:users, type: :integer))

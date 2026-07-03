@@ -8,7 +8,7 @@ defmodule ChatApi.Repo.Migrations.CreateBrowserSessions do
       add(:started_at, :utc_datetime)
       add(:finished_at, :utc_datetime)
 
-      add(:account_id, references(:accounts, null: false, type: :uuid, on_delete: :delete_all))
+      add(:account_id, references(:accounts, type: :uuid, on_delete: :delete_all))
       add(:customer_id, references(:customers, type: :uuid))
 
       timestamps()
