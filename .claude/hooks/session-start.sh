@@ -72,6 +72,12 @@ fi
 export PATH="$ELIXIR_DIR/bin:$PATH"
 export LANG="${LANG:-C.UTF-8}" LC_ALL="${LC_ALL:-C.UTF-8}" ELIXIR_ERL_OPTIONS="+fnu"
 
+# mdex's Rust NIF (mdex_native) is normally a precompiled binary downloaded from
+# GitHub releases. This sandbox's egress policy blocks that host, so force the
+# NIF to build from source (Rust is available here). Prod/CI keep the default
+# precompiled download and need no Rust toolchain, so this stays hook-local.
+export RUSTLER_PRECOMPILED_FORCE_BUILD_ALL="true"
+
 # ...and persist it for the rest of the session (the agent's later shells).
 if [ -n "${CLAUDE_ENV_FILE:-}" ]; then
   {
@@ -79,6 +85,7 @@ if [ -n "${CLAUDE_ENV_FILE:-}" ]; then
     echo "export LANG=C.UTF-8"
     echo "export LC_ALL=C.UTF-8"
     echo "export ELIXIR_ERL_OPTIONS=+fnu"
+    echo "export RUSTLER_PRECOMPILED_FORCE_BUILD_ALL=true"
   } >> "$CLAUDE_ENV_FILE"
 fi
 

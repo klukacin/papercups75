@@ -54,8 +54,11 @@ if config_env() === :prod do
   config :chat_api, ChatApiWeb.Endpoint,
     http: [
       port: port,
-      compress: true,
-      transport_options: [socket_opts: [:inet6]]
+      # Bandit maps response compression under :http_options and IPv6 binding
+      # under Thousand Island transport options (replaces the Cowboy-specific
+      # `compress: true` / `transport_options: [socket_opts: [:inet6]]`).
+      http_options: [compress: true],
+      thousand_island_options: [transport_options: [:inet6]]
     ],
     url: [host: backend_url],
     pubsub_server: ChatApi.PubSub,

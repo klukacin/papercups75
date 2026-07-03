@@ -9,6 +9,7 @@ config :chat_api, ChatApi.Repo, migration_timestamps: [type: :utc_datetime_usec]
 
 # Configures the endpoint
 config :chat_api, ChatApiWeb.Endpoint,
+  adapter: Bandit.PhoenixAdapter,
   url: [host: "localhost"],
   secret_key_base: "9YWmWz498gUjiMQXLq2PX/GcB5uSlqPmcxKPJ49k0vR+6ytuSydFFyDDD3zwRRWi",
   render_errors: [view: ChatApiWeb.ErrorView, accepts: ~w(json), layout: false],
