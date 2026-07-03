@@ -3,6 +3,7 @@ defmodule ChatApiWeb.IntercomController do
 
   require Logger
 
+  alias ChatApi.Accounts
   alias ChatApi.Intercom
   alias ChatApi.Intercom.IntercomAuthorization
 
@@ -12,7 +13,8 @@ defmodule ChatApiWeb.IntercomController do
   def callback(conn, %{"code" => code}) do
     Logger.debug("Code from Intercom OAuth: #{inspect(code)}")
 
-    with %{account_id: account_id, id: user_id} <- conn.assigns.current_user,
+    with %{id: user_id} <- conn.assigns.current_user,
+         account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          {:ok,
           %{
             status: 200,
@@ -50,9 +52,7 @@ defmodule ChatApiWeb.IntercomController do
 
   @spec authorization(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def authorization(conn, _payload) do
-    current_user = Pow.Plug.current_user(conn)
-
-    case Intercom.get_authorization_by_account(current_user.account_id) do
+    case Intercom.get_authorization_by_account(Accounts.get_current_account_id(conn)) do
       nil ->
         json(conn, %{data: nil})
 
@@ -70,7 +70,7 @@ defmodule ChatApiWeb.IntercomController do
 
   @spec list_contacts(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def list_contacts(conn, params) do
-    with %{account_id: account_id} <- conn.assigns.current_user,
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          %IntercomAuthorization{} = authorization <-
            Intercom.get_authorization_by_account(account_id),
          {:ok, %{body: %{"data" => data}}} <- list_intercom_contacts(authorization, params) do
@@ -85,7 +85,7 @@ defmodule ChatApiWeb.IntercomController do
 
   @spec create_contact(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def create_contact(conn, params) do
-    with %{account_id: account_id} <- conn.assigns.current_user,
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          %IntercomAuthorization{} = authorization <-
            Intercom.get_authorization_by_account(account_id),
          {:ok, %{body: contact}} <-

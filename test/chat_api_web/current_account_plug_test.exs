@@ -7,9 +7,9 @@ defmodule ChatApiWeb.CurrentAccountPlugTest do
 
   setup %{conn: conn} do
     account = insert(:account)
+    # The factory mirrors primary-account membership on insert (matching
+    # `Users.create_user/1`), so `user` is already a member of `account`.
     user = insert(:user, account: account)
-    # Phase A mirroring: make the user a member of their primary account.
-    insert(:account_user, user: user, account: account)
 
     {:ok, conn: conn, account: account, user: user}
   end
@@ -73,6 +73,61 @@ defmodule ChatApiWeb.CurrentAccountPlugTest do
                  "message" => "Forbidden: not a member of this account"
                }
              } = json_response(conn, 403)
+    end
+  end
+
+  # These exercise the plug end-to-end through the `:api_protected` pipeline
+  # (see router.ex) rather than calling `call/2` directly.
+  describe ":api_protected pipeline wiring" do
+    setup %{conn: conn, user: user} do
+      authed_conn =
+        conn
+        |> put_req_header("accept", "application/json")
+        |> Pow.Plug.assign_current_user(user, [])
+
+      {:ok, authed_conn: authed_conn}
+    end
+
+    test "with no x-account-id header, request succeeds and resolves the primary account",
+         %{authed_conn: authed_conn, user: user, account: account} do
+      conn = get(authed_conn, Routes.session_path(authed_conn, :me))
+
+      assert json_response(conn, 200)
+      assert conn.assigns.current_account_id == account.id
+      assert conn.assigns.current_account_id == user.account_id
+    end
+
+    test "with x-account-id for an account the user IS a member of, resolves that account",
+         %{authed_conn: authed_conn, user: user} do
+      other_account = insert(:account)
+      {:ok, _} = ChatApi.Accounts.create_account_user(other_account.id, user.id, "user")
+
+      conn =
+        authed_conn
+        |> put_req_header("x-account-id", other_account.id)
+        |> get(Routes.session_path(authed_conn, :me))
+
+      assert json_response(conn, 200)
+      assert conn.assigns.current_account_id == other_account.id
+    end
+
+    test "with x-account-id for an account the user is NOT a member of, returns 403",
+         %{authed_conn: authed_conn} do
+      foreign_account = insert(:account)
+
+      conn =
+        authed_conn
+        |> put_req_header("x-account-id", foreign_account.id)
+        |> get(Routes.session_path(authed_conn, :me))
+
+      assert %{
+               "error" => %{
+                 "status" => 403,
+                 "message" => "Forbidden: not a member of this account"
+               }
+             } = json_response(conn, 403)
+
+      refute conn.assigns[:current_account_id]
     end
   end
 end

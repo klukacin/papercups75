@@ -3,6 +3,7 @@ defmodule ChatApiWeb.GoogleController do
 
   require Logger
 
+  alias ChatApi.Accounts
   alias ChatApi.Google
   alias ChatApi.Google.GoogleAuthorization
 
@@ -14,7 +15,8 @@ defmodule ChatApiWeb.GoogleController do
   access protected resources on behalf of the user.
   """
   def callback(conn, %{"code" => code} = params) do
-    with %{account_id: account_id, id: user_id} <- conn.assigns.current_user do
+    with %{id: user_id} <- conn.assigns.current_user,
+         account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
       type =
         case Map.get(params, "state") do
           state when state in ["personal", "support", "sheets"] -> state
@@ -66,7 +68,7 @@ defmodule ChatApiWeb.GoogleController do
 
   @spec authorization(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def authorization(conn, %{"client" => _} = params) do
-    with %{account_id: account_id} <- conn.assigns.current_user do
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
       filters = Map.new(params, fn {key, value} -> {String.to_atom(key), value} end)
 
       # filters =

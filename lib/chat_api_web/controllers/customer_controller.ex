@@ -3,22 +3,33 @@ defmodule ChatApiWeb.CustomerController do
 
   require Logger
 
-  alias ChatApi.{Accounts, Customers}
+  alias ChatApi.{Accounts, Customers, Issues, Tags}
   alias ChatApi.Customers.Customer
 
   action_fallback(ChatApiWeb.FallbackController)
 
-  plug(:authorize when action in [:show, :update, :delete])
+  plug(
+    :authorize
+    when action in [
+           :show,
+           :update,
+           :delete,
+           :add_tag,
+           :remove_tag,
+           :link_issue,
+           :unlink_issue
+         ]
+  )
 
   defp authorize(conn, _) do
-    id = conn.path_params["id"]
+    id = conn.path_params["id"] || conn.params["customer_id"]
 
     preloads =
       (conn.params["expand"] || ["company", "tags"])
       |> Enum.map(&String.to_existing_atom/1)
       |> Enum.filter(&Customers.is_valid_association?/1)
 
-    with %{account_id: account_id} <- conn.assigns.current_user,
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          customer = %{account_id: ^account_id} <-
            Customers.get_customer!(id, preloads) do
       assign(conn, :current_customer, customer)
@@ -29,7 +40,7 @@ defmodule ChatApiWeb.CustomerController do
 
   @spec index(Plug.Conn.t(), map) :: Plug.Conn.t()
   def index(conn, params) do
-    with %{account_id: account_id} <- conn.assigns.current_user do
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
       page = Customers.list_customers(account_id, params, format_pagination_options(params))
       render(conn, "index.#{resp_format(params)}", page: page)
     end
@@ -162,38 +173,52 @@ defmodule ChatApiWeb.CustomerController do
   end
 
   @spec add_tag(Plug.Conn.t(), map) :: Plug.Conn.t()
-  def add_tag(conn, %{"customer_id" => id, "tag_id" => tag_id}) do
-    customer = Customers.get_customer!(id)
+  def add_tag(conn, %{"tag_id" => tag_id}) do
+    %{account_id: account_id} = customer = conn.assigns.current_customer
 
-    with {:ok, _result} <- Customers.add_tag(customer, tag_id) do
+    # The tag must belong to the same (resolved) account as the customer.
+    with %{account_id: ^account_id} <- Tags.get_tag!(tag_id),
+         {:ok, _result} <- Customers.add_tag(customer, tag_id) do
       json(conn, %{data: %{ok: true}})
+    else
+      _ -> {:error, :not_found}
     end
   end
 
   @spec remove_tag(Plug.Conn.t(), map) :: Plug.Conn.t()
-  def remove_tag(conn, %{"customer_id" => id, "tag_id" => tag_id}) do
-    customer = Customers.get_customer!(id)
+  def remove_tag(conn, %{"tag_id" => tag_id}) do
+    %{account_id: account_id} = customer = conn.assigns.current_customer
 
-    with {:ok, _result} <- Customers.remove_tag(customer, tag_id) do
+    with %{account_id: ^account_id} <- Tags.get_tag!(tag_id),
+         {:ok, _result} <- Customers.remove_tag(customer, tag_id) do
       json(conn, %{data: %{ok: true}})
+    else
+      _ -> {:error, :not_found}
     end
   end
 
   @spec link_issue(Plug.Conn.t(), map) :: Plug.Conn.t()
-  def link_issue(conn, %{"customer_id" => id, "issue_id" => issue_id}) do
-    customer = Customers.get_customer!(id)
+  def link_issue(conn, %{"issue_id" => issue_id}) do
+    %{account_id: account_id} = customer = conn.assigns.current_customer
 
-    with {:ok, _result} <- Customers.link_issue(customer, issue_id) do
+    # The issue must belong to the same (resolved) account as the customer.
+    with %{account_id: ^account_id} <- Issues.get_issue!(issue_id),
+         {:ok, _result} <- Customers.link_issue(customer, issue_id) do
       json(conn, %{data: %{ok: true}})
+    else
+      _ -> {:error, :not_found}
     end
   end
 
   @spec unlink_issue(Plug.Conn.t(), map) :: Plug.Conn.t()
-  def unlink_issue(conn, %{"customer_id" => id, "issue_id" => issue_id}) do
-    customer = Customers.get_customer!(id)
+  def unlink_issue(conn, %{"issue_id" => issue_id}) do
+    %{account_id: account_id} = customer = conn.assigns.current_customer
 
-    with {:ok, _result} <- Customers.unlink_issue(customer, issue_id) do
+    with %{account_id: ^account_id} <- Issues.get_issue!(issue_id),
+         {:ok, _result} <- Customers.unlink_issue(customer, issue_id) do
       json(conn, %{data: %{ok: true}})
+    else
+      _ -> {:error, :not_found}
     end
   end
 

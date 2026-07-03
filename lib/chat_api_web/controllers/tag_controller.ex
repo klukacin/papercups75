@@ -1,6 +1,7 @@
 defmodule ChatApiWeb.TagController do
   use ChatApiWeb, :controller
 
+  alias ChatApi.Accounts
   alias ChatApi.Tags
   alias ChatApi.Tags.Tag
 
@@ -11,7 +12,7 @@ defmodule ChatApiWeb.TagController do
   defp authorize(conn, _) do
     id = conn.path_params["id"]
 
-    with %{account_id: account_id} <- conn.assigns.current_user,
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          tag = %{account_id: ^account_id} <- Tags.get_tag!(id) do
       assign(conn, :current_tag, tag)
     else
@@ -20,16 +21,19 @@ defmodule ChatApiWeb.TagController do
   end
 
   @spec index(Plug.Conn.t(), map()) :: Plug.Conn.t()
-  def index(%{assigns: %{current_user: %{account_id: account_id}}} = conn, _params) do
+  def index(conn, _params) do
+    account_id = Accounts.get_current_account_id(conn)
     tags = Tags.list_tags(account_id)
 
     render(conn, "index.json", tags: tags)
   end
 
   @spec create(Plug.Conn.t(), map()) :: Plug.Conn.t()
-  def create(%{assigns: %{current_user: %{account_id: account_id, id: creator_id}}} = conn, %{
+  def create(%{assigns: %{current_user: %{id: creator_id}}} = conn, %{
         "tag" => tag_params
       }) do
+    account_id = Accounts.get_current_account_id(conn)
+
     with {:ok, %Tag{} = tag} <-
            tag_params
            |> Map.merge(%{"creator_id" => creator_id, "account_id" => account_id})

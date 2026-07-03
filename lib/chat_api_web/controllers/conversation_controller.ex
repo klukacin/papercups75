@@ -2,17 +2,30 @@ defmodule ChatApiWeb.ConversationController do
   use ChatApiWeb, :controller
   use PhoenixSwagger
 
-  alias ChatApi.{Conversations, Inboxes, Messages}
+  alias ChatApi.{Accounts, Conversations, Inboxes, Messages, Tags}
   alias ChatApi.Conversations.{Conversation, Helpers}
 
   action_fallback(ChatApiWeb.FallbackController)
 
-  plug(:authorize when action in [:show, :update, :delete, :archive])
+  plug(
+    :authorize
+    when action in [
+           :show,
+           :update,
+           :delete,
+           :archive,
+           :add_tag,
+           :remove_tag,
+           :previous,
+           :related,
+           :share
+         ]
+  )
 
   defp authorize(conn, _) do
     id = conn.path_params["id"] || conn.params["conversation_id"]
 
-    with %{account_id: account_id} <- conn.assigns.current_user,
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          conversation = %{account_id: ^account_id} <- Conversations.get_conversation!(id) do
       assign(conn, :current_conversation, conversation)
     else
@@ -73,7 +86,7 @@ defmodule ChatApiWeb.ConversationController do
 
   @spec index(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def index(conn, params) do
-    with %{account_id: account_id} <- conn.assigns.current_user,
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          filters <- format_filter_options(params, conn.assigns.current_user),
          pagination_options <- format_pagination_options(params),
          %{entries: conversations, metadata: pagination} <-
@@ -88,7 +101,7 @@ defmodule ChatApiWeb.ConversationController do
 
   @spec count(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def count(conn, filters) do
-    with %{account_id: account_id} <- conn.assigns.current_user do
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
       count = Conversations.count_conversations_where(account_id, filters)
 
       json(conn, %{data: %{count: count}})
@@ -97,7 +110,8 @@ defmodule ChatApiWeb.ConversationController do
 
   @spec unread(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def unread(conn, _params) do
-    with %{id: user_id, account_id: account_id} <- conn.assigns.current_user do
+    with %{id: user_id} <- conn.assigns.current_user,
+         account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
       inboxes = Inboxes.list_inboxes(account_id)
 
       unread_by_inbox =
@@ -175,34 +189,35 @@ defmodule ChatApiWeb.ConversationController do
   end
 
   @spec previous(Plug.Conn.t(), map()) :: Plug.Conn.t()
-  def previous(conn, %{"conversation_id" => conversation_id}) do
-    with %Conversation{} = conversation <- Conversations.get_conversation(conversation_id) do
-      # TODO: should we just return the conversation ID?
-      previous = Conversations.get_previous_conversation(conversation)
+  def previous(conn, _params) do
+    # `conn.assigns.current_conversation` is set (and account-scoped) by the
+    # `authorize` plug, so no unscoped re-fetch is needed here.
+    conversation = conn.assigns.current_conversation
+    # TODO: should we just return the conversation ID?
+    previous = Conversations.get_previous_conversation(conversation)
 
-      render(conn, "show.json", conversation: previous)
-    end
+    render(conn, "show.json", conversation: previous)
   end
 
   @spec related(Plug.Conn.t(), map()) :: Plug.Conn.t()
-  def related(conn, %{"conversation_id" => conversation_id} = params) do
-    with %Conversation{} = conversation <-
-           Conversations.get_conversation(conversation_id) do
-      limit = Map.get(params, "limit", 3)
-      results = Conversations.list_other_recent_conversations(conversation, limit)
+  def related(conn, params) do
+    conversation = conn.assigns.current_conversation
+    limit = Map.get(params, "limit", 3)
+    results = Conversations.list_other_recent_conversations(conversation, limit)
 
-      render(conn, "index.json", conversations: results)
-    end
+    render(conn, "index.json", conversations: results)
   end
 
   @spec share(Plug.Conn.t(), map()) :: Plug.Conn.t()
-  def share(conn, %{"conversation_id" => conversation_id}) do
-    with %{account_id: account_id} <- conn.assigns.current_user,
-         %{customer_id: customer_id} <- Conversations.get_conversation!(conversation_id) do
-      token = Phoenix.Token.sign(ChatApiWeb.Endpoint, conversation_id, {account_id, customer_id})
+  def share(conn, _params) do
+    # The conversation was already account-verified by the `authorize` plug, so
+    # the signed token's account matches the resolved account.
+    %{id: conversation_id, account_id: account_id, customer_id: customer_id} =
+      conn.assigns.current_conversation
 
-      json(conn, %{data: %{ok: true, token: token}})
-    end
+    token = Phoenix.Token.sign(ChatApiWeb.Endpoint, conversation_id, {account_id, customer_id})
+
+    json(conn, %{data: %{ok: true, token: token}})
   end
 
   @spec shared(Plug.Conn.t(), map()) :: Plug.Conn.t()
@@ -345,20 +360,28 @@ defmodule ChatApiWeb.ConversationController do
   end
 
   @spec add_tag(Plug.Conn.t(), map()) :: Plug.Conn.t()
-  def add_tag(conn, %{"conversation_id" => id, "tag_id" => tag_id}) do
-    conversation = Conversations.get_conversation!(id)
+  def add_tag(conn, %{"tag_id" => tag_id}) do
+    %{account_id: account_id} = conversation = conn.assigns.current_conversation
 
-    with {:ok, _result} <- Conversations.add_tag(conversation, tag_id) do
+    # The tag must belong to the same (resolved) account as the conversation, so
+    # a member of one account cannot attach a tag from another account.
+    with %{account_id: ^account_id} <- Tags.get_tag!(tag_id),
+         {:ok, _result} <- Conversations.add_tag(conversation, tag_id) do
       json(conn, %{data: %{ok: true}})
+    else
+      _ -> {:error, :not_found}
     end
   end
 
   @spec remove_tag(Plug.Conn.t(), map()) :: Plug.Conn.t()
-  def remove_tag(conn, %{"conversation_id" => id, "tag_id" => tag_id}) do
-    conversation = Conversations.get_conversation!(id)
+  def remove_tag(conn, %{"tag_id" => tag_id}) do
+    %{account_id: account_id} = conversation = conn.assigns.current_conversation
 
-    with {:ok, _result} <- Conversations.remove_tag(conversation, tag_id) do
+    with %{account_id: ^account_id} <- Tags.get_tag!(tag_id),
+         {:ok, _result} <- Conversations.remove_tag(conversation, tag_id) do
       json(conn, %{data: %{ok: true}})
+    else
+      _ -> {:error, :not_found}
     end
   end
 

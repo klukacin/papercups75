@@ -1,6 +1,7 @@
 defmodule ChatApiWeb.LambdaController do
   use ChatApiWeb, :controller
 
+  alias ChatApi.Accounts
   alias ChatApi.Lambdas
   alias ChatApi.Lambdas.Lambda
 
@@ -12,7 +13,7 @@ defmodule ChatApiWeb.LambdaController do
   defp authorize(conn, _) do
     id = conn.path_params["id"]
 
-    with %{account_id: account_id} <- conn.assigns.current_user,
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          %{account_id: ^account_id} = lambda <- Lambdas.get_lambda!(id) do
       assign(conn, :current_lambda, lambda)
     else
@@ -21,16 +22,19 @@ defmodule ChatApiWeb.LambdaController do
   end
 
   @spec index(Plug.Conn.t(), map()) :: Plug.Conn.t()
-  def index(%{assigns: %{current_user: %{account_id: account_id}}} = conn, params) do
+  def index(conn, params) do
+    account_id = Accounts.get_current_account_id(conn)
     lambdas = Lambdas.list_lambdas(account_id, params)
 
     render(conn, "index.json", lambdas: lambdas)
   end
 
   @spec create(Plug.Conn.t(), map()) :: Plug.Conn.t()
-  def create(%{assigns: %{current_user: %{account_id: account_id, id: creator_id}}} = conn, %{
+  def create(%{assigns: %{current_user: %{id: creator_id}}} = conn, %{
         "lambda" => lambda_params
       }) do
+    account_id = Accounts.get_current_account_id(conn)
+
     with {:ok, %Lambda{} = lambda} <-
            lambda_params
            |> Map.merge(%{"creator_id" => creator_id, "account_id" => account_id})
@@ -64,8 +68,8 @@ defmodule ChatApiWeb.LambdaController do
 
   @spec deploy(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def deploy(conn, %{"file" => file} = params) do
-    with %{current_lambda: lambda, current_user: %{id: user_id, account_id: account_id}} <-
-           conn.assigns,
+    with %{current_lambda: lambda, current_user: %{id: user_id}} <- conn.assigns,
+         account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          # NB: for now we just get the most recent API key rather than passing it through as a param
          %ChatApi.ApiKeys.PersonalApiKey{value: api_key} <-
            ChatApi.ApiKeys.list_personal_api_keys(user_id, account_id) |> List.last(),

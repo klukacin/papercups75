@@ -1,5 +1,6 @@
 defmodule ChatApiWeb.UserController do
   use ChatApiWeb, :controller
+  alias ChatApi.Accounts
   alias ChatApi.Users
   alias ChatApi.Users.User
   require Logger
@@ -13,14 +14,14 @@ defmodule ChatApiWeb.UserController do
 
   @spec index(Plug.Conn.t(), map) :: Plug.Conn.t()
   def index(conn, params) do
-    users = ChatApi.Users.list_users_by_account(conn.assigns.current_user.account_id, params)
+    users = ChatApi.Users.list_users_by_account(Accounts.get_current_account_id(conn), params)
 
     render(conn, "index.json", users: users)
   end
 
   @spec show(Plug.Conn.t(), map) :: Plug.Conn.t()
   def show(conn, %{"id" => id}) do
-    user = ChatApi.Users.get_user_info(conn.assigns.current_user.account_id, id)
+    user = ChatApi.Users.get_user_info(Accounts.get_current_account_id(conn), id)
 
     render(conn, "show.json", user: user)
   end
@@ -96,7 +97,8 @@ defmodule ChatApiWeb.UserController do
         |> put_status(400)
         |> json(%{error: %{status: 400, message: "You cannot disable yourself."}})
 
-      %{account_id: account_id} ->
+      %{account_id: _account_id} ->
+        account_id = Accounts.get_current_account_id(conn)
         {:ok, user} = user_id |> Users.find_by_id(account_id) |> Users.disable_user()
 
         render(conn, "show.json", user: user)
@@ -110,7 +112,7 @@ defmodule ChatApiWeb.UserController do
 
   @spec update_role(Plug.Conn.t(), map) :: Plug.Conn.t()
   def update_role(conn, %{"id" => user_id, "role" => "user"}) do
-    with %{account_id: account_id} <- conn.assigns.current_user,
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          %User{} = user <- Users.find_by_id(user_id, account_id),
          {:ok, user} <- Users.set_user_role(user) do
       render(conn, "show.json", user: user)
@@ -118,7 +120,7 @@ defmodule ChatApiWeb.UserController do
   end
 
   def update_role(conn, %{"id" => user_id, "role" => "admin"}) do
-    with %{account_id: account_id} <- conn.assigns.current_user,
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          %User{} = user <- Users.find_by_id(user_id, account_id),
          {:ok, user} <- Users.set_admin_role(user) do
       render(conn, "show.json", user: user)
@@ -164,7 +166,8 @@ defmodule ChatApiWeb.UserController do
         |> put_status(403)
         |> json(%{error: %{status: 403, message: "You cannot archive yourself."}})
 
-      %{id: _id, account_id: account_id} ->
+      %{id: _id} ->
+        account_id = Accounts.get_current_account_id(conn)
         {:ok, user} = user_id |> Users.find_by_id(account_id) |> Users.archive_user()
 
         render(conn, "show.json", user: user)
@@ -186,7 +189,8 @@ defmodule ChatApiWeb.UserController do
         |> put_status(400)
         |> json(%{error: %{status: 400, message: "You cannot enable yourself."}})
 
-      %{account_id: account_id} ->
+      %{account_id: _account_id} ->
+        account_id = Accounts.get_current_account_id(conn)
         {:ok, user} = user_id |> Users.find_by_id(account_id) |> Users.enable_user()
 
         render(conn, "show.json", user: user)

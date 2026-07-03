@@ -8,7 +8,7 @@ defmodule ChatApiWeb.PaymentMethodController do
   @spec create(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def create(conn, %{"payment_method" => payment_method_params}) do
     with user <- conn.assigns.current_user,
-         %{account_id: account_id} <- user,
+         account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          %{"id" => payment_method_id} <- payment_method_params do
       result =
         account_id
@@ -29,7 +29,7 @@ defmodule ChatApiWeb.PaymentMethodController do
 
   @spec show(atom | %{assigns: atom | %{current_user: any}}, any) :: any
   def show(conn, _params) do
-    with %{account_id: account_id} <- conn.assigns.current_user do
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
       case Accounts.get_account!(account_id) do
         %{stripe_default_payment_method_id: nil} ->
           json(conn, %{data: nil})

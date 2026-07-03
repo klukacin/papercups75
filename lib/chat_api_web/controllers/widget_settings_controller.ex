@@ -59,7 +59,7 @@ defmodule ChatApiWeb.WidgetSettingsController do
 
   @spec update(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def update(conn, %{"widget_settings" => params}) do
-    with %{account_id: account_id} <- conn.assigns.current_user do
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
       filters = ensure_inbox_filter_included(account_id, params)
 
       {:ok, widget_settings} =

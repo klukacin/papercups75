@@ -1,6 +1,7 @@
 defmodule ChatApiWeb.CannedResponseController do
   use ChatApiWeb, :controller
 
+  alias ChatApi.Accounts
   alias ChatApi.CannedResponses
   alias ChatApi.CannedResponses.CannedResponse
 
@@ -11,7 +12,7 @@ defmodule ChatApiWeb.CannedResponseController do
   defp authorize(conn, _) do
     id = conn.path_params["id"]
 
-    with %{account_id: account_id} <- conn.assigns.current_user,
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          canned_response = %{account_id: ^account_id} <- CannedResponses.get_canned_response!(id) do
       assign(conn, :current_canned_response, canned_response)
     else
@@ -21,7 +22,7 @@ defmodule ChatApiWeb.CannedResponseController do
 
   @spec index(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def index(conn, _params) do
-    with %{account_id: account_id} <- conn.assigns.current_user do
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
       canned_responses = CannedResponses.list_canned_responses(account_id)
       render(conn, "index.json", canned_responses: canned_responses)
     end
@@ -29,7 +30,7 @@ defmodule ChatApiWeb.CannedResponseController do
 
   @spec create(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def create(conn, %{"canned_response" => canned_response_params}) do
-    with %{account_id: account_id} <- conn.assigns.current_user,
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          {:ok, %CannedResponse{} = canned_response} <-
            canned_response_params
            |> Map.merge(%{"account_id" => account_id})

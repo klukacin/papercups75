@@ -1,6 +1,7 @@
 defmodule ChatApiWeb.NoteController do
   use ChatApiWeb, :controller
 
+  alias ChatApi.Accounts
   alias ChatApi.Notes
   alias ChatApi.Notes.Note
 
@@ -11,7 +12,7 @@ defmodule ChatApiWeb.NoteController do
   def authorize(conn, _) do
     id = conn.path_params["id"]
 
-    with %{account_id: account_id} <- conn.assigns.current_user,
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          note = %{account_id: ^account_id} <- Notes.get_note!(id) do
       assign(conn, :current_note, note)
     else
@@ -21,7 +22,7 @@ defmodule ChatApiWeb.NoteController do
 
   @spec index(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def index(conn, filters) do
-    with %{account_id: account_id} <- conn.assigns.current_user do
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
       notes = Notes.list_notes_by_account(account_id, filters)
       render(conn, "index.json", notes: notes)
     end
@@ -31,7 +32,8 @@ defmodule ChatApiWeb.NoteController do
   def create(conn, %{"note" => note_params}) do
     %{"body" => body, "customer_id" => customer_id} = note_params
 
-    with %{account_id: account_id, id: author_id} <- conn.assigns.current_user,
+    with %{id: author_id} <- conn.assigns.current_user,
+         account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          {:ok, %Note{} = note} <-
            Notes.create_note(%{
              body: body,

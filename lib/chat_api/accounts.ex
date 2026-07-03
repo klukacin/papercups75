@@ -26,6 +26,63 @@ defmodule ChatApi.Accounts do
     |> Repo.insert(on_conflict: :nothing, conflict_target: [:account_id, :user_id])
   end
 
+  @doc """
+  Backfills `account_users` membership rows for pre-existing users.
+
+  Every `User` has exactly one primary account via `users.account_id`. Users
+  created before Phase A (and any created outside `Users.create_user/1`) have no
+  membership row, which would 403 them on their own data once
+  `CurrentAccountPlug` is enforced. This ensures each user is a member of its
+  primary account.
+
+  Implementation notes / trade-offs:
+    * Uses a single `INSERT ... SELECT` (`Repo.insert_all/3` from a source query)
+      with a `NOT EXISTS` filter, so it is one round-trip regardless of table
+      size (no N+1 per-user inserts).
+    * Idempotent: the `NOT EXISTS` filter skips users that already have a
+      membership, and `on_conflict: :nothing` on the unique
+      `(account_id, user_id)` index guards against any race/duplicate.
+    * Users with a nil `account_id` are skipped (the column is NOT NULL today, so
+      this is purely defensive and never crashes).
+    * Existing memberships are left untouched, preserving their `role`.
+
+  Returns the number of membership rows created (for logging).
+  """
+  @spec backfill_account_memberships() :: non_neg_integer()
+  def backfill_account_memberships do
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    source =
+      from(u in User,
+        as: :user,
+        where: not is_nil(u.account_id),
+        where:
+          not exists(
+            from(au in AccountUser,
+              where:
+                au.account_id == parent_as(:user).account_id and
+                  au.user_id == parent_as(:user).id
+            )
+          ),
+        select: %{
+          id: fragment("gen_random_uuid()"),
+          account_id: u.account_id,
+          user_id: u.id,
+          role: fragment("COALESCE(?, 'user')", u.role),
+          inserted_at: ^now,
+          updated_at: ^now
+        }
+      )
+
+    {count, _} =
+      Repo.insert_all(AccountUser, source,
+        on_conflict: :nothing,
+        conflict_target: [:account_id, :user_id]
+      )
+
+    count
+  end
+
   @doc "Returns true if the user is a member of the given account."
   @spec user_member_of?(User.t() | integer(), binary()) :: boolean()
   def user_member_of?(%User{id: user_id}, account_id), do: user_member_of?(user_id, account_id)
@@ -36,6 +93,10 @@ defmodule ChatApi.Accounts do
     |> where(user_id: ^user_id, account_id: ^account_id)
     |> Repo.exists?()
   end
+
+  # Fail closed for anything else (nil user, non-binary/malformed account id)
+  # rather than letting a bad value reach an Ecto query (which would raise).
+  def user_member_of?(_user_or_id, _account_id), do: false
 
   @doc "Lists all accounts a user is a member of."
   @spec list_accounts_for_user(User.t() | integer()) :: [Account.t()]
@@ -65,6 +126,23 @@ defmodule ChatApi.Accounts do
   def get_current_account_id!(%Plug.Conn{}) do
     raise "current_account_id not assigned: ChatApiWeb.CurrentAccountPlug must run before calling get_current_account_id!/1"
   end
+
+  @doc """
+  Non-raising account resolution for controllers. Returns the account id
+  assigned by `ChatApiWeb.CurrentAccountPlug` (from the `x-account-id` header,
+  membership-checked), falling back to the current user's primary account, and
+  finally `nil` when neither is available. Safe to call from any action.
+  """
+  @spec get_current_account_id(Plug.Conn.t()) :: binary() | nil
+  def get_current_account_id(%Plug.Conn{assigns: assigns}) do
+    case assigns do
+      %{current_account_id: account_id} when not is_nil(account_id) -> account_id
+      %{current_user: %{account_id: account_id}} when not is_nil(account_id) -> account_id
+      _ -> nil
+    end
+  end
+
+  def get_current_account_id(%Plug.Conn{}), do: nil
 
   @spec list_accounts() :: [Account.t()]
   def list_accounts do

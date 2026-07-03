@@ -1,6 +1,7 @@
 defmodule ChatApiWeb.BrowserSessionController do
   use ChatApiWeb, :controller
 
+  alias ChatApi.Accounts
   alias ChatApi.BrowserSessions
   alias ChatApi.BrowserSessions.BrowserSession
 
@@ -8,7 +9,7 @@ defmodule ChatApiWeb.BrowserSessionController do
 
   @spec index(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def index(conn, params) do
-    with %{account_id: account_id} <- conn.assigns.current_user do
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
       browser_sessions = BrowserSessions.list_browser_sessions(account_id, params)
 
       render(conn, "index.json", browser_sessions: browser_sessions)
@@ -28,7 +29,7 @@ defmodule ChatApiWeb.BrowserSessionController do
 
   @spec show(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def show(conn, %{"id" => id}) do
-    with %{account_id: account_id} <- conn.assigns.current_user do
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
       browser_session = BrowserSessions.get_browser_session!(id, account_id)
       render(conn, "show.json", browser_session: browser_session)
     end
@@ -55,7 +56,7 @@ defmodule ChatApiWeb.BrowserSessionController do
 
   @spec count(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def count(conn, params) do
-    with %{account_id: account_id} <- conn.assigns.current_user do
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
       json(conn, %{
         data: %{
           count: BrowserSessions.count_browser_sessions(account_id, params)

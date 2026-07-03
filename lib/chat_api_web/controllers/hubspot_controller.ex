@@ -3,6 +3,7 @@ defmodule ChatApiWeb.HubspotController do
 
   require Logger
 
+  alias ChatApi.Accounts
   alias ChatApi.Hubspot
   alias ChatApi.Hubspot.HubspotAuthorization
 
@@ -12,7 +13,8 @@ defmodule ChatApiWeb.HubspotController do
   def oauth(conn, %{"code" => code}) do
     Logger.debug("Code from HubSpot OAuth: #{inspect(code)}")
 
-    with %{account_id: account_id, id: user_id} <- conn.assigns.current_user,
+    with %{id: user_id} <- conn.assigns.current_user,
+         account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          {:ok,
           %{
             status: 200,
@@ -64,9 +66,7 @@ defmodule ChatApiWeb.HubspotController do
 
   @spec authorization(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def authorization(conn, _payload) do
-    current_user = Pow.Plug.current_user(conn)
-
-    case Hubspot.get_authorization_by_account(current_user.account_id) do
+    case Hubspot.get_authorization_by_account(Accounts.get_current_account_id(conn)) do
       nil ->
         json(conn, %{data: nil})
 
@@ -84,7 +84,7 @@ defmodule ChatApiWeb.HubspotController do
 
   @spec list_contacts(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def list_contacts(conn, params) do
-    with %{account_id: account_id} <- conn.assigns.current_user,
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          %HubspotAuthorization{} = authorization <-
            Hubspot.get_authorization_by_account(account_id),
          {:ok, %{body: %{"results" => results}}} <- list_hubspot_contacts(authorization, params) do
@@ -99,7 +99,7 @@ defmodule ChatApiWeb.HubspotController do
 
   @spec create_contact(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def create_contact(conn, params) do
-    with %{account_id: account_id} <- conn.assigns.current_user,
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          %HubspotAuthorization{} = authorization <-
            Hubspot.get_authorization_by_account(account_id),
          {:ok, %{body: contact}} <-

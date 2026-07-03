@@ -8,8 +8,8 @@ defmodule ChatApi.Accounts.MembershipTest do
     test "is true for a member and false otherwise" do
       account = insert(:account)
       other = insert(:account)
+      # The factory mirrors primary-account membership on insert.
       user = insert(:user, account: account)
-      insert(:account_user, user: user, account: account)
 
       assert Accounts.user_member_of?(user, account.id)
       refute Accounts.user_member_of?(user, other.id)
@@ -18,10 +18,11 @@ defmodule ChatApi.Accounts.MembershipTest do
 
   describe "list_accounts_for_user/1" do
     test "returns every account the user is a member of" do
-      user = insert(:user)
+      # `user` is a member of `account1` (its primary) via the factory, plus
+      # `account2` added explicitly below.
       account1 = insert(:account)
       account2 = insert(:account)
-      insert(:account_user, user: user, account: account1)
+      user = insert(:user, account: account1)
       insert(:account_user, user: user, account: account2)
 
       ids = user |> Accounts.list_accounts_for_user() |> Enum.map(& &1.id) |> Enum.sort()

@@ -3,15 +3,16 @@ defmodule ChatApiWeb.ReportingController do
 
   require Logger
 
-  alias ChatApi.Reporting
+  alias ChatApi.{Accounts, Reporting}
 
   action_fallback(ChatApiWeb.FallbackController)
 
   @spec index(Plug.Conn.t(), map()) :: Plug.Conn.t()
-  def index(%{assigns: %{current_user: %{account_id: account_id}}} = conn, %{
+  def index(conn, %{
         "from_date" => from_date,
         "to_date" => to_date
       }) do
+    account_id = Accounts.get_current_account_id(conn)
     Logger.info("Fetching reporting from #{from_date} to #{to_date}")
     filters = %{from_date: from_date, to_date: to_date}
 

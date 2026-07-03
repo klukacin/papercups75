@@ -11,9 +11,10 @@ defmodule ChatApiWeb.UserInvitationEmailController do
   @spec create(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def create(conn, %{"to_address" => to_address}) do
     current_user = Pow.Plug.current_user(conn)
+    account_id = Accounts.get_current_account_id(conn)
 
     # TODO: consolidate logic related to checking user capacity in controllers.
-    if Accounts.has_reached_user_capacity?(current_user.account_id) do
+    if Accounts.has_reached_user_capacity?(account_id) do
       conn
       |> put_status(403)
       |> json(%{
@@ -26,11 +27,11 @@ defmodule ChatApiWeb.UserInvitationEmailController do
       })
     else
       {:ok, %UserInvitation{} = user_invitation} =
-        UserInvitations.create_user_invitation(%{account_id: current_user.account_id})
+        UserInvitations.create_user_invitation(%{account_id: account_id})
 
       enqueue_user_invitation_email(
         current_user.id,
-        current_user.account_id,
+        account_id,
         to_address,
         user_invitation.id
       )

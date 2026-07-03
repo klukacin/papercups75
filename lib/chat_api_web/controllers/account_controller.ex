@@ -16,6 +16,18 @@ defmodule ChatApiWeb.AccountController do
     end
   end
 
+  @spec index(Plug.Conn.t(), map()) :: Plug.Conn.t()
+  def index(conn, _params) do
+    with current_user when not is_nil(current_user) <- Pow.Plug.current_user(conn) do
+      accounts =
+        current_user
+        |> Accounts.list_accounts_for_user()
+        |> Enum.map(fn %Account{id: id} -> Accounts.get_account!(id) end)
+
+      render(conn, "index.json", accounts: accounts)
+    end
+  end
+
   @spec show(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def show(conn, _params) do
     with current_user <- Pow.Plug.current_user(conn),
@@ -27,9 +39,9 @@ defmodule ChatApiWeb.AccountController do
 
   @spec update(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def update(conn, %{"account" => account_params}) do
-    with current_user <- Pow.Plug.current_user(conn),
-         %{account_id: id} <- current_user do
-      account = Accounts.get_account!(id)
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
+         :ok <- require_admin(conn, account_id) do
+      account = Accounts.get_account!(account_id)
 
       with {:ok, %Account{} = account} <- Accounts.update_account(account, account_params) do
         render(conn, "show.json", account: account)
@@ -39,9 +51,9 @@ defmodule ChatApiWeb.AccountController do
 
   @spec delete(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def delete(conn, _params) do
-    with current_user <- Pow.Plug.current_user(conn),
-         %{account_id: id} <- current_user do
-      account = Accounts.get_account!(id)
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
+         :ok <- require_admin(conn, account_id) do
+      account = Accounts.get_account!(account_id)
 
       with {:ok, %Account{}} <- Accounts.delete_account(account) do
         send_resp(conn, :no_content, "")
@@ -49,18 +61,31 @@ defmodule ChatApiWeb.AccountController do
     end
   end
 
+  # Renaming or deleting the resolved account (which cascades its data) is an
+  # admin-only operation. Membership alone is not enough: the current user must
+  # be an admin of that specific account (via the `account_users` role).
+  @spec require_admin(Plug.Conn.t(), binary()) :: :ok | {:error, :forbidden, binary()}
+  defp require_admin(conn, account_id) do
+    with %{id: user_id} <- conn.assigns.current_user,
+         %{role: "admin"} <- Accounts.get_account_user(user_id, account_id) do
+      :ok
+    else
+      _ -> {:error, :forbidden, "Must be an admin of this account."}
+    end
+  end
+
   @spec me(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def me(conn, _params) do
     case conn.assigns.current_user do
-      %{account_id: account_id} ->
-        account = Accounts.get_account!(account_id)
-
-        render(conn, "show.json", account: account)
-
       nil ->
         conn
         |> put_status(401)
         |> json(%{error: %{status: 401, message: "Invalid token"}})
+
+      _current_user ->
+        account = Accounts.get_account!(Accounts.get_current_account_id(conn))
+
+        render(conn, "show.json", account: account)
     end
   end
 end

@@ -1,6 +1,7 @@
 defmodule ChatApiWeb.InboxController do
   use ChatApiWeb, :controller
 
+  alias ChatApi.Accounts
   alias ChatApi.Inboxes
   alias ChatApi.Inboxes.Inbox
 
@@ -11,7 +12,7 @@ defmodule ChatApiWeb.InboxController do
   defp authorize(conn, _) do
     id = conn.path_params["id"]
 
-    with %{account_id: account_id} <- conn.assigns.current_user,
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          %Inbox{account_id: ^account_id} = inbox <- Inboxes.get_inbox!(id) do
       assign(conn, :current_inbox, inbox)
     else
@@ -21,7 +22,7 @@ defmodule ChatApiWeb.InboxController do
 
   @spec index(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def index(conn, _params) do
-    with %{account_id: account_id} <- conn.assigns.current_user do
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
       inboxes = Inboxes.list_inboxes(account_id)
       render(conn, "index.json", inboxes: inboxes)
     end
@@ -29,7 +30,7 @@ defmodule ChatApiWeb.InboxController do
 
   @spec create(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def create(conn, %{"inbox" => inbox_params}) do
-    with %{account_id: account_id} <- conn.assigns.current_user,
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          {:ok, %Inbox{} = inbox} <-
            inbox_params
            |> Map.merge(%{"account_id" => account_id})
@@ -46,7 +47,7 @@ defmodule ChatApiWeb.InboxController do
 
   @spec primary(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def primary(conn, _params) do
-    account_id = conn.assigns.current_user.account_id
+    account_id = Accounts.get_current_account_id(conn)
     inbox = Inboxes.get_account_primary_inbox(account_id)
 
     render(conn, "show.json", inbox: inbox)

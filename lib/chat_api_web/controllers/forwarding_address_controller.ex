@@ -1,6 +1,7 @@
 defmodule ChatApiWeb.ForwardingAddressController do
   use ChatApiWeb, :controller
 
+  alias ChatApi.Accounts
   alias ChatApi.ForwardingAddresses
   alias ChatApi.ForwardingAddresses.ForwardingAddress
 
@@ -11,7 +12,7 @@ defmodule ChatApiWeb.ForwardingAddressController do
   defp authorize(conn, _) do
     id = conn.path_params["id"]
 
-    with %{account_id: account_id} <- conn.assigns.current_user,
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          %ForwardingAddress{account_id: ^account_id} = forwarding_address <-
            ForwardingAddresses.get_forwarding_address!(id) do
       assign(conn, :current_forwarding_address, forwarding_address)
@@ -22,7 +23,7 @@ defmodule ChatApiWeb.ForwardingAddressController do
 
   @spec index(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def index(conn, params) do
-    with %{account_id: account_id} <- conn.assigns.current_user do
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
       forwarding_addresses = ForwardingAddresses.list_forwarding_addresses(account_id, params)
       render(conn, "index.json", forwarding_addresses: forwarding_addresses)
     end
@@ -30,7 +31,7 @@ defmodule ChatApiWeb.ForwardingAddressController do
 
   @spec create(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def create(conn, %{"forwarding_address" => forwarding_address_params}) do
-    with %{account_id: account_id} <- conn.assigns.current_user,
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          {:ok, %ForwardingAddress{} = forwarding_address} <-
            %{
              "forwarding_email_address" => ForwardingAddresses.generate_forwarding_email_address()

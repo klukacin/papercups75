@@ -21,7 +21,8 @@ defmodule ChatApiWeb.OnboardingStatusController do
   @spec index(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def index(conn, _params) do
     with current_user <- Pow.Plug.current_user(conn),
-         %{account_id: account_id, id: user_id} <- current_user do
+         %{id: user_id} <- current_user,
+         account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
       account = Accounts.get_account!(account_id)
 
       json(conn, %{
