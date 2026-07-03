@@ -94,6 +94,10 @@ defmodule ChatApi.Accounts do
     |> Repo.exists?()
   end
 
+  # Fail closed for anything else (nil user, non-binary/malformed account id)
+  # rather than letting a bad value reach an Ecto query (which would raise).
+  def user_member_of?(_user_or_id, _account_id), do: false
+
   @doc "Lists all accounts a user is a member of."
   @spec list_accounts_for_user(User.t() | integer()) :: [Account.t()]
   def list_accounts_for_user(%User{id: user_id}), do: list_accounts_for_user(user_id)

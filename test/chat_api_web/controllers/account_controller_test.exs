@@ -17,8 +17,12 @@ defmodule ChatApiWeb.AccountControllerTest do
     # request by verifying the current user is a member of the resolved account,
     # so we need a persisted user that is a member of `account_id` (the factory
     # mirrors primary-account membership on insert).
+    #
+    # Renaming/deleting an account is admin-only, so the user is created with the
+    # `admin` role (which the factory mirrors into the `account_users` row) — the
+    # same role a user gets on the account they create during onboarding.
     account = ChatApi.Accounts.get_account!(account_id)
-    user = insert(:user, account: account)
+    user = insert(:user, account: account, role: "admin")
     Pow.Plug.assign_current_user(conn, user, [])
   end
 

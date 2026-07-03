@@ -37,20 +37,36 @@ defmodule ChatApiWeb.CurrentAccountPlug do
         conn
 
       current_user ->
-        account_id = resolve_account_id(conn, current_user)
+        case resolve_account_id(conn, current_user) do
+          {:ok, account_id} ->
+            if Accounts.user_member_of?(current_user, account_id) do
+              assign(conn, :current_account_id, account_id)
+            else
+              forbidden(conn)
+            end
 
-        if Accounts.user_member_of?(current_user, account_id) do
-          assign(conn, :current_account_id, account_id)
-        else
-          forbidden(conn)
+          # A malformed `x-account-id` header (e.g. not a valid UUID) fails
+          # closed: it is treated as "not this user's account" -> 403, rather
+          # than reaching an Ecto query (which would raise -> 500) or silently
+          # falling back to the user's primary account.
+          :error ->
+            forbidden(conn)
         end
     end
   end
 
   defp resolve_account_id(conn, current_user) do
     case get_req_header(conn, "x-account-id") do
-      [account_id | _] when is_binary(account_id) and account_id != "" -> account_id
-      _ -> current_user.account_id
+      [account_id | _] when is_binary(account_id) and account_id != "" ->
+        # `account_id` is a `:binary_id` (UUID); reject non-castable values up
+        # front so a garbage header cannot crash the request.
+        case Ecto.UUID.cast(account_id) do
+          {:ok, uuid} -> {:ok, uuid}
+          :error -> :error
+        end
+
+      _ ->
+        {:ok, current_user.account_id}
     end
   end
 

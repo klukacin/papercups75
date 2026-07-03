@@ -39,7 +39,8 @@ defmodule ChatApiWeb.AccountController do
 
   @spec update(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def update(conn, %{"account" => account_params}) do
-    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
+         :ok <- require_admin(conn, account_id) do
       account = Accounts.get_account!(account_id)
 
       with {:ok, %Account{} = account} <- Accounts.update_account(account, account_params) do
@@ -50,12 +51,26 @@ defmodule ChatApiWeb.AccountController do
 
   @spec delete(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def delete(conn, _params) do
-    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
+         :ok <- require_admin(conn, account_id) do
       account = Accounts.get_account!(account_id)
 
       with {:ok, %Account{}} <- Accounts.delete_account(account) do
         send_resp(conn, :no_content, "")
       end
+    end
+  end
+
+  # Renaming or deleting the resolved account (which cascades its data) is an
+  # admin-only operation. Membership alone is not enough: the current user must
+  # be an admin of that specific account (via the `account_users` role).
+  @spec require_admin(Plug.Conn.t(), binary()) :: :ok | {:error, :forbidden, binary()}
+  defp require_admin(conn, account_id) do
+    with %{id: user_id} <- conn.assigns.current_user,
+         %{role: "admin"} <- Accounts.get_account_user(user_id, account_id) do
+      :ok
+    else
+      _ -> {:error, :forbidden, "Must be an admin of this account."}
     end
   end
 
