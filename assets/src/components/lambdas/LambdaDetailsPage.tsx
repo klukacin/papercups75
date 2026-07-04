@@ -294,7 +294,7 @@ class LambdaDetailsPage extends React.Component<Props, State> {
       notification.error({
         message: `Error running function.`,
         description: output.errorMessage,
-        duration: null,
+        duration: 0,
       });
     }
   };

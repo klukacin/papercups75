@@ -93,7 +93,7 @@ class HubspotIntegrationDetails extends React.Component<Props, State> {
 
         notification.error({
           message: 'Failed to authorize Hubspot',
-          duration: null,
+          duration: 0,
           description,
         });
       });

@@ -134,19 +134,19 @@ const callback = (type: Level, ...args: any) => {
     case 'error':
       return notification.error({
         message: 'Something went wrong!',
-        duration: null,
+        duration: 0,
         description,
       });
     case 'warn':
       return notification.warning({
         message: 'Warning',
-        duration: null,
+        duration: 0,
         description,
       });
     case 'info':
       return notification.info({
         message: 'Debug info',
-        duration: null,
+        duration: 0,
         description,
       });
     case 'log':
@@ -154,7 +154,7 @@ const callback = (type: Level, ...args: any) => {
     default:
       return notification.open({
         message: 'Debug',
-        duration: null,
+        duration: 0,
         description,
       });
   }
