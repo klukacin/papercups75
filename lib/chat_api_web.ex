@@ -22,7 +22,7 @@ defmodule ChatApiWeb do
       use Phoenix.Controller, namespace: ChatApiWeb
 
       import Plug.Conn
-      import ChatApiWeb.Gettext
+      use Gettext, backend: ChatApiWeb.Gettext
       alias ChatApiWeb.Router.Helpers, as: Routes
     end
   end
@@ -54,7 +54,7 @@ defmodule ChatApiWeb do
   def channel do
     quote do
       use Phoenix.Channel
-      import ChatApiWeb.Gettext
+      use Gettext, backend: ChatApiWeb.Gettext
     end
   end
 
@@ -64,7 +64,7 @@ defmodule ChatApiWeb do
       import Phoenix.View
 
       import ChatApiWeb.ErrorHelpers
-      import ChatApiWeb.Gettext
+      use Gettext, backend: ChatApiWeb.Gettext
       alias ChatApiWeb.Router.Helpers, as: Routes
     end
   end

@@ -69,8 +69,7 @@ defmodule ChatApiWeb.Endpoint do
     #   ~r{^https?://(.*.?)papercups.io$}
     # ],
     allow_credentials: true,
-    allow_headers: ["Content-Type", "Authorization"],
-    log: [rejected: :error, invalid: :warn, accepted: :debug]
+    allow_headers: ["Content-Type", "Authorization"]
   )
 
   plug(ChatApiWeb.Router)
