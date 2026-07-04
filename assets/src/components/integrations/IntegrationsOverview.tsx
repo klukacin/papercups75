@@ -391,7 +391,7 @@ class IntegrationsOverview extends React.Component<Props, State> {
 
         notification.error({
           message: 'Failed to authorize Slack',
-          duration: null,
+          duration: 0,
           description,
         });
       });
@@ -418,7 +418,7 @@ class IntegrationsOverview extends React.Component<Props, State> {
 
         notification.error({
           message: 'Failed to authorize Google',
-          duration: null,
+          duration: 0,
           description,
         });
       });
@@ -445,7 +445,7 @@ class IntegrationsOverview extends React.Component<Props, State> {
 
         notification.error({
           message: 'Failed to authorize Github',
-          duration: null,
+          duration: 0,
           description,
         });
       });

@@ -330,7 +330,7 @@ const openShareConversationUrlNotification = (url: string) => {
         <Text type="secondary">This link will only be valid for 24 hours.</Text>
       </Box>
     ),
-    duration: null,
+    duration: 0,
   });
 };
 

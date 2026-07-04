@@ -93,7 +93,7 @@ class IntercomIntegrationDetails extends React.Component<Props, State> {
 
         notification.error({
           message: 'Failed to authorize Intercom',
-          duration: null,
+          duration: 0,
           description,
         });
       });

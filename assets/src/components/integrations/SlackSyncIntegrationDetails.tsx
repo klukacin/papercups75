@@ -297,7 +297,7 @@ class SlackSyncIntegrationDetails extends React.Component<Props, State> {
 
         notification.error({
           message: 'Failed to authorize Slack',
-          duration: null,
+          duration: 0,
           description,
         });
       });

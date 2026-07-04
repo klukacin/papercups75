@@ -99,7 +99,7 @@ class GoogleSheetsIntegrationDetails extends React.Component<Props, State> {
 
         notification.error({
           message: 'Failed to authorize Google Sheets',
-          duration: null,
+          duration: 0,
           description,
         });
       });
