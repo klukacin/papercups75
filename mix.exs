@@ -7,8 +7,9 @@ defmodule ChatApi.MixProject do
       version: "0.1.0",
       elixir: "~> 1.10",
       elixirc_paths: elixirc_paths(Mix.env()),
-      # NB: the :phoenix compiler was removed in Phoenix 1.8 (no longer required).
-      compilers: [:gettext] ++ Mix.compilers() ++ [:phoenix_swagger],
+      # NB: the :phoenix (Phoenix 1.8) and :gettext (gettext 1.0) compilers were
+      # removed from their libraries and are no longer required here.
+      compilers: Mix.compilers() ++ [:phoenix_swagger],
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps(),
@@ -49,7 +50,7 @@ defmodule ChatApi.MixProject do
       {:ex_aws_lambda, "~> 2.0"},
       {:ex_aws_ses, "~> 2.0"},
       {:swoosh, "~> 1.0"},
-      {:gen_smtp, "~> 0.13"},
+      {:gen_smtp, "~> 1.0"},
       # override: pow 1.0.39 caps phoenix at < 1.8.0, but it compiles and runs
       # fine on 1.8 (we only use pow's API/plug auth, not its HTML templates),
       # verified by the full test suite. Drop the override once pow ships a
@@ -62,13 +63,13 @@ defmodule ChatApi.MixProject do
       {:phoenix_live_dashboard, "~> 0.8"},
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.0"},
-      {:gettext, "~> 0.11"},
+      {:gettext, "~> 1.0"},
       {:tesla, "~> 1.3"},
       {:finch, "~> 0.18"},
       {:jason, "~> 1.0"},
       {:joken, "~> 2.6"},
       {:bandit, "~> 1.0"},
-      {:corsica, "~> 1.0"},
+      {:corsica, "~> 2.0"},
       {:pow, "~> 1.0.18"},
       {:oban, "~> 2.17"},
       {:sentry, "~> 13.0"},
