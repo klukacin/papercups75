@@ -11,10 +11,8 @@ const SlackConversationThreads = ({
   conversationId: string;
 }) => {
   const [loading, setLoading] = React.useState(false);
-  const [
-    slackConversationThreads,
-    setSlackConversationThreads,
-  ] = React.useState<Array<any>>([]);
+  const [slackConversationThreads, setSlackConversationThreads] =
+    React.useState<Array<any>>([]);
 
   React.useEffect(() => {
     setLoading(true);

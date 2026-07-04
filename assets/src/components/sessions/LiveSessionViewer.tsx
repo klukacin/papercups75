@@ -201,10 +201,8 @@ class LiveSessionViewer extends React.Component<Props, State> {
 
     const iframeWidth = Number(this.replayer.iframe.width);
     const iframeHeight = Number(this.replayer.iframe.height);
-    const {
-      clientWidth: containerWidth,
-      clientHeight: containerHeight,
-    } = this.container;
+    const {clientWidth: containerWidth, clientHeight: containerHeight} =
+      this.container;
     const scaleX = containerWidth / iframeWidth;
     const scaleY = containerHeight / iframeHeight;
     logger.debug('Setting iframe scale:', {

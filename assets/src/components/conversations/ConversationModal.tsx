@@ -106,11 +106,8 @@ const ConversationModalWrapper = ({
   onClose: () => void;
 }) => {
   const {currentUser} = useAuth();
-  const {
-    loading,
-    fetchConversationById,
-    getConversationById,
-  } = useConversations();
+  const {loading, fetchConversationById, getConversationById} =
+    useConversations();
 
   React.useEffect(() => {
     fetchConversationById(conversationId);

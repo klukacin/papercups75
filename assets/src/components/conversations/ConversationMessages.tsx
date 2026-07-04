@@ -161,10 +161,8 @@ const ConversationMessages = ({
                         (message: Message, key: number) => {
                           // Slight hack
                           const next = messages[key + 1];
-                          const {
-                            id: messageId,
-                            customer_id: customerId,
-                          } = message;
+                          const {id: messageId, customer_id: customerId} =
+                            message;
                           const isMe = isCurrentUserMsg(message);
                           const isLastInGroup = next
                             ? customerId !== next.customer_id
