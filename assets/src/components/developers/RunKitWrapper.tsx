@@ -98,7 +98,9 @@ class RunKitWrapper extends React.Component<Props, State> {
 
     return (
       <div
-        ref={(el) => (this.el = el)}
+        ref={(el) => {
+          this.el = el;
+        }}
         style={{overflow: 'hidden', paddingLeft: 20, marginLeft: -20}}
       >
         {this.state.loading && <RunKitLoading height={minHeight} />}

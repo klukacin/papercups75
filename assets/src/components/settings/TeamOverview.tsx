@@ -329,7 +329,9 @@ class TeamOverview extends React.Component<Props, State> {
                 </Box>
                 <Box sx={{flex: 1}}>
                   <Input
-                    ref={(el) => (this.input = el)}
+                    ref={(el) => {
+                      this.input = el;
+                    }}
                     type="text"
                     placeholder="Click the button to generate an invite URL"
                     disabled={!inviteUrl}

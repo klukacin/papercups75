@@ -79,7 +79,9 @@ export class EmailTemplateBuilder extends React.Component<any, any> {
           <iframe
             title="email"
             style={{height: '100%', width: '100%', border: 'none'}}
-            ref={(el) => (this.iframe = el)}
+            ref={(el) => {
+              this.iframe = el;
+            }}
           />
         </Box>
       </Flex>
