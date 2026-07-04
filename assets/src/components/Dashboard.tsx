@@ -85,9 +85,8 @@ import CannedResponsesOverview from './canned-responses/CannedResponsesOverview'
 import ForwardingAddressSettings from './settings/ForwardingAddressSettings';
 import InboxesDashboard from './inboxes/InboxesDashboard';
 
-const {
-  REACT_APP_ADMIN_ACCOUNT_ID = 'eb504736-0f20-4978-98ff-1a82ae60b266',
-} = env;
+const {REACT_APP_ADMIN_ACCOUNT_ID = 'eb504736-0f20-4978-98ff-1a82ae60b266'} =
+  env;
 
 const TITLE_FLASH_INTERVAL = 2000;
 

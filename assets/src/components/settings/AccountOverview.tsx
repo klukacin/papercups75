@@ -50,10 +50,8 @@ class AccountOverview extends React.Component<Props, State> {
 
   fetchLatestAccountInfo = async () => {
     const account = await API.fetchAccountInfo();
-    const {
-      company_name: companyName,
-      company_logo_url: companyLogoUrl,
-    } = account;
+    const {company_name: companyName, company_logo_url: companyLogoUrl} =
+      account;
     logger.debug('Account info:', account);
 
     this.setState({account, companyName, companyLogoUrl});

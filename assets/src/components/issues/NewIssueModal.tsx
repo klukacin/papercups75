@@ -38,10 +38,8 @@ const NewIssueModal = ({
   const DEFAULT_ISSUE_STATE: IssueState = 'unstarted';
 
   const [query, setQuery] = React.useState('');
-  const [
-    selectedExistingIssue,
-    setSelectedExistingIssue,
-  ] = React.useState<Issue | null>(null);
+  const [selectedExistingIssue, setSelectedExistingIssue] =
+    React.useState<Issue | null>(null);
 
   const [title, setTitle] = React.useState('');
   const [body, setBody] = React.useState('');

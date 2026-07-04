@@ -54,13 +54,8 @@ class CreateCompanyPage extends React.Component<Props, State> {
     e.preventDefault();
 
     try {
-      const {
-        name,
-        description,
-        websiteUrl,
-        slackChannelId,
-        slackChannelName,
-      } = this.state;
+      const {name, description, websiteUrl, slackChannelId, slackChannelName} =
+        this.state;
       const {id: companyId} = await API.createNewCompany({
         name,
         description,

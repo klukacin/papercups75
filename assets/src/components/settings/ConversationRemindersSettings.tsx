@@ -21,12 +21,10 @@ const ConversationRemindersSettings = ({
     settings?.max_num_conversation_reminders ?? DEFAULT_MAX_NUM_REMINDERS;
 
   const [isEditing, setEditing] = React.useState(false);
-  const [areRemindersEnabled, setRemindersEnabled] = React.useState(
-    defaultIsEnabled
-  );
-  const [reminderHoursInterval, setReminderHoursInterval] = React.useState(
-    defaultHoursInterval
-  );
+  const [areRemindersEnabled, setRemindersEnabled] =
+    React.useState(defaultIsEnabled);
+  const [reminderHoursInterval, setReminderHoursInterval] =
+    React.useState(defaultHoursInterval);
   const [maxNumReminders, setMaxNumReminders] = React.useState(defaultMaxNum);
 
   const handleStartEditing = () => setEditing(true);

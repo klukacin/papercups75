@@ -12,10 +12,8 @@ import {ConversationsDashboard} from '../conversations/ConversationsDashboard';
 const Wrapper = (
   props: RouteComponentProps<{inbox_id: string; conversation_id?: string}>
 ) => {
-  const {
-    inbox_id: inboxId,
-    conversation_id: conversationId = null,
-  } = props.match.params;
+  const {inbox_id: inboxId, conversation_id: conversationId = null} =
+    props.match.params;
   const [inbox, setSelectedInbox] = React.useState<Inbox | null>(null);
   const [status, setStatus] = React.useState<'loading' | 'success' | 'error'>(
     'loading'

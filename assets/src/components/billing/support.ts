@@ -128,10 +128,8 @@ export const getNextDueDate = (subscription: Subscription | null) => {
     return null;
   }
 
-  const {
-    current_period_start: currentPeriodStart,
-    trial_end: trialEndsAt,
-  } = subscription;
+  const {current_period_start: currentPeriodStart, trial_end: trialEndsAt} =
+    subscription;
   const date = dayjs(new Date((trialEndsAt || currentPeriodStart) * 1000));
 
   return date.add(1, 'month').format('MMMM DD, YYYY');

@@ -65,12 +65,8 @@ class CustomerDetailsConversations extends React.Component<Props, State> {
 
   render() {
     const {customerId} = this.props;
-    const {
-      isLoading,
-      isModalVisible,
-      conversations,
-      selectedConversationId,
-    } = this.state;
+    const {isLoading, isModalVisible, conversations, selectedConversationId} =
+      this.state;
 
     return (
       <>

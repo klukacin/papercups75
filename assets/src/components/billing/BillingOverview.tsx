@@ -321,9 +321,8 @@ class BillingOverview extends React.Component<Props, State> {
 
     const {name: planName} = getPlanInfo(selectedSubscriptionPlan);
     const subscriptionPlanPrice = calculateSubscriptionPrice(subscription);
-    const subscriptionPlanDiscount = calculateSubscriptionDiscount(
-      subscription
-    );
+    const subscriptionPlanDiscount =
+      calculateSubscriptionDiscount(subscription);
     const nextDueDate = getNextDueDate(subscription);
     const trialEndDate = getTrialEndDate(subscription);
 

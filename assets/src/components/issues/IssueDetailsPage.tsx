@@ -115,20 +115,19 @@ class IssueDetailsPage extends React.Component<Props, State> {
     this.handleRefreshIssue();
   };
 
-  handleLinkNewCustomer = (onSuccess: (filters?: any) => any) => (
-    customer: T.Customer
-  ) => {
-    const {id: customerId} = customer;
-    const issueId = this.getIssueId();
+  handleLinkNewCustomer =
+    (onSuccess: (filters?: any) => any) => (customer: T.Customer) => {
+      const {id: customerId} = customer;
+      const issueId = this.getIssueId();
 
-    if (!customerId) {
-      return null;
-    }
+      if (!customerId) {
+        return null;
+      }
 
-    return API.addCustomerIssue(customerId, issueId)
-      .then(() => onSuccess())
-      .catch((err) => logger.error('Error linking issue to customer:', err));
-  };
+      return API.addCustomerIssue(customerId, issueId)
+        .then(() => onSuccess())
+        .catch((err) => logger.error('Error linking issue to customer:', err));
+    };
 
   render() {
     const {loading, deleting, issue} = this.state;

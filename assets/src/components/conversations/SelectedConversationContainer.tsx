@@ -28,14 +28,10 @@ const SelectedConversationContainer = ({
   const [history, setConversationHistory] = React.useState<Array<Conversation>>(
     []
   );
-  const [
-    isLoadingPreviousConversation,
-    setLoadingPreviousConversation,
-  ] = React.useState(false);
-  const [
-    hasPreviousConversations,
-    setHasPreviousConversations,
-  ] = React.useState(false);
+  const [isLoadingPreviousConversation, setLoadingPreviousConversation] =
+    React.useState(false);
+  const [hasPreviousConversations, setHasPreviousConversations] =
+    React.useState(false);
 
   const selectedConversationId = conversation.id;
 

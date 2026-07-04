@@ -28,9 +28,8 @@ const MattermostAuthorizationModal = ({
   onSuccess: (authorization: MattermostAuthorization) => void;
   onCancel: () => void;
 }) => {
-  const [authorization, setAuthorization] = React.useState<
-    MattermostAuthorization
-  >({});
+  const [authorization, setAuthorization] =
+    React.useState<MattermostAuthorization>({});
   const [channels, setMattermostChannels] = React.useState<
     Array<MattermostChannel>
   >([]);

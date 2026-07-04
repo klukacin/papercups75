@@ -23,9 +23,8 @@ import {getBotDemoFaqs, setBotDemoFaqs} from '../../storage';
 import ChatWidget from '@papercups-io/chat-widget';
 import {formatUserExternalId} from '../../utils';
 
-const {
-  REACT_APP_ADMIN_ACCOUNT_ID = 'eb504736-0f20-4978-98ff-1a82ae60b266',
-} = env;
+const {REACT_APP_ADMIN_ACCOUNT_ID = 'eb504736-0f20-4978-98ff-1a82ae60b266'} =
+  env;
 
 type FAQ = {
   q: string;
@@ -35,13 +34,11 @@ type FAQ = {
 const DEFAULT_FAQS: Array<FAQ> = [
   {
     q: 'What is Papercups?',
-    a:
-      "It's a chat widget that you can embed on your website or mobile app so you can talk with your users :) ",
+    a: "It's a chat widget that you can embed on your website or mobile app so you can talk with your users :) ",
   },
   {
     q: 'How does Papercups work?',
-    a:
-      'You can embed our chat widget on your website or mobile app so you can talk with your users :) ',
+    a: 'You can embed our chat widget on your website or mobile app so you can talk with your users :) ',
   },
   {
     q: 'Do you support live chat?',

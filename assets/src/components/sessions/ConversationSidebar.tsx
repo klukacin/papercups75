@@ -72,11 +72,8 @@ const ConversationSidebarWrapper = ({
   conversationId: string;
 }) => {
   const {currentUser} = useAuth();
-  const {
-    loading,
-    fetchConversationById,
-    getConversationById,
-  } = useConversations();
+  const {loading, fetchConversationById, getConversationById} =
+    useConversations();
 
   React.useEffect(() => {
     Promise.all([fetchConversationById(conversationId)]);

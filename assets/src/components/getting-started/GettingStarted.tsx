@@ -9,10 +9,8 @@ import Spinner from '../Spinner';
 import Steps from './Steps';
 
 const GettingStarted = () => {
-  const [
-    onboardingStatus,
-    setOnboardingStatus,
-  ] = React.useState<OnboardingStatus | null>(null);
+  const [onboardingStatus, setOnboardingStatus] =
+    React.useState<OnboardingStatus | null>(null);
   const [inbox, setDefaultInbox] = React.useState<Inbox | null>(null);
   const [loading, setLoading] = React.useState(true);
 

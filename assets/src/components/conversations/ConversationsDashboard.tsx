@@ -123,9 +123,8 @@ export const ConversationsDashboard = ({
   const [conversationIds, setConversationIds] = React.useState<Array<string>>(
     []
   );
-  const [pagination, setPaginationOptions] = React.useState<
-    API.PaginationOptions
-  >({});
+  const [pagination, setPaginationOptions] =
+    React.useState<API.PaginationOptions>({});
   const [selectedConversationId, setSelectedConversationId] = React.useState<
     string | null
   >(initialSelectedConversationId);
@@ -383,12 +382,10 @@ export const ConversationsDashboard = ({
   }
 
   async function handleLoadMoreConversations() {
-    const {
-      data = [],
-      ...nextPaginationOptions
-    } = await fetchFilteredConversations({
-      after: pagination.next,
-    });
+    const {data = [], ...nextPaginationOptions} =
+      await fetchFilteredConversations({
+        after: pagination.next,
+      });
 
     setConversationIds([
       ...new Set([...conversationIds, ...data.map((c) => c.id)]),

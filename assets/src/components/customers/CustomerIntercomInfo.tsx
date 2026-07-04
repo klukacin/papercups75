@@ -21,9 +21,8 @@ export const CustomerIntercomInfo = ({customer}: {customer: Customer}) => {
     'loading' | 'adding' | 'success' | 'error'
   >('loading');
   const [authorization, setIntercomAuthorization] = React.useState<any>(null);
-  const [intercomContactInfo, setIntercomContactInfo] = React.useState<any>(
-    null
-  );
+  const [intercomContactInfo, setIntercomContactInfo] =
+    React.useState<any>(null);
   const {email} = customer;
 
   React.useEffect(() => {
