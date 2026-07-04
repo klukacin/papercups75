@@ -17,6 +17,66 @@ The fastest way to get started is one click deploy on Heroku with:
 
 <a href="https://heroku.com/deploy?template=https://github.com/klukacin/papercups75"><img src="https://www.herokucdn.com/deploy/button.svg" width="200px" /></a>
 
+## Installation
+
+papercups75 targets **Erlang/OTP 27.3, Elixir 1.18.4, Node 22, and PostgreSQL 16**
+(see [`.tool-versions`](./.tool-versions); [`asdf`](https://asdf-vm.com/) can install them).
+
+### Run from source (local / development)
+
+```bash
+git clone https://github.com/klukacin/papercups75.git
+cd papercups75
+
+# 1. dependencies
+mix deps.get
+npm install --prefix assets --legacy-peer-deps
+
+# 2. database — creates it, runs all migrations (including the multi-account
+#    membership backfill) and seeds
+mix ecto.setup
+
+# 3. run
+mix phx.server                 # backend (Bandit) on http://localhost:4000
+npm start --prefix assets      # frontend dev server on http://localhost:3000
+```
+
+`mix ecto.setup` uses `DATABASE_URL` if set, otherwise
+`ecto://postgres:postgres@localhost/chat_api_dev`. Health check:
+`GET http://localhost:4000/api/ping` → `{"data":{"message":"Pong!"}}`.
+
+### Run with Docker
+
+`docker-compose.yml` **builds this fork** from the local `Dockerfile` (it no
+longer pulls the upstream `papercups/papercups` image, which does not contain
+this fork's changes):
+
+```bash
+# set a real SECRET_KEY_BASE in docker-compose.yml first (>= 64 bytes:
+#   mix phx.gen.secret)
+docker compose up --build
+```
+
+The container runs `db createdb && db migrate && run`, so migrations (including
+the multi-account backfill) apply automatically on start. The app is served on
+port 4000.
+
+### Required environment variables (production)
+
+The release refuses to boot without these (see [`config/runtime.exs`](./config/runtime.exs)):
+
+| Variable | Purpose |
+|---|---|
+| `DATABASE_URL` | `ecto://USER:PASS@HOST/DATABASE` |
+| `SECRET_KEY_BASE` | ≥ 64 bytes — generate with `mix phx.gen.secret` |
+| `BACKEND_URL` | public host, e.g. `support.example.com` |
+
+Optional, only if you use the feature: mail (`MAILER_ADAPTER` + Mailgun/SMTP
+credentials), file uploads to S3 (`AWS_*`, `BUCKET_NAME`), billing
+(`PAPERCUPS_STRIPE_SECRET`), error reporting (`SENTRY_DSN`), clustered PubSub
+(`REDIS_URL`), and the Slack/Google/Twilio/etc. integrations. See
+[`.env.example`](./.env.example) for the full list.
+
 ## Philosophy
 
 We wanted to make a self-hosted customer support tool like Zendesk and Intercom for companies that have privacy and security concerns about having customer data going to third party services.
