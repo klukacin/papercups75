@@ -36,9 +36,6 @@ RUN apk add --no-cache git nodejs yarn python3 npm ca-certificates wget gnupg ma
 COPY assets/package.json assets/package-lock.json ./assets/
 RUN npm install --prefix=assets --legacy-peer-deps
 
-# fix because of https://github.com/facebook/create-react-app/issues/8413
-ENV GENERATE_SOURCEMAP=false
-
 COPY priv priv
 COPY assets assets
 RUN npm run build --prefix=assets

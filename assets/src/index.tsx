@@ -6,7 +6,6 @@ import App from './App';
 import analytics from './analytics';
 import {AuthProvider} from './components/auth/AuthProvider';
 import {accessibleTheme} from './theme';
-import * as serviceWorker from './serviceWorker';
 
 analytics.init();
 
@@ -18,8 +17,3 @@ root.render(
     </AuthProvider>
   </ConfigProvider>
 );
-
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: https://bit.ly/CRA-PWA
-serviceWorker.unregister();

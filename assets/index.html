@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="/logo.svg" />
+    <link rel="mask-icon" href="/logo.svg" color="#000000" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <!-- TODO: come up with better meta tags -->
+    <meta name="description" content="Papercups is the open-core CRM" />
+    <link rel="apple-touch-icon" href="/logo192.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <title>Papercups</title>
+    <!--
+      In production, vite.config.ts injects a runtime-env <script> here that
+      Phoenix's PageController fills in per request (see src/config.ts). In dev
+      it is absent and config.ts falls back to defaults. The literal token is
+      not written in this comment on purpose, since Phoenix replaces every
+      occurrence of it in the served HTML.
+    -->
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    <script type="module" src="/src/index.tsx"></script>
+  </body>
+</html>
