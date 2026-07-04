@@ -60,7 +60,7 @@ defmodule ChatApi.Messages.Helpers do
   @spec handle_linking_github_issues(Message.t()) :: Message.t()
   def handle_linking_github_issues(%Message{} = message) do
     # TODO: use oban instead?
-    Task.start(fn -> link_github_issues_to_customer(message) end)
+    ChatApi.Async.run(fn -> link_github_issues_to_customer(message) end)
 
     message
   end
