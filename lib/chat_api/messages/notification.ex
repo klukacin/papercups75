@@ -57,7 +57,7 @@ defmodule ChatApi.Messages.Notification do
         ChatApi.Slack.Notification.notify_primary_channel(message)
 
       _ ->
-        Task.start(fn ->
+        ChatApi.Async.run(fn ->
           ChatApi.Slack.Notification.notify_primary_channel(message)
         end)
     end
@@ -68,7 +68,7 @@ defmodule ChatApi.Messages.Notification do
   def notify(%Message{private: false} = message, :sms, _opts) do
     Logger.info("Sending message notification: :sms")
 
-    Task.start(fn ->
+    ChatApi.Async.run(fn ->
       ChatApi.Twilio.Notification.notify_sms(message)
     end)
 
@@ -85,7 +85,7 @@ defmodule ChatApi.Messages.Notification do
   def notify(%Message{account_id: account_id} = message, :webhooks, _opts) do
     Logger.info("Sending message notification: :webhooks (message #{inspect(message.id)})")
     # TODO: how should we handle errors/retry logic?
-    Task.start(fn ->
+    ChatApi.Async.run(fn ->
       event = %{
         "event" => "message:created",
         "payload" => Helpers.format(message)
@@ -125,7 +125,7 @@ defmodule ChatApi.Messages.Notification do
 
       _ ->
         # TODO: how should we handle errors/retry logic?
-        Task.start(fn ->
+        ChatApi.Async.run(fn ->
           ChatApi.Emails.send_new_message_alerts(message)
         end)
     end
@@ -143,7 +143,7 @@ defmodule ChatApi.Messages.Notification do
         ChatApi.Mattermost.Notification.notify_primary_channel(message)
 
       _ ->
-        Task.start(fn ->
+        ChatApi.Async.run(fn ->
           ChatApi.Mattermost.Notification.notify_primary_channel(message)
         end)
     end
@@ -219,7 +219,7 @@ defmodule ChatApi.Messages.Notification do
       "Sending message notification: :slack_company_channel (message #{inspect(message.id)})"
     )
 
-    Task.start(fn ->
+    ChatApi.Async.run(fn ->
       ChatApi.Slack.Notification.notify_company_channel(message)
     end)
 
@@ -232,7 +232,7 @@ defmodule ChatApi.Messages.Notification do
       "Sending message notification: :slack_support_channel (message #{inspect(message.id)})"
     )
 
-    Task.start(fn ->
+    ChatApi.Async.run(fn ->
       ChatApi.Slack.Notification.notify_support_channel(message)
     end)
 

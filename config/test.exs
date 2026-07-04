@@ -28,6 +28,10 @@ config :chat_api, ChatApiWeb.Endpoint,
 
 config :chat_api, Oban, crontab: false, queues: false, plugins: false
 
+# Run fire-and-forget notification tasks synchronously in tests so their DB
+# work completes within the test connection (avoids sandbox-ownership flakiness).
+config :chat_api, :run_async_tasks, false
+
 config :sentry,
   dsn: System.get_env("SENTRY_DSN"),
   environment_name: Mix.env(),

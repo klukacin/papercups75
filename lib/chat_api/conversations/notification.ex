@@ -62,7 +62,7 @@ defmodule ChatApi.Conversations.Notification do
   def notify(%Conversation{account_id: account_id} = conversation, :webhooks, event: event) do
     Logger.info("Sending conversation notification: :webhooks")
 
-    Task.start(fn ->
+    ChatApi.Async.run(fn ->
       EventSubscriptions.notify_event_subscriptions(account_id, %{
         "event" => event,
         "payload" => Helpers.format(conversation)
@@ -75,7 +75,7 @@ defmodule ChatApi.Conversations.Notification do
   def notify(%Conversation{} = conversation, :slack, _opts) do
     Logger.info("Sending conversation notification: :slack")
 
-    Task.start(fn ->
+    ChatApi.Async.run(fn ->
       Helpers.broadcast_conversation_updates_to_slack(conversation)
     end)
 
