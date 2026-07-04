@@ -1,5 +1,13 @@
 defmodule ChatApiWeb.ConversationControllerTest do
-  use ChatApiWeb.ConnCase, async: true
+  # NOTE: async: false is required here. Creating/updating conversations and
+  # messages via the controller spawns fire-and-forget `Task.start` work
+  # (Conversations.Notification / Messages.Notification.notify/2 for
+  # :webhooks/:slack) that queries the DB after the request returns. Under the SQL
+  # Sandbox in async mode those tasks outlive the test's checked-out connection and
+  # raise DBConnection.OwnershipError. Running non-async makes ConnCase put the
+  # sandbox in `{:shared, self()}` mode so the spawned tasks can borrow the owner's
+  # connection.
+  use ChatApiWeb.ConnCase, async: false
 
   import ChatApi.Factory
   alias ChatApi.Conversations.Conversation
