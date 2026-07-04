@@ -76,9 +76,9 @@ defmodule ChatApi.MixProject do
       {:pow_postgres_store, "~> 1.0.0-rc2"},
       {:tz, "~> 0.28"},
       {:scrivener_ecto, "~> 3.1"},
-      {:floki, "~> 0.30.0"},
-      {:paginator, "~> 1.0.3"},
-      {:phoenix_pubsub_redis, "~> 3.0.0"},
+      {:floki, "~> 0.38"},
+      {:paginator, "~> 1.0"},
+      {:phoenix_pubsub_redis, "~> 3.0"},
       {:prom_ex, "~> 1.12"},
       {:mdex, "~> 0.13"},
       # mdex ships its Rust NIF (mdex_native) as a precompiled binary downloaded
