@@ -192,7 +192,7 @@ const DashboardHtmlHead = ({totalNumUnread}: {totalNumUnread: number}) => {
   const doc = document || window.document;
   const [htmlTitle, setHtmlTitle] = useState('Papercups');
   const isWindowVisible = useWindowVisibility(doc);
-  const timer = useRef<any>();
+  const timer = useRef<any>(undefined);
 
   const hasDefaultTitle = (title: string) => title.startsWith('Papercups');
 
