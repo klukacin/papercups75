@@ -3,15 +3,13 @@ import {render, screen, waitFor} from '@testing-library/react';
 import AccountSwitcher from './AccountSwitcher';
 import * as API from '../../api';
 
-jest.mock('../../api');
+vi.mock('../../api');
 
-jest.mock('../auth/AuthProvider', () => ({
+vi.mock('../auth/AuthProvider', () => ({
   useAuth: () => ({account: {id: 'primary-account', company_name: 'Primary'}}),
 }));
 
-const mockFetchAccounts = API.fetchAccounts as jest.MockedFunction<
-  typeof API.fetchAccounts
->;
+const mockFetchAccounts = API.fetchAccounts as ReturnType<typeof vi.fn>;
 
 const buildAccount = (id: string, name: string): any => ({
   id,
@@ -21,7 +19,7 @@ const buildAccount = (id: string, name: string): any => ({
 describe('AccountSwitcher', () => {
   beforeEach(() => {
     localStorage.clear();
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('renders nothing when the user belongs to a single account', async () => {

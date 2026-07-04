@@ -49,7 +49,6 @@
     "react-helmet": "^6.1.0",
     "react-markdown": "^8.0.7",
     "react-router-dom": "^5.2.0",
-    "react-scripts": "5.0.1",
     "react-syntax-highlighter": "^15.5.0",
     "recharts": "^2.12.7",
     "remark-breaks": "^3.0.3",
@@ -61,17 +60,15 @@
     "typescript": "^4.9.5"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
+    "start": "vite",
+    "build": "vite build",
     "postbuild": "mkdirp ../priv/static && cpx \"./build/**\" \"../priv/static\" --clean",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
     "deploy": "npm run build",
     "prettier": "prettier --write 'src/**/*.{js,jsx,ts,tsx,json,css,scss,md}'",
     "prettier:check": "prettier --check 'src/**/*.{js,jsx,ts,tsx,json,css,scss,md}'"
-  },
-  "eslintConfig": {
-    "extends": "react-app"
   },
   "husky": {
     "hooks": {
@@ -99,22 +96,20 @@
       "not op_mini all"
     ]
   },
-  "proxy": "http://localhost:4000",
   "devDependencies": {
     "@types/jest-axe": "^3.5.9",
+    "@vitejs/plugin-react": "^4.3.4",
     "husky": "^4.2.5",
     "jest-axe": "^9.0.0",
+    "jsdom": "^25.0.1",
     "lint-staged": "^10.2.11",
-    "prettier": "^2.0.5"
+    "prettier": "^2.0.5",
+    "vite": "^5.4.11",
+    "vitest": "^2.1.8"
   },
   "overrides": {
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@ant-design/icons": "^5.5.1"
-  },
-  "jest": {
-    "transformIgnorePatterns": [
-      "node_modules/(?!(react-markdown|vfile|vfile-message|unist-.*|unified|bail|trough|remark-.*|mdast-.*|micromark.*|decode-named-character-reference|character-entities.*|property-information|hast-.*|hastscript|space-separated-tokens|comma-separated-tokens|web-namespaces|zwitch|html-void-elements|html-url-attributes|devlop|estree-.*|is-plain-obj|trim-lines|longest-streak|markdown-table|ccount|escape-string-regexp)/)"
-    ]
   }
 }

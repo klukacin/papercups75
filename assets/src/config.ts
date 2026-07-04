@@ -8,10 +8,14 @@ export const isDev = Boolean(
     )
 );
 
+// In production, Phoenix injects window.__ENV__ (see PageController). In dev it
+// is undefined and the `|| default` fallbacks below apply. Vite has no
+// `process.env`, so runtime config comes solely from window.__ENV__.
 const serverEnvData = (window as any).__ENV__ || {};
 
-export const env = {
-  ...process.env,
+// Loosely typed (as it was under CRA, where the spread was `any`) so this
+// tooling migration doesn't surface unrelated latent type issues at call sites.
+export const env: Record<string, any> = {
   ...serverEnvData,
 };
 
