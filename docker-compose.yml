@@ -2,7 +2,12 @@ version: "3.2"
 
 services:
   papercups:
-    image: papercups/papercups:latest
+    # Build the papercups75 fork from this repo's Dockerfile.
+    # (The old `image: papercups/papercups:latest` pulled the UPSTREAM prebuilt
+    # image, which does not contain this fork's changes.)
+    build:
+      context: .
+    image: papercups75:local
     restart: always
     ports:
       - "3000:3000"

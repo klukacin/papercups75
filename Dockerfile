@@ -1,4 +1,6 @@
-FROM elixir:1.18-otp-25-alpine as builder
+# OTP 27 is required by the current stack (jose, mdex). Do not downgrade to
+# otp-25/26 — several deps need OTP >= 26.
+FROM elixir:1.18-otp-27-alpine AS builder
 
 # build step
 ARG MIX_ENV=prod
@@ -25,7 +27,9 @@ ENV PAPERCUPS_STRIPE_SECRET=$PAPERCUPS_STRIPE_SECRET
 RUN mkdir /app
 WORKDIR /app
 
-RUN apk add --no-cache git nodejs yarn python3 npm ca-certificates wget gnupg make erlang gcc libc-dev && \
+# NB: do NOT `apk add erlang` here — the elixir:*-otp-27 base image already
+# ships OTP 27, and Alpine's erlang package would shadow it with an older OTP.
+RUN apk add --no-cache git nodejs yarn python3 npm ca-certificates wget gnupg make gcc libc-dev && \
     npm install npm@latest -g
 
 # Client side
@@ -55,7 +59,8 @@ COPY rel rel
 RUN mix release papercups
 
 FROM alpine:3.21 AS app
-RUN apk add --no-cache openssl ncurses-libs
+# libgcc/libstdc++ are needed by mdex's precompiled Rust NIF (musl target).
+RUN apk add --no-cache openssl ncurses-libs libgcc libstdc++
 ENV LANG=C.UTF-8
 EXPOSE 4000
 
