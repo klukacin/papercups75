@@ -7,7 +7,8 @@ defmodule ChatApi.MixProject do
       version: "0.1.0",
       elixir: "~> 1.10",
       elixirc_paths: elixirc_paths(Mix.env()),
-      compilers: [:phoenix, :gettext] ++ Mix.compilers() ++ [:phoenix_swagger],
+      # NB: the :phoenix compiler was removed in Phoenix 1.8 (no longer required).
+      compilers: [:gettext] ++ Mix.compilers() ++ [:phoenix_swagger],
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps(),
@@ -49,7 +50,11 @@ defmodule ChatApi.MixProject do
       {:ex_aws_ses, "~> 2.0"},
       {:swoosh, "~> 1.0"},
       {:gen_smtp, "~> 0.13"},
-      {:phoenix, "~> 1.7"},
+      # override: pow 1.0.39 caps phoenix at < 1.8.0, but it compiles and runs
+      # fine on 1.8 (we only use pow's API/plug auth, not its HTML templates),
+      # verified by the full test suite. Drop the override once pow ships a
+      # release that allows phoenix ~> 1.8.
+      {:phoenix, "~> 1.8", override: true},
       {:phoenix_view, "~> 2.0"},
       {:phoenix_ecto, "~> 4.4"},
       {:ecto_sql, "~> 3.12"},
