@@ -1,5 +1,5 @@
 import React from 'react';
-import {Box, Flex} from 'theme-ui';
+import {Box, Flex} from '../ui';
 import {Button, Popconfirm} from '../common';
 import {getHubspotAuthUrl} from './support';
 

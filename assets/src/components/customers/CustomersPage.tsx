@@ -1,5 +1,5 @@
 import React from 'react';
-import {Box} from 'theme-ui';
+import {Box} from '../ui';
 import {Container, Paragraph, Title} from '../common';
 import {NewCustomerButton} from './NewCustomerModal';
 import CustomersTableContainer from './CustomersTableContainer';

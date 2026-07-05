@@ -48,7 +48,7 @@ import {
   grey,
 } from '@ant-design/colors';
 
-import {Box, BoxProps, Flex, ThemeUICSSObject} from 'theme-ui';
+import {Box, BoxProps, Flex, ThemeUICSSObject} from './ui';
 import DatePicker from './DatePicker';
 import MarkdownRenderer from './MarkdownRenderer';
 

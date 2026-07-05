@@ -1,7 +1,7 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
 import {RouteComponentProps, withRouter} from '../../router-compat';
-import {Box} from 'theme-ui';
+import {Box} from '../ui';
 import {Button, Input, Select, Title} from '../common';
 import {ArrowLeftOutlined} from '../icons';
 import * as API from '../../api';

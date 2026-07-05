@@ -1,5 +1,5 @@
 import React from 'react';
-import {Box, Flex} from 'theme-ui';
+import {Box, Flex} from '../ui';
 import {debounce} from 'lodash';
 import {Checkbox, Input} from '../common';
 import * as API from '../../api';

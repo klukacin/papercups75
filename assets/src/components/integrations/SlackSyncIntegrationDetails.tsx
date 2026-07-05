@@ -2,7 +2,7 @@ import React from 'react';
 import {RouteComponentProps, withRouter} from '../../router-compat';
 import {Link} from 'react-router-dom';
 import {Twemoji} from 'react-emoji-render';
-import {Box, Flex} from 'theme-ui';
+import {Box, Flex} from '../ui';
 import qs from 'query-string';
 import {
   notification,

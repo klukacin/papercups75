@@ -1,6 +1,6 @@
 import React from 'react';
 import {RouteComponentProps, withRouter} from '../../router-compat';
-import {Flex} from 'theme-ui';
+import {Flex} from '../ui';
 
 import * as API from '../../api';
 import {Conversation, Inbox} from '../../types';

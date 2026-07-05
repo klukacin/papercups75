@@ -1,5 +1,5 @@
 import React from 'react';
-import {Box, Flex, Image} from 'theme-ui';
+import {Box, Flex, Image} from '../ui';
 import {Text} from '../common';
 import Spinner from '../Spinner';
 import * as API from '../../api';

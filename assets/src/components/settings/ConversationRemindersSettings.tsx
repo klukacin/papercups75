@@ -1,5 +1,5 @@
 import React from 'react';
-import {Box, Flex} from 'theme-ui';
+import {Box, Flex} from '../ui';
 import {Button, InputNumber, Switch} from '../common';
 import {AccountSettings} from '../../types';
 

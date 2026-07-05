@@ -9,7 +9,7 @@ import {
 } from 'react-router-dom';
 import {RouteComponentProps, withRouter} from '../router-compat';
 import {Helmet} from 'react-helmet';
-import {Box, Flex} from 'theme-ui';
+import {Box, Flex} from './ui';
 import {ChatWidget, Papercups} from '@papercups-io/chat-widget';
 // import {Storytime} from '../lib/storytime'; // For testing
 import {Storytime} from '@papercups-io/storytime';

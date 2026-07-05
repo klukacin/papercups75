@@ -1,5 +1,5 @@
 import React from 'react';
-import {Box, Flex} from 'theme-ui';
+import {Box, Flex} from '../ui';
 import dayjs from 'dayjs';
 import {colors, Button, Popconfirm, Table, Tag, Text} from '../common';
 import {EventSubscription} from '../../types';

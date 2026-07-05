@@ -1,5 +1,5 @@
 import React from 'react';
-import {Flex} from 'theme-ui';
+import {Flex} from './ui';
 
 export const Sandbox = () => {
   // Just using this page as a place to hack on UI components before they're ready

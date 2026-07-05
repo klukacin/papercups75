@@ -1,5 +1,5 @@
 import React from 'react';
-import {Box, Flex, ThemeUICSSObject} from 'theme-ui';
+import {Box, Flex, ThemeUICSSObject} from '../ui';
 import {
   ChatBuilder,
   ChatFooter,
@@ -37,15 +37,8 @@ const CustomerMessage = ({
           whiteSpace: 'pre-wrap',
           transition: 'background 0.4s ease',
           borderRadius: 5,
-          p: {
-            mb: 0,
-          },
-          blockquote: {
-            px: 2,
-            borderLeft: '3px solid',
-            mb: 0,
-          },
         }}
+        className="EmbeddableChat-message"
       >
         <MarkdownRenderer source={message.body} />
       </Box>
@@ -105,15 +98,8 @@ const AgentMessage = ({
           color: 'rgba(0,0,0,.65)',
           whiteSpace: 'pre-wrap',
           borderRadius: 5,
-          p: {
-            mb: 0,
-          },
-          blockquote: {
-            px: 2,
-            borderLeft: '3px solid',
-            mb: 0,
-          },
         }}
+        className="EmbeddableChat-message"
       >
         <MarkdownRenderer source={message.body} />
       </Box>

@@ -1,6 +1,6 @@
 import React from 'react';
 import dayjs from 'dayjs';
-import {Box, Flex} from 'theme-ui';
+import {Box, Flex} from '../ui';
 import {Elements} from '@stripe/react-stripe-js';
 import {loadStripe} from '@stripe/stripe-js';
 import * as API from '../../api';

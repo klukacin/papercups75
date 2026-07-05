@@ -1,5 +1,5 @@
 import React from 'react';
-import {Flex} from 'theme-ui';
+import {Flex} from '../ui';
 import {notification, Button, Text} from '../common';
 import * as API from '../../api';
 import {Customer} from '../../types';

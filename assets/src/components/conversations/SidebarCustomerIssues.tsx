@@ -1,6 +1,6 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
-import {Box, Flex} from 'theme-ui';
+import {Box, Flex} from '../ui';
 import {Text, Tooltip} from '../common';
 import * as API from '../../api';
 import {Issue} from '../../types';

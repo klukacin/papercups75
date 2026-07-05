@@ -1,6 +1,6 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
-import {Box, Flex} from 'theme-ui';
+import {Box, Flex} from '../ui';
 import type {MenuProps} from 'antd';
 import {Badge} from '../common';
 import {PlusOutlined, SettingOutlined} from '../icons';

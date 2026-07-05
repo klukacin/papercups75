@@ -1,5 +1,5 @@
 import React from 'react';
-import {Box} from 'theme-ui';
+import {Box} from '../ui';
 import {ButtonProps} from 'antd/lib/button';
 import {Button, Input, Modal, Text, TextArea} from '../common';
 import {PlusOutlined} from '../icons';

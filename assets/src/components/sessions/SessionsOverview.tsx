@@ -1,6 +1,6 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
-import {Box} from 'theme-ui';
+import {Box} from '../ui';
 import {Channel, Socket, Presence} from 'phoenix';
 import {Papercups} from '@papercups-io/chat-widget';
 import {Alert, Button, Container, Paragraph, Text, Title} from '../common';

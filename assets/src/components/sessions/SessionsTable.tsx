@@ -1,6 +1,6 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
-import {Box} from 'theme-ui';
+import {Box} from '../ui';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import {BrowserSession, Customer} from '../../types';

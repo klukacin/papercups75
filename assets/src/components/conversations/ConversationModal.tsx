@@ -1,6 +1,6 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
-import {Flex} from 'theme-ui';
+import {Flex} from '../ui';
 import {colors, Button, Modal} from '../common';
 import {useConversations} from './ConversationsProvider';
 import ConversationMessages from '../conversations/ConversationMessages';

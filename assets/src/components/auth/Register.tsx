@@ -1,7 +1,7 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
 import {RouteComponentProps, withRouter} from '../../router-compat';
-import {Box, Flex} from 'theme-ui';
+import {Box, Flex} from '../ui';
 import qs from 'query-string';
 import {Button, Input, Text, Title} from '../common';
 import {useAuth} from './AuthProvider';
@@ -147,7 +147,7 @@ class Register extends React.Component<Props, State> {
 
     return (
       <Flex
-        px={[2, 5]}
+        className="AuthContainer-px"
         py={5}
         sx={{
           flexDirection: 'column',

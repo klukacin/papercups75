@@ -1,5 +1,5 @@
 import React from 'react';
-import {Box} from 'theme-ui';
+import {Box} from '../ui';
 import {capitalize} from 'lodash';
 import {ButtonProps} from 'antd/lib/button';
 import {Button, Input, Modal, Select, Text, TextArea} from '../common';

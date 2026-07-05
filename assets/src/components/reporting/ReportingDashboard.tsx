@@ -1,6 +1,6 @@
 import React from 'react';
 import dayjs from 'dayjs';
-import {Box, Flex} from 'theme-ui';
+import {Box, Flex} from '../ui';
 import * as API from '../../api';
 import {
   colors,
@@ -325,7 +325,7 @@ class ReportingDashboard extends React.Component<Props, State> {
         </Flex>
 
         <Box>
-          <Flex sx={{flexDirection: ['column', 'column', 'row']}}>
+          <Flex className="ReportingDashboard-row">
             <Box sx={{flex: 1}}>
               <Box mb={2}>
                 <Text strong>Response Metrics</Text>
@@ -375,15 +375,12 @@ class ReportingDashboard extends React.Component<Props, State> {
 
           <Divider />
 
-          <Flex
-            mx={-3}
-            mb={4}
-            sx={{flexDirection: ['column', 'column', 'row']}}
-          >
+          <Flex className="ReportingDashboard-row" mx={-3} mb={4}>
             <Box
               mb={4}
               mx={3}
-              sx={{height: 320, maxWidth: ['100%', '100%', '50%'], flex: 1}}
+              className="ReportingDashboard-chart"
+              sx={{height: 320, flex: 1}}
             >
               <Box mb={2}>
                 <Text strong>New messages per day</Text>
@@ -394,7 +391,8 @@ class ReportingDashboard extends React.Component<Props, State> {
             <Box
               mb={4}
               mx={3}
-              sx={{height: 320, maxWidth: ['100%', '100%', '50%'], flex: 1}}
+              className="ReportingDashboard-chart"
+              sx={{height: 320, flex: 1}}
             >
               <Box mb={2}>
                 <Text strong>Messages sent vs received</Text>
@@ -403,15 +401,12 @@ class ReportingDashboard extends React.Component<Props, State> {
             </Box>
           </Flex>
 
-          <Flex
-            mx={-3}
-            mb={4}
-            sx={{flexDirection: ['column', 'column', 'row']}}
-          >
+          <Flex className="ReportingDashboard-row" mx={-3} mb={4}>
             <Box
               mb={4}
               mx={3}
-              sx={{height: 320, maxWidth: ['100%', '100%', '50%'], flex: 1}}
+              className="ReportingDashboard-chart"
+              sx={{height: 320, flex: 1}}
             >
               <Box mb={2}>
                 <Text strong>Messages per user</Text>
@@ -422,7 +417,8 @@ class ReportingDashboard extends React.Component<Props, State> {
             <Box
               mb={4}
               mx={3}
-              sx={{height: 320, maxWidth: ['100%', '100%', '50%'], flex: 1}}
+              className="ReportingDashboard-chart"
+              sx={{height: 320, flex: 1}}
             >
               <Box mb={2}>
                 <Text strong>Messages by day of week</Text>

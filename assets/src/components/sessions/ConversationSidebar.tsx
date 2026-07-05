@@ -1,5 +1,5 @@
 import React from 'react';
-import {Flex} from 'theme-ui';
+import {Flex} from '../ui';
 import {colors} from '../common';
 import ConversationMessages from '../conversations/ConversationMessages';
 import ConversationFooter from '../conversations/ConversationFooter';

@@ -1,5 +1,5 @@
 import React from 'react';
-import {Box, Flex} from 'theme-ui';
+import {Box, Flex} from '../ui';
 import {Button, List, Modal, Text} from '../common';
 import {WindowsOutlined} from '../icons';
 

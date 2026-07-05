@@ -1,7 +1,7 @@
 import React, {FunctionComponent} from 'react';
 import {RouteComponentProps, withRouter} from '../../router-compat';
 import {capitalize, debounce} from 'lodash';
-import {Box} from 'theme-ui';
+import {Box} from '../ui';
 import {TwitterPicker} from 'react-color';
 import {ChatWidget, Papercups} from '@papercups-io/chat-widget';
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import {Flex} from 'theme-ui';
+import {Flex} from '../ui';
 import dayjs from 'dayjs';
 import {colors, Button, Table, Tag, Text, Dropdown} from '../common';
 import {SettingOutlined, SmileTwoTone} from '../icons';

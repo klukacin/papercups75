@@ -2,7 +2,7 @@ import React from 'react';
 import {Link} from 'react-router-dom';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
-import {Box, Flex} from 'theme-ui';
+import {Box, Flex} from '../ui';
 import {Badge, Button, Card, Divider, colors, Text, Tooltip} from '../common';
 import {
   CalendarOutlined,

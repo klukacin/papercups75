@@ -3,7 +3,7 @@ import {Link} from 'react-router-dom';
 import {RouteComponentProps, withRouter} from '../../router-compat';
 import {throttle} from 'lodash';
 import {Channel, Presence, Socket} from 'phoenix';
-import {Box, Flex} from 'theme-ui';
+import {Box, Flex} from '../ui';
 import {Replayer, ReplayerEvents} from 'rrweb';
 import {Alert, Button, Paragraph, Text} from '../common';
 import {ArrowLeftOutlined} from '../icons';
@@ -346,7 +346,9 @@ class LiveSessionViewer extends React.Component<Props, State> {
                   visibility: loading ? 'hidden' : 'visible',
                   opacity: isCustomerActive && isCustomerConnected ? 1 : 0.6,
                 }}
-                ref={(el) => (this.container = el)}
+                ref={(el) => {
+                  this.container = el;
+                }}
               >
                 {/*
                   TODO: see https://github.com/rrweb-io/rrweb-player/blob/master/src/Player.svelte
