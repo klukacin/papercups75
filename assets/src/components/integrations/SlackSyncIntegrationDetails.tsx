@@ -1,5 +1,5 @@
 import React from 'react';
-import {RouteComponentProps} from 'react-router';
+import {RouteComponentProps, withRouter} from '../../router-compat';
 import {Link} from 'react-router-dom';
 import {Twemoji} from 'react-emoji-render';
 import {Box, Flex} from 'theme-ui';
@@ -520,4 +520,4 @@ class SlackSyncIntegrationDetails extends React.Component<Props, State> {
   }
 }
 
-export default SlackSyncIntegrationDetails;
+export default withRouter(SlackSyncIntegrationDetails);

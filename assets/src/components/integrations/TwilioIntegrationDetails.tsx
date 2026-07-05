@@ -1,5 +1,5 @@
 import React from 'react';
-import {RouteComponentProps} from 'react-router';
+import {RouteComponentProps, withRouter} from '../../router-compat';
 import {Link} from 'react-router-dom';
 import {Box, Flex} from 'theme-ui';
 
@@ -245,4 +245,4 @@ class TwilioIntegrationDetails extends React.Component<Props, State> {
   }
 }
 
-export default TwilioIntegrationDetails;
+export default withRouter(TwilioIntegrationDetails);

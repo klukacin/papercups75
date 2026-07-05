@@ -1,5 +1,6 @@
 import React from 'react';
-import {RouteComponentProps, Link} from 'react-router-dom';
+import {Link} from 'react-router-dom';
+import {RouteComponentProps, withRouter} from '../../router-compat';
 import {Box, Flex} from 'theme-ui';
 import request from 'superagent';
 import {
@@ -305,4 +306,4 @@ class Demo extends React.Component<Props, State> {
   }
 }
 
-export default Demo;
+export default withRouter(Demo);

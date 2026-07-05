@@ -1,5 +1,6 @@
 import React from 'react';
-import {Redirect, RouteComponentProps} from 'react-router';
+import {Navigate} from 'react-router-dom';
+import {RouteComponentProps, withRouter} from '../../router-compat';
 import qs from 'query-string';
 import {parseSlackAuthState} from './support';
 
@@ -12,49 +13,53 @@ export const SlackIntegrationDetails = (props: RouteComponentProps<{}>) => {
     switch (type) {
       case 'reply':
         return (
-          <Redirect
+          <Navigate
             to={`/inboxes/${inboxId}/integrations/slack/reply?${qs.stringify({
               state,
               ...rest,
             })}`}
+            replace
           />
         );
       case 'support':
         return (
-          <Redirect
+          <Navigate
             to={`/inboxes/${inboxId}/integrations/slack/support?${qs.stringify({
               state,
               ...rest,
             })}`}
+            replace
           />
         );
       default:
-        return <Redirect to={`/inboxes/${inboxId}/integrations`} />;
+        return <Navigate to={`/inboxes/${inboxId}/integrations`} replace />;
     }
   }
 
   switch (type) {
     case 'reply':
       return (
-        <Redirect
+        <Navigate
           to={`/integrations/slack/reply?${qs.stringify({
             state,
             ...rest,
           })}`}
+          replace
         />
       );
     case 'support':
       return (
-        <Redirect
+        <Navigate
           to={`/integrations/slack/support?${qs.stringify({
             state,
             ...rest,
           })}`}
+          replace
         />
       );
     default:
-      return <Redirect to={`/integrations`} />;
+      return <Navigate to={`/integrations`} replace />;
   }
 };
 
-export default SlackIntegrationDetails;
+export default withRouter(SlackIntegrationDetails);

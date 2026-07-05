@@ -1,5 +1,5 @@
 import React, {FunctionComponent} from 'react';
-import {RouteComponentProps} from 'react-router';
+import {RouteComponentProps, withRouter} from '../../router-compat';
 import {capitalize, debounce} from 'lodash';
 import {Box} from 'theme-ui';
 import {TwitterPicker} from 'react-color';
@@ -755,4 +755,4 @@ const ExamplePage = () => {
   );
 };
 
-export default ChatWidgetSettings;
+export default withRouter(ChatWidgetSettings);

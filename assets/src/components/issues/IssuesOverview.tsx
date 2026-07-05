@@ -16,7 +16,7 @@ import * as T from '../../types';
 import logger from '../../logger';
 import IssuesTable from './IssuesTable';
 import NewIssueModal from './NewIssueModal';
-import {RouteComponentProps} from 'react-router';
+import {RouteComponentProps, withRouter} from '../../router-compat';
 
 type Props = RouteComponentProps & {};
 type State = {
@@ -210,4 +210,4 @@ class IssuesOverview extends React.Component<Props, State> {
   }
 }
 
-export default IssuesOverview;
+export default withRouter(IssuesOverview);

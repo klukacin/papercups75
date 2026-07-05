@@ -1,5 +1,6 @@
 import React from 'react';
-import {Link, RouteComponentProps} from 'react-router-dom';
+import {Link} from 'react-router-dom';
+import {RouteComponentProps, withRouter} from '../../router-compat';
 import {Box, Flex} from 'theme-ui';
 import {debounce} from 'lodash';
 import dayjs from 'dayjs';
@@ -498,4 +499,4 @@ class LambdaDetailsPage extends React.Component<Props, State> {
   }
 }
 
-export default LambdaDetailsPage;
+export default withRouter(LambdaDetailsPage);

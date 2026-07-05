@@ -1,5 +1,6 @@
 import React from 'react';
-import {Link, RouteComponentProps} from 'react-router-dom';
+import {Link} from 'react-router-dom';
+import {RouteComponentProps, withRouter} from '../../router-compat';
 import {throttle} from 'lodash';
 import {Channel, Presence, Socket} from 'phoenix';
 import {Box, Flex} from 'theme-ui';
@@ -385,4 +386,4 @@ class LiveSessionViewer extends React.Component<Props, State> {
   }
 }
 
-export default LiveSessionViewer;
+export default withRouter(LiveSessionViewer);

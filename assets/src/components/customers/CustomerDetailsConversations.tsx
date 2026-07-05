@@ -1,5 +1,5 @@
 import React from 'react';
-import {History} from 'history';
+import {History} from '../../router-compat';
 import {Flex} from 'theme-ui';
 import {Empty} from '../common';
 import Spinner from '../Spinner';

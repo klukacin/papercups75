@@ -1,10 +1,10 @@
 import React from 'react';
 import {
-  RouteComponentProps,
   BrowserRouter as Router,
-  Switch,
+  Navigate,
   Route,
-  Redirect,
+  Routes,
+  useLocation,
 } from 'react-router-dom';
 import {useAuth} from './components/auth/AuthProvider';
 import Login from './components/auth/Login';
@@ -20,6 +20,12 @@ import Sandbox from './components/Sandbox';
 import SharedConversation from './components/conversations/SharedConversation';
 import './App.css';
 
+const RedirectToLogin = () => {
+  const location = useLocation();
+
+  return <Navigate to={`/login?redirect=${location.pathname}`} replace />;
+};
+
 const App = () => {
   const auth = useAuth();
 
@@ -31,28 +37,23 @@ const App = () => {
     // Public routes
     return (
       <Router>
-        <Switch>
-          <Route path="/demo" component={Demo} />
-          <Route path="/bot/demo" component={BotDemo} />
-          <Route path="/login" component={Login} />
-          <Route path="/register/:invite" component={Register} />
-          <Route path="/register" component={Register} />
-          <Route path="/verify" component={EmailVerification} />
-          <Route path="/reset-password" component={RequestPasswordReset} />
-          <Route path="/reset" component={PasswordReset} />
+        <Routes>
+          <Route path="/demo" element={<Demo />} />
+          <Route path="/bot/demo" element={<BotDemo />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register/:invite" element={<Register />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/verify" element={<EmailVerification />} />
+          <Route path="/reset-password" element={<RequestPasswordReset />} />
+          <Route path="/reset" element={<PasswordReset />} />
           <Route
             path="/reset-password-requested"
-            component={PasswordResetRequested}
+            element={<PasswordResetRequested />}
           />
-          <Route path="/sandbox" component={Sandbox} />
-          <Route path="/share" component={SharedConversation} />
-          <Route
-            path="*"
-            render={(props: RouteComponentProps<{}>) => (
-              <Redirect to={`/login?redirect=${props.location.pathname}`} />
-            )}
-          />
-        </Switch>
+          <Route path="/sandbox" element={<Sandbox />} />
+          <Route path="/share" element={<SharedConversation />} />
+          <Route path="*" element={<RedirectToLogin />} />
+        </Routes>
       </Router>
     );
   }
@@ -60,24 +61,23 @@ const App = () => {
   // Private routes
   return (
     <Router>
-      <Switch>
-        <Route path="/login" component={Login} />
-        <Route path="/register/:invite" component={Register} />
-        <Route path="/register" component={Register} />
-        <Route path="/verify" component={EmailVerification} />
-        <Route path="/reset-password" component={RequestPasswordReset} />
-        <Route path="/reset" component={PasswordReset} />
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register/:invite" element={<Register />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/verify" element={<EmailVerification />} />
+        <Route path="/reset-password" element={<RequestPasswordReset />} />
+        <Route path="/reset" element={<PasswordReset />} />
         <Route
           path="/reset-password-requested"
-          component={PasswordResetRequested}
+          element={<PasswordResetRequested />}
         />
-        <Route path="/demo" component={Demo} />
-        <Route path="/bot/demo" component={BotDemo} />
-        <Route path="/sandbox" component={Sandbox} />
-        <Route path="/share" component={SharedConversation} />
-        <Route path="/" component={Dashboard} />
-        <Route path="*" render={() => <Redirect to="/conversations" />} />
-      </Switch>
+        <Route path="/demo" element={<Demo />} />
+        <Route path="/bot/demo" element={<BotDemo />} />
+        <Route path="/sandbox" element={<Sandbox />} />
+        <Route path="/share" element={<SharedConversation />} />
+        <Route path="/*" element={<Dashboard />} />
+      </Routes>
     </Router>
   );
 };

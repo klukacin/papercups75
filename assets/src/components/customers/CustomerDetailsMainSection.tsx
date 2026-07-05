@@ -1,5 +1,5 @@
 import React from 'react';
-import {History} from 'history';
+import {History} from '../../router-compat';
 import qs from 'query-string';
 
 import {Card, Tabs} from '../common';

@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {useHistory} from 'react-router';
+import {useNavigate} from 'react-router-dom';
 import {Box, Flex} from 'theme-ui';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -34,7 +34,7 @@ const EditCustomerDetailsModal = ({
   onClose,
   onUpdate,
 }: Props) => {
-  const history = useHistory();
+  const navigate = useNavigate();
   const [email, setEmail] = useState(customer.email ?? '');
   const [name, setName] = useState(customer.name ?? '');
   const [phone, setPhone] = useState(customer.phone ?? '');
@@ -82,7 +82,7 @@ const EditCustomerDetailsModal = ({
         message: `${title} successfully deleted.`,
         duration: 10,
       });
-      history.push('/customers');
+      navigate('/customers');
     } catch (err) {
       logger.error('Failed to delete customer', err);
       const error =

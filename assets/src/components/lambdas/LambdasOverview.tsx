@@ -1,5 +1,6 @@
 import React from 'react';
-import {Link, RouteComponentProps} from 'react-router-dom';
+import {Link} from 'react-router-dom';
+import {RouteComponentProps, withRouter} from '../../router-compat';
 import {Box, Flex} from 'theme-ui';
 import {Badge, Button, Container, Paragraph, Table, Title} from '../common';
 import {PlusOutlined} from '../icons';
@@ -143,4 +144,4 @@ class LambdasOverview extends React.Component<Props, State> {
   }
 }
 
-export default LambdasOverview;
+export default withRouter(LambdasOverview);

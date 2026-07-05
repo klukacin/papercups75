@@ -1,5 +1,5 @@
 import React from 'react';
-import {RouteComponentProps} from 'react-router';
+import {RouteComponentProps, withRouter} from '../../router-compat';
 import {Link} from 'react-router-dom';
 import {Box, Flex} from 'theme-ui';
 
@@ -267,4 +267,4 @@ class MattermostIntegrationDetails extends React.Component<Props, State> {
   }
 }
 
-export default MattermostIntegrationDetails;
+export default withRouter(MattermostIntegrationDetails);

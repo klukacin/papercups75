@@ -1,5 +1,6 @@
 import React from 'react';
-import {Link, RouteComponentProps} from 'react-router-dom';
+import {Link} from 'react-router-dom';
+import {RouteComponentProps, withRouter} from '../../router-compat';
 import {Box, Flex} from 'theme-ui';
 
 import * as API from '../../api';
@@ -795,4 +796,4 @@ const Wrapper = (
   );
 };
 
-export default Wrapper;
+export default withRouter(Wrapper);
