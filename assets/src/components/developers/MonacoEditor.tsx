@@ -1,5 +1,5 @@
 import React from 'react';
-import {Flex} from 'theme-ui';
+import {Flex} from '../ui';
 import Editor, {EditorProps, BeforeMount, Monaco} from '@monaco-editor/react';
 
 type Props = {onSave?: (code: string) => void} & EditorProps;

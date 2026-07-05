@@ -1,5 +1,5 @@
 import React from 'react';
-import {Box} from 'theme-ui';
+import {Box} from '../ui';
 import {Link} from 'react-router-dom';
 
 import type {Inbox, OnboardingStatus} from '../../types';

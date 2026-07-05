@@ -1,5 +1,5 @@
 import React from 'react';
-import {Box} from 'theme-ui';
+import {Box} from './components/ui';
 import * as Sentry from '@sentry/react';
 import qs from 'query-string';
 import SyntaxHighlighter from 'react-syntax-highlighter';

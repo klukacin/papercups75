@@ -1,7 +1,7 @@
 import React from 'react';
 import {useLocation} from 'react-router-dom';
 import qs from 'query-string';
-import {Flex} from 'theme-ui';
+import {Flex} from '../ui';
 import * as API from '../../api';
 import {Result} from '../common';
 

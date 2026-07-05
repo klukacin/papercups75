@@ -1,7 +1,7 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
 import dayjs from 'dayjs';
-import {Box, Flex} from 'theme-ui';
+import {Box, Flex} from '../ui';
 import {colors, Button, Table, Tag, Text} from '../common';
 import {PlusOutlined, SettingOutlined} from '../icons';
 import {IntegrationType} from './support';

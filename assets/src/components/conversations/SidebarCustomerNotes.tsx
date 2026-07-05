@@ -1,5 +1,5 @@
 import React from 'react';
-import {Box} from 'theme-ui';
+import {Box} from '../ui';
 import {colors, Popconfirm, TextArea} from '../common';
 import * as API from '../../api';
 import {CustomerNote} from '../../types';

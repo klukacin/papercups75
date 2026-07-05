@@ -1,5 +1,5 @@
 import React from 'react';
-import {Box, Flex} from 'theme-ui';
+import {Box, Flex} from '../ui';
 import {notification, Button, Input, Popconfirm, Table, Text} from '../common';
 import {PersonalApiKey} from '../../types';
 

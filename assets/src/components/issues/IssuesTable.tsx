@@ -2,7 +2,7 @@ import React from 'react';
 import {Link} from 'react-router-dom';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
-import {Flex} from 'theme-ui';
+import {Flex} from '../ui';
 import {Button, Dropdown, Table, Tag, Text} from '../common';
 import {SettingOutlined} from '../icons';
 import * as API from '../../api';

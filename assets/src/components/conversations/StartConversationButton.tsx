@@ -1,5 +1,5 @@
 import React from 'react';
-import {Box} from 'theme-ui';
+import {Box} from '../ui';
 import {TooltipPlacement} from 'antd/lib/tooltip';
 
 import {

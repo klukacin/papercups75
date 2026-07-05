@@ -1,7 +1,7 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
-import {Image} from 'theme-ui';
-import {Box, Flex} from 'theme-ui';
+import {Image} from '../ui';
+import {Box, Flex} from '../ui';
 import {Button, Text} from '../common';
 import {LinkOutlined, TeamOutlined} from '../icons';
 import * as API from '../../api';

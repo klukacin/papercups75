@@ -1,7 +1,7 @@
 import React from 'react';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
-import {Box, Flex} from 'theme-ui';
+import {Box, Flex} from '../ui';
 import {colors, Text} from '../common';
 import Spinner from '../Spinner';
 import {SenderAvatar} from './ChatMessage';

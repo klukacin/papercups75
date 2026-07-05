@@ -1,5 +1,5 @@
 import React from 'react';
-import {Box, Flex, ThemeUICSSObject} from 'theme-ui';
+import {Box, Flex, ThemeUICSSObject} from '../ui';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import {colors, Text, Tooltip} from '../common';

@@ -1,7 +1,7 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
 import {RouteComponentProps} from '../../router-compat';
-import {Box, Flex} from 'theme-ui';
+import {Box, Flex} from '../ui';
 import {Replayer} from 'rrweb';
 import qs from 'query-string';
 import {Alert, Button, Paragraph, Text} from '../common';
@@ -164,7 +164,9 @@ class SessionReplay extends React.Component<Props, State> {
                   height: 480,
                   visibility: loading ? 'hidden' : 'visible',
                 }}
-                ref={(el) => (this.container = el)}
+                ref={(el) => {
+                  this.container = el;
+                }}
               >
                 <div
                   id="SessionPlayer"

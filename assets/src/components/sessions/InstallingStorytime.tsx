@@ -1,5 +1,5 @@
 import React from 'react';
-import {Box, Image} from 'theme-ui';
+import {Box, Image} from '../ui';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import {atomOneLight} from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import * as API from '../../api';

@@ -2,7 +2,7 @@ import React from 'react';
 import {Link} from 'react-router-dom';
 import {RouteComponentProps, withRouter} from '../../router-compat';
 import qs from 'query-string';
-import {Box, Flex} from 'theme-ui';
+import {Box, Flex} from '../ui';
 import {Button, Input, Text, Title} from '../common';
 import * as API from '../../api';
 import {useAuth} from './AuthProvider';
@@ -110,7 +110,7 @@ class PasswordReset extends React.Component<Props, State> {
 
     return (
       <Flex
-        px={[2, 5]}
+        className="AuthContainer-px"
         py={5}
         sx={{
           flexDirection: 'column',

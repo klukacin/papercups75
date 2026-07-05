@@ -1,6 +1,6 @@
 import React from 'react';
 import type {InputRef} from 'antd';
-import {Box, Flex} from 'theme-ui';
+import {Box, Flex} from '../ui';
 import {
   notification,
   Button,

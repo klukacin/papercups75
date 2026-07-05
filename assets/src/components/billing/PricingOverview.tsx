@@ -1,5 +1,5 @@
 import React from 'react';
-import {Box, Flex} from 'theme-ui';
+import {Box, Flex} from '../ui';
 import {colors, Button, Divider, Paragraph, Text, Title} from '../common';
 import {CheckCircleTwoTone} from '../icons';
 import {SubscriptionPlan} from './support';

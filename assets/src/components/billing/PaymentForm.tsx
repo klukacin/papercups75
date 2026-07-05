@@ -1,5 +1,5 @@
 import React from 'react';
-import {Box, Flex} from 'theme-ui';
+import {Box, Flex} from '../ui';
 import {useStripe, useElements, CardElement} from '@stripe/react-stripe-js';
 import {Button, Text} from '../common';
 import * as API from '../../api';

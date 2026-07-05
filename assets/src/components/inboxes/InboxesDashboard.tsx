@@ -1,7 +1,7 @@
 import React from 'react';
 import {useLocation, Navigate, Route, Routes} from 'react-router-dom';
 import {RouteComponentProps, withRouter} from '../../router-compat';
-import {Box, Flex} from 'theme-ui';
+import {Box, Flex} from '../ui';
 
 import {colors, Layout, Menu, Sider} from '../common';
 import {INBOXES_DASHBOARD_SIDER_WIDTH} from '../../utils';

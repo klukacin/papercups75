@@ -1,6 +1,6 @@
 import React from 'react';
 import {History} from '../../router-compat';
-import {Flex} from 'theme-ui';
+import {Flex} from '../ui';
 import {Empty} from '../common';
 import Spinner from '../Spinner';
 import * as API from '../../api';

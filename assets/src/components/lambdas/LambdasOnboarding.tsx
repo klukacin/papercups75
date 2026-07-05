@@ -1,5 +1,5 @@
 import React from 'react';
-import {Flex} from 'theme-ui';
+import {Flex} from '../ui';
 import {Papercups} from '@papercups-io/chat-widget';
 
 import * as API from '../../api';

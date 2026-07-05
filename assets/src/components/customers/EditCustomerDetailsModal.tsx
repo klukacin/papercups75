@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {useNavigate} from 'react-router-dom';
-import {Box, Flex} from 'theme-ui';
+import {Box, Flex} from '../ui';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import {

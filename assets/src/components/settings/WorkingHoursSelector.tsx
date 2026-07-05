@@ -1,5 +1,5 @@
 import React from 'react';
-import {Box, Flex} from 'theme-ui';
+import {Box, Flex} from '../ui';
 import {range} from 'lodash';
 import {Button, Select} from '../common';
 import {WorkingHours, timezones, getDefaultTimezone} from './support';

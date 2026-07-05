@@ -1,5 +1,5 @@
 import React from 'react';
-import {Box, Flex} from 'theme-ui';
+import {Box, Flex} from '../ui';
 import {Button, Text} from '../common';
 import ConversationItem from './ConversationItem';
 import ConversationClosing from './ConversationClosing';

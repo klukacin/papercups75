@@ -1,5 +1,5 @@
 import React from 'react';
-import {Box, Flex} from 'theme-ui';
+import {Box, Flex} from '../ui';
 import {Account, Conversation, User} from '../../types';
 import * as API from '../../api';
 import ConversationMessages from './ConversationMessages';

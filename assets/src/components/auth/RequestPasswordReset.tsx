@@ -1,7 +1,7 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
 import {RouteComponentProps, withRouter} from '../../router-compat';
-import {Box, Flex} from 'theme-ui';
+import {Box, Flex} from '../ui';
 import {Button, Input, Text, Title} from '../common';
 import * as API from '../../api';
 import logger from '../../logger';
@@ -65,7 +65,7 @@ class RequestPasswordReset extends React.Component<Props, State> {
 
     return (
       <Flex
-        px={[2, 5]}
+        className="AuthContainer-px"
         py={5}
         sx={{
           flexDirection: 'column',

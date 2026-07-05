@@ -1,6 +1,6 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
-import {Box, Flex} from 'theme-ui';
+import {Box, Flex} from '../ui';
 import {colors, Text} from '../common';
 import {CheckOutlined} from '../icons';
 

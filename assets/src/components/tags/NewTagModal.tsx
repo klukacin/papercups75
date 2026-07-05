@@ -1,5 +1,5 @@
 import React from 'react';
-import {Box, Flex} from 'theme-ui';
+import {Box, Flex} from '../ui';
 import {colors, Button, Input, Modal, Select, Text, TextArea} from '../common';
 import * as API from '../../api';
 import logger from '../../logger';

@@ -142,6 +142,62 @@ a.RelatedCustomerConversation--link:hover {
   border-left: 1px solid rgb(240, 240, 240);
 }
 
+/*
+ * Replaces the nested `p`/`blockquote` selectors that were passed via the
+ * theme-ui `sx` prop in EmbeddableChat (inline styles cannot target child
+ * elements). Values follow the theme-ui default space scale (mb: 0 -> 0,
+ * px: 2 -> 8px).
+ */
+.EmbeddableChat-message p {
+  margin-bottom: 0;
+}
+
+.EmbeddableChat-message blockquote {
+  padding-left: 8px;
+  padding-right: 8px;
+  border-left: 3px solid;
+  margin-bottom: 0;
+}
+
+/*
+ * Replacements for theme-ui responsive array values (theme-ui default
+ * breakpoints: 40em / 52em / 64em; array index 0 = base, 1 = min-width 40em,
+ * 2 = min-width 52em).
+ */
+
+/* Replaces px={[2, 5]} (space scale: 2 -> 8px, 5 -> 64px) on auth pages. */
+.AuthContainer-px {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+@media (min-width: 40em) {
+  .AuthContainer-px {
+    padding-left: 64px;
+    padding-right: 64px;
+  }
+}
+
+/* Replaces sx={{flexDirection: ['column', 'column', 'row']}}. */
+.ReportingDashboard-row {
+  flex-direction: column;
+}
+
+/* Replaces sx={{maxWidth: ['100%', '100%', '50%']}}. */
+.ReportingDashboard-chart {
+  max-width: 100%;
+}
+
+@media (min-width: 52em) {
+  .ReportingDashboard-row {
+    flex-direction: row;
+  }
+
+  .ReportingDashboard-chart {
+    max-width: 50%;
+  }
+}
+
 .Dashboard-Sider {
   background: #000c17;
 }

@@ -1,6 +1,6 @@
 import React from 'react';
 import {RouteComponentProps, withRouter} from '../../router-compat';
-import {Box, Flex} from 'theme-ui';
+import {Box, Flex} from '../ui';
 import {Button, Container, Paragraph, Text, Title} from '../common';
 import {PlusOutlined} from '../icons';
 import Spinner from '../Spinner';

@@ -1,7 +1,7 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
 import {RouteComponentProps, withRouter} from '../../router-compat';
-import {Box, Flex} from 'theme-ui';
+import {Box, Flex} from '../ui';
 import {TwitterPicker} from 'react-color';
 import qs from 'query-string';
 import {
