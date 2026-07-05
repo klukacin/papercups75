@@ -25,7 +25,7 @@ defmodule ChatApiWeb.TagController do
     account_id = Accounts.get_current_account_id(conn)
     tags = Tags.list_tags(account_id)
 
-    render(conn, "index.json", tags: tags)
+    render(conn, :index, tags: tags)
   end
 
   @spec create(Plug.Conn.t(), map()) :: Plug.Conn.t()
@@ -41,17 +41,17 @@ defmodule ChatApiWeb.TagController do
       conn
       |> put_status(:created)
       |> put_resp_header("location", Routes.tag_path(conn, :show, tag))
-      |> render("show.json", tag: tag)
+      |> render(:show, tag: tag)
     end
   end
 
   def show(conn, _params) do
-    render(conn, "show.json", tag: conn.assigns.current_tag)
+    render(conn, :show, tag: conn.assigns.current_tag)
   end
 
   def update(conn, %{"tag" => tag_params}) do
     with {:ok, %Tag{} = tag} <- Tags.update_tag(conn.assigns.current_tag, tag_params) do
-      render(conn, "show.json", tag: tag)
+      render(conn, :show, tag: tag)
     end
   end
 

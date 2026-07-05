@@ -1,5 +1,5 @@
 import React from 'react';
-import {RouteComponentProps} from 'react-router';
+import {RouteComponentProps, withRouter} from '../../router-compat';
 import {Flex} from 'theme-ui';
 
 import * as API from '../../api';
@@ -83,4 +83,4 @@ const Wrapper = (
   );
 };
 
-export default Wrapper;
+export default withRouter(Wrapper);

@@ -1,5 +1,5 @@
 import React from 'react';
-import {RouteComponentProps} from 'react-router';
+import {RouteComponentProps, withRouter} from '../../router-compat';
 import {Box, Flex} from 'theme-ui';
 import qs from 'query-string';
 import {
@@ -404,4 +404,4 @@ class UserProfile extends React.Component<Props, State> {
   }
 }
 
-export default UserProfile;
+export default withRouter(UserProfile);

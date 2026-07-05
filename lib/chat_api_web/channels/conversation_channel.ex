@@ -22,7 +22,7 @@ defmodule ChatApiWeb.ConversationChannel do
         assign(
           socket,
           :conversation,
-          ChatApiWeb.ConversationView.render("basic.json", conversation: conversation)
+          ChatApiWeb.ConversationJSON.basic(conversation)
         )
 
       # If the payload includes a customer_id, we want to mark this customer

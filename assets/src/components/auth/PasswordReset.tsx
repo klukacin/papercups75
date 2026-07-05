@@ -1,5 +1,6 @@
 import React from 'react';
-import {RouteComponentProps, Link} from 'react-router-dom';
+import {Link} from 'react-router-dom';
+import {RouteComponentProps, withRouter} from '../../router-compat';
 import qs from 'query-string';
 import {Box, Flex} from 'theme-ui';
 import {Button, Input, Text, Title} from '../common';
@@ -181,4 +182,4 @@ const PasswordResetPage = (props: RouteComponentProps) => {
   return <PasswordReset {...props} onSubmit={auth.login} />;
 };
 
-export default PasswordResetPage;
+export default withRouter(PasswordResetPage);

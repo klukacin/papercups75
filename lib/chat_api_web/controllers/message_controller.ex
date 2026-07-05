@@ -65,7 +65,7 @@ defmodule ChatApiWeb.MessageController do
   def index(conn, params) do
     with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
       messages = Messages.list_messages(account_id, params)
-      render(conn, "index.json", messages: messages)
+      render(conn, :index, messages: messages)
     end
   end
 
@@ -102,7 +102,7 @@ defmodule ChatApiWeb.MessageController do
       conn
       |> put_status(:created)
       |> put_resp_header("location", Routes.message_path(conn, :show, message))
-      |> render("show.json", message: message)
+      |> render(:show, message: message)
     end
   end
 
@@ -121,7 +121,7 @@ defmodule ChatApiWeb.MessageController do
   @spec show(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def show(conn, _params) do
     message = conn.assigns.current_message
-    render(conn, "show.json", message: message)
+    render(conn, :show, message: message)
   end
 
   @spec update(Plug.Conn.t(), map()) :: Plug.Conn.t()
@@ -131,7 +131,7 @@ defmodule ChatApiWeb.MessageController do
     with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          sanitized_updates <- Map.merge(message_params, %{"account_id" => account_id}),
          {:ok, %Message{} = message} <- Messages.update_message(message, sanitized_updates) do
-      render(conn, "show.json", message: message)
+      render(conn, :show, message: message)
     end
   end
 

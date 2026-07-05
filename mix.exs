@@ -56,7 +56,6 @@ defmodule ChatApi.MixProject do
       # verified by the full test suite. Drop the override once pow ships a
       # release that allows phoenix ~> 1.8.
       {:phoenix, "~> 1.8", override: true},
-      {:phoenix_view, "~> 2.0"},
       {:phoenix_ecto, "~> 4.4"},
       {:ecto_sql, "~> 3.12"},
       {:postgrex, ">= 0.0.0"},

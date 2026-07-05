@@ -95,7 +95,7 @@ defmodule ChatApiWeb.ConversationController do
              filters,
              pagination_options
            ) do
-      render(conn, "index.json", conversations: conversations, pagination: pagination)
+      render(conn, :index, conversations: conversations, pagination: pagination)
     end
   end
 
@@ -185,7 +185,7 @@ defmodule ChatApiWeb.ConversationController do
     filters = Map.drop(params, ["account_id", "customer_id"])
     conversations = Conversations.find_by_customer(customer_id, account_id, filters)
 
-    render(conn, "index.json", conversations: conversations)
+    render(conn, :index, conversations: conversations)
   end
 
   @spec previous(Plug.Conn.t(), map()) :: Plug.Conn.t()
@@ -196,7 +196,7 @@ defmodule ChatApiWeb.ConversationController do
     # TODO: should we just return the conversation ID?
     previous = Conversations.get_previous_conversation(conversation)
 
-    render(conn, "show.json", conversation: previous)
+    render(conn, :show, conversation: previous)
   end
 
   @spec related(Plug.Conn.t(), map()) :: Plug.Conn.t()
@@ -205,7 +205,7 @@ defmodule ChatApiWeb.ConversationController do
     limit = Map.get(params, "limit", 3)
     results = Conversations.list_other_recent_conversations(conversation, limit)
 
-    render(conn, "index.json", conversations: results)
+    render(conn, :index, conversations: results)
   end
 
   @spec share(Plug.Conn.t(), map()) :: Plug.Conn.t()
@@ -228,7 +228,7 @@ defmodule ChatApiWeb.ConversationController do
         conversation =
           Conversations.get_shared_conversation!(conversation_id, account_id, customer_id)
 
-        render(conn, "show.json", conversation: conversation)
+        render(conn, :show, conversation: conversation)
 
       {:error, :expired} ->
         conn
@@ -271,7 +271,7 @@ defmodule ChatApiWeb.ConversationController do
       conn
       |> put_status(:created)
       |> put_resp_header("location", Routes.conversation_path(conn, :show, conversation))
-      |> render("create.json", conversation: conversation)
+      |> render(:create, conversation: conversation)
     end
   end
 
@@ -287,7 +287,7 @@ defmodule ChatApiWeb.ConversationController do
       conn
       |> put_status(:created)
       |> put_resp_header("location", Routes.conversation_path(conn, :show, conversation))
-      |> render("create.json", conversation: conversation)
+      |> render(:create, conversation: conversation)
     end
   end
 
@@ -305,7 +305,7 @@ defmodule ChatApiWeb.ConversationController do
 
   @spec show(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def show(conn, _params) do
-    render(conn, "show.json", conversation: conn.assigns.current_conversation)
+    render(conn, :show, conversation: conn.assigns.current_conversation)
   end
 
   swagger_path :update do
@@ -333,7 +333,7 @@ defmodule ChatApiWeb.ConversationController do
       |> Conversations.Notification.notify(:slack)
       |> Conversations.Notification.notify(:webhooks, event: "conversation:updated")
 
-      render(conn, "update.json", conversation: conversation)
+      render(conn, :update, conversation: conversation)
     end
   end
 
@@ -355,7 +355,7 @@ defmodule ChatApiWeb.ConversationController do
     conversation = conn.assigns.current_conversation
 
     with {:ok, %Conversation{} = conversation} <- Conversations.archive_conversation(conversation) do
-      render(conn, "update.json", conversation: conversation)
+      render(conn, :update, conversation: conversation)
     end
   end
 

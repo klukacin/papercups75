@@ -14,7 +14,7 @@ defmodule ChatApiWeb.BillingController do
          # here lets that error fall through to the FallbackController instead of
          # blowing up the view with a BadMapError.
          %{} = billing_info <- Billing.get_billing_info(account) do
-      render(conn, "show.json", billing_info: billing_info)
+      render(conn, :show, billing_info: billing_info)
     end
   end
 

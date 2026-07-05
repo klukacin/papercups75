@@ -19,7 +19,7 @@ defmodule ChatApi.Messages.Helpers do
 
   @spec format(Message.t()) :: map()
   def format(%Message{} = message),
-    do: ChatApiWeb.MessageView.render("expanded.json", message: message)
+    do: ChatApiWeb.MessageJSON.expanded(message)
 
   @spec get_message_type(Message.t()) :: atom()
   def get_message_type(%Message{type: "bot"}), do: :bot
@@ -217,7 +217,7 @@ defmodule ChatApi.Messages.Helpers do
     ChatApiWeb.Endpoint.broadcast!(
       "issue:lobby:" <> customer_id,
       "issue:created",
-      ChatApiWeb.IssueView.render("issue.json", issue: issue)
+      ChatApiWeb.IssueJSON.issue(issue)
     )
   end
 end

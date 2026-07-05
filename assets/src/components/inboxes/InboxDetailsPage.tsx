@@ -1,5 +1,5 @@
 import React from 'react';
-import {RouteComponentProps} from 'react-router';
+import {RouteComponentProps, withRouter} from '../../router-compat';
 import {Link} from 'react-router-dom';
 import {Box, Flex} from 'theme-ui';
 
@@ -114,4 +114,4 @@ class InboxDetailsPage extends React.Component<Props, State> {
   }
 }
 
-export default InboxDetailsPage;
+export default withRouter(InboxDetailsPage);

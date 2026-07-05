@@ -1,5 +1,6 @@
 import React from 'react';
-import {Redirect, RouteComponentProps} from 'react-router';
+import {Navigate} from 'react-router-dom';
+import {RouteComponentProps, withRouter} from '../../router-compat';
 import qs from 'query-string';
 
 export const GoogleIntegrationDetails = (props: RouteComponentProps<{}>) => {
@@ -8,29 +9,31 @@ export const GoogleIntegrationDetails = (props: RouteComponentProps<{}>) => {
   switch (scope) {
     case 'https://www.googleapis.com/auth/gmail.modify':
       return (
-        <Redirect
+        <Navigate
           to={`/integrations/google/gmail?${qs.stringify({
             state,
             scope,
             type,
             ...rest,
           })}`}
+          replace
         />
       );
     case 'https://www.googleapis.com/auth/spreadsheets':
       return (
-        <Redirect
+        <Navigate
           to={`/integrations/google/sheets?${qs.stringify({
             state,
             scope,
             type,
             ...rest,
           })}`}
+          replace
         />
       );
     default:
-      return <Redirect to={`/integrations`} />;
+      return <Navigate to={`/integrations`} replace />;
   }
 };
 
-export default GoogleIntegrationDetails;
+export default withRouter(GoogleIntegrationDetails);

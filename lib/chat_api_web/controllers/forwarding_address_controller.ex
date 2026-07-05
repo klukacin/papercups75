@@ -25,7 +25,7 @@ defmodule ChatApiWeb.ForwardingAddressController do
   def index(conn, params) do
     with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
       forwarding_addresses = ForwardingAddresses.list_forwarding_addresses(account_id, params)
-      render(conn, "index.json", forwarding_addresses: forwarding_addresses)
+      render(conn, :index, forwarding_addresses: forwarding_addresses)
     end
   end
 
@@ -45,13 +45,13 @@ defmodule ChatApiWeb.ForwardingAddressController do
         "location",
         Routes.forwarding_address_path(conn, :show, forwarding_address)
       )
-      |> render("show.json", forwarding_address: forwarding_address)
+      |> render(:show, forwarding_address: forwarding_address)
     end
   end
 
   @spec show(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def show(conn, %{"id" => _id}) do
-    render(conn, "show.json", forwarding_address: conn.assigns.current_forwarding_address)
+    render(conn, :show, forwarding_address: conn.assigns.current_forwarding_address)
   end
 
   @spec update(Plug.Conn.t(), map()) :: Plug.Conn.t()
@@ -61,7 +61,7 @@ defmodule ChatApiWeb.ForwardingAddressController do
              conn.assigns.current_forwarding_address,
              forwarding_address_params
            ) do
-      render(conn, "show.json", forwarding_address: forwarding_address)
+      render(conn, :show, forwarding_address: forwarding_address)
     end
   end
 

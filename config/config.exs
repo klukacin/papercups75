@@ -12,7 +12,7 @@ config :chat_api, ChatApiWeb.Endpoint,
   adapter: Bandit.PhoenixAdapter,
   url: [host: "localhost"],
   secret_key_base: "9YWmWz498gUjiMQXLq2PX/GcB5uSlqPmcxKPJ49k0vR+6ytuSydFFyDDD3zwRRWi",
-  render_errors: [view: ChatApiWeb.ErrorView, accepts: ~w(json), layout: false],
+  render_errors: [formats: [json: ChatApiWeb.ErrorJSON], layout: false],
   pubsub_server: ChatApi.PubSub,
   live_view: [signing_salt: "pRVXwt3k"]
 

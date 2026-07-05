@@ -1,5 +1,6 @@
 import React from 'react';
-import {RouteComponentProps, Link} from 'react-router-dom';
+import {Link} from 'react-router-dom';
+import {RouteComponentProps, withRouter} from '../../router-compat';
 import {Box, Flex} from 'theme-ui';
 import {TwitterPicker} from 'react-color';
 import qs from 'query-string';
@@ -217,4 +218,4 @@ class Demo extends React.Component<Props, State> {
   }
 }
 
-export default Demo;
+export default withRouter(Demo);

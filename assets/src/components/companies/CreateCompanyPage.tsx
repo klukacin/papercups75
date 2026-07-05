@@ -1,5 +1,6 @@
 import React from 'react';
-import {Link, RouteComponentProps} from 'react-router-dom';
+import {Link} from 'react-router-dom';
+import {RouteComponentProps, withRouter} from '../../router-compat';
 import {Box} from 'theme-ui';
 import {Button, Input, Select, Title} from '../common';
 import {ArrowLeftOutlined} from '../icons';
@@ -168,4 +169,4 @@ class CreateCompanyPage extends React.Component<Props, State> {
   }
 }
 
-export default CreateCompanyPage;
+export default withRouter(CreateCompanyPage);

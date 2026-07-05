@@ -1,12 +1,15 @@
 import React from 'react';
-import {RouteComponentProps, Link} from 'react-router-dom';
+import {Link} from 'react-router-dom';
+import {RouteComponentProps, withRouter} from '../../router-compat';
 import {Box, Flex} from 'theme-ui';
 import {Button, Input, Text, Title} from '../common';
 import * as API from '../../api';
 import logger from '../../logger';
 
 type Props = RouteComponentProps & {
-  onSubmit: (params: any) => Promise<void>;
+  // NB: this prop was never actually passed when routed via the v5
+  // `component={...}` API, so it is optional (and unused) here.
+  onSubmit?: (params: any) => Promise<void>;
 };
 
 type State = {
@@ -114,4 +117,4 @@ class RequestPasswordReset extends React.Component<Props, State> {
   }
 }
 
-export default RequestPasswordReset;
+export default withRouter(RequestPasswordReset);

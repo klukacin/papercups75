@@ -195,7 +195,7 @@ defmodule ChatApi.Messages.Notification do
     |> Enum.each(fn mention ->
       %{
         message: Helpers.format(message),
-        user: ChatApiWeb.UserView.render("user.json", user: mention.user)
+        user: ChatApiWeb.UserJSON.user(mention.user)
       }
       |> ChatApi.Workers.SendMentionNotification.new()
       |> Oban.insert()

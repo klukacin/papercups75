@@ -1,5 +1,5 @@
 import React from 'react';
-import {RouteComponentProps} from 'react-router-dom';
+import {RouteComponentProps, withRouter} from '../../router-compat';
 import {Box, Flex} from 'theme-ui';
 import qs from 'query-string';
 import {colors} from '../common';
@@ -83,4 +83,4 @@ class SharedConversationContainer extends React.Component<Props, State> {
   }
 }
 
-export default SharedConversationContainer;
+export default withRouter(SharedConversationContainer);

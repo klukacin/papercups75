@@ -1,5 +1,5 @@
 import React from 'react';
-import {RouteComponentProps} from 'react-router-dom';
+import {RouteComponentProps, withRouter} from '../../router-compat';
 import {Box, Flex} from 'theme-ui';
 import {Button, Container, Paragraph, Text, Title} from '../common';
 import {PlusOutlined} from '../icons';
@@ -161,4 +161,4 @@ class EventSubscriptionsPage extends React.Component<Props, State> {
   }
 }
 
-export default EventSubscriptionsPage;
+export default withRouter(EventSubscriptionsPage);

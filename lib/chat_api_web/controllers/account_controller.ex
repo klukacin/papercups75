@@ -12,7 +12,7 @@ defmodule ChatApiWeb.AccountController do
       conn
       |> put_status(:created)
       |> put_resp_header("location", Routes.account_path(conn, :me))
-      |> render("create.json", account: account)
+      |> render(:create, account: account)
     end
   end
 
@@ -24,7 +24,7 @@ defmodule ChatApiWeb.AccountController do
         |> Accounts.list_accounts_for_user()
         |> Enum.map(fn %Account{id: id} -> Accounts.get_account!(id) end)
 
-      render(conn, "index.json", accounts: accounts)
+      render(conn, :index, accounts: accounts)
     end
   end
 
@@ -33,7 +33,7 @@ defmodule ChatApiWeb.AccountController do
     with current_user <- Pow.Plug.current_user(conn),
          %{account_id: id} <- current_user do
       account = Accounts.get_account!(id)
-      render(conn, "show.json", account: account)
+      render(conn, :show, account: account)
     end
   end
 
@@ -44,7 +44,7 @@ defmodule ChatApiWeb.AccountController do
       account = Accounts.get_account!(account_id)
 
       with {:ok, %Account{} = account} <- Accounts.update_account(account, account_params) do
-        render(conn, "show.json", account: account)
+        render(conn, :show, account: account)
       end
     end
   end
@@ -85,7 +85,7 @@ defmodule ChatApiWeb.AccountController do
       _current_user ->
         account = Accounts.get_account!(Accounts.get_current_account_id(conn))
 
-        render(conn, "show.json", account: account)
+        render(conn, :show, account: account)
     end
   end
 end

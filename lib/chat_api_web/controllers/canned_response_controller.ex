@@ -24,7 +24,7 @@ defmodule ChatApiWeb.CannedResponseController do
   def index(conn, _params) do
     with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
       canned_responses = CannedResponses.list_canned_responses(account_id)
-      render(conn, "index.json", canned_responses: canned_responses)
+      render(conn, :index, canned_responses: canned_responses)
     end
   end
 
@@ -38,13 +38,13 @@ defmodule ChatApiWeb.CannedResponseController do
       conn
       |> put_status(:created)
       |> put_resp_header("location", Routes.canned_response_path(conn, :show, canned_response))
-      |> render("show.json", canned_response: canned_response)
+      |> render(:show, canned_response: canned_response)
     end
   end
 
   @spec show(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def show(conn, _params) do
-    render(conn, "show.json", canned_response: conn.assigns.current_canned_response)
+    render(conn, :show, canned_response: conn.assigns.current_canned_response)
   end
 
   @spec update(Plug.Conn.t(), map()) :: Plug.Conn.t()
@@ -54,7 +54,7 @@ defmodule ChatApiWeb.CannedResponseController do
              conn.assigns.current_canned_response,
              canned_response_params
            ) do
-      render(conn, "show.json", canned_response: updated_canned_response)
+      render(conn, :show, canned_response: updated_canned_response)
     end
   end
 

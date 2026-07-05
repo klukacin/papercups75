@@ -1,5 +1,6 @@
 import React from 'react';
-import {RouteComponentProps, Link} from 'react-router-dom';
+import {Link} from 'react-router-dom';
+import {RouteComponentProps, withRouter} from '../../router-compat';
 import {Box, Flex} from 'theme-ui';
 import qs from 'query-string';
 import {Button, Input, Text, Title} from '../common';
@@ -139,4 +140,4 @@ const LoginPage = (props: RouteComponentProps) => {
   return <Login {...props} onSubmit={auth.login} />;
 };
 
-export default LoginPage;
+export default withRouter(LoginPage);

@@ -1,12 +1,13 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {
   useLocation,
-  Switch,
-  Redirect,
+  useParams,
+  Navigate,
   Route,
+  Routes,
   Link,
-  RouteComponentProps,
 } from 'react-router-dom';
+import {RouteComponentProps, withRouter} from '../router-compat';
 import {Helmet} from 'react-helmet';
 import {Box, Flex} from 'theme-ui';
 import {ChatWidget, Papercups} from '@papercups-io/chat-widget';
@@ -229,6 +230,15 @@ const DashboardHtmlHead = ({totalNumUnread}: {totalNumUnread: number}) => {
   );
 };
 
+// Preserves the v5 `<Redirect from="/account*" to="/settings*" />` behavior
+// by carrying over whatever came after the `/account` prefix.
+const RedirectToSettings = () => {
+  const params = useParams();
+  const splat = params['*'] || '';
+
+  return <Navigate to={splat ? `/settings/${splat}` : '/settings'} replace />;
+};
+
 const Dashboard = (props: RouteComponentProps) => {
   const auth = useAuth();
   const {pathname} = useLocation();
@@ -325,119 +335,150 @@ const Dashboard = (props: RouteComponentProps) => {
           background: colors.white,
         }}
       >
-        <Switch>
-          <Route path="/getting-started" component={GettingStarted} />
+        <Routes>
+          <Route path="/getting-started" element={<GettingStarted />} />
 
           {/* Temporary redirect routes to point from /accounts/* to /settings/* */}
-          <Redirect from="/account/overview" to="/settings/overview" />
-          <Redirect from="/account/team" to="/settings/team" />
-          <Redirect from="/account/profile" to="/settings/profile" />
-          <Redirect
-            from="/account/getting-started"
-            to="/settings/chat-widget"
+          <Route
+            path="/account/overview"
+            element={<Navigate to="/settings/overview" replace />}
           />
-          <Redirect from="/account*" to="/settings*" />
-          <Redirect from="/billing" to="/settings/billing" />
-          <Redirect from="/saved-replies" to="/settings/saved-replies" />
+          <Route
+            path="/account/team"
+            element={<Navigate to="/settings/team" replace />}
+          />
+          <Route
+            path="/account/profile"
+            element={<Navigate to="/settings/profile" replace />}
+          />
+          <Route
+            path="/account/getting-started"
+            element={<Navigate to="/settings/chat-widget" replace />}
+          />
+          <Route path="/account/*" element={<RedirectToSettings />} />
+          <Route
+            path="/account"
+            element={<Navigate to="/settings" replace />}
+          />
+          <Route
+            path="/billing"
+            element={<Navigate to="/settings/billing" replace />}
+          />
+          <Route
+            path="/saved-replies"
+            element={<Navigate to="/settings/saved-replies" replace />}
+          />
 
-          <Route path="/settings/account" component={AccountOverview} />
-          <Route path="/settings/team" component={TeamOverview} />
-          <Route path="/settings/profile" component={UserProfile} />
+          <Route path="/settings/account" element={<AccountOverview />} />
+          <Route path="/settings/team" element={<TeamOverview />} />
+          <Route path="/settings/profile" element={<UserProfile />} />
           <Route
             path="/settings/saved-replies"
-            component={CannedResponsesOverview}
+            element={<CannedResponsesOverview />}
           />
           <Route
             path="/settings/email-forwarding"
-            component={ForwardingAddressSettings}
+            element={<ForwardingAddressSettings />}
           />
-          <Route path="/settings/chat-widget" component={ChatWidgetSettings} />
+          <Route
+            path="/settings/chat-widget"
+            element={<ChatWidgetSettings />}
+          />
           {shouldDisplayBilling && (
-            <Route path="/settings/billing" component={BillingOverview} />
+            <Route path="/settings/billing" element={<BillingOverview />} />
           )}
-          <Route path="/settings*" component={AccountOverview} />
-          <Route path="/v1/customers/:id" component={CustomerDetailsPage} />
-          <Route path="/customers/:id" component={CustomerDetailsPageV2} />
-          <Route path="/customers" component={CustomersPage} />
-          <Route path="/companies/new" component={CreateCompanyPage} />
-          <Route path="/companies/:id/edit" component={UpdateCompanyPage} />
-          <Route path="/companies/:id" component={CompanyDetailsPage} />
-          <Route path="/companies" component={CompaniesPage} />
+          <Route path="/settings/*" element={<AccountOverview />} />
+          <Route path="/v1/customers/:id" element={<CustomerDetailsPage />} />
+          <Route path="/customers/:id" element={<CustomerDetailsPageV2 />} />
+          <Route path="/customers" element={<CustomersPage />} />
+          <Route path="/companies/new" element={<CreateCompanyPage />} />
+          <Route path="/companies/:id/edit" element={<UpdateCompanyPage />} />
+          <Route path="/companies/:id" element={<CompanyDetailsPage />} />
+          <Route path="/companies" element={<CompaniesPage />} />
           <Route
             path="/integrations/slack/reply"
-            component={SlackReplyIntegrationDetails}
+            element={<SlackReplyIntegrationDetails />}
           />
           <Route
             path="/integrations/slack/support"
-            component={SlackSyncIntegrationDetails}
+            element={<SlackSyncIntegrationDetails />}
           />
           <Route
             path="/integrations/slack"
-            component={SlackIntegrationDetails}
+            element={<SlackIntegrationDetails />}
           />
           <Route
             path="/integrations/google/gmail"
-            component={GmailIntegrationDetails}
+            element={<GmailIntegrationDetails />}
           />
           <Route
             path="/integrations/google/sheets"
-            component={GoogleSheetsIntegrationDetails}
+            element={<GoogleSheetsIntegrationDetails />}
           />
           <Route
             path="/integrations/google"
-            component={GoogleIntegrationDetails}
+            element={<GoogleIntegrationDetails />}
           />
           <Route
             path="/integrations/mattermost"
-            component={MattermostIntegrationDetails}
+            element={<MattermostIntegrationDetails />}
           />
           <Route
             path="/integrations/twilio"
-            component={TwilioIntegrationDetails}
+            element={<TwilioIntegrationDetails />}
           />
           <Route
             path="/integrations/github"
-            component={GithubIntegrationDetails}
+            element={<GithubIntegrationDetails />}
           />
           <Route
             path="/integrations/hubspot"
-            component={HubspotIntegrationDetails}
+            element={<HubspotIntegrationDetails />}
           />
           <Route
             path="/integrations/intercom"
-            component={IntercomIntegrationDetails}
+            element={<IntercomIntegrationDetails />}
           />
-          <Route path="/integrations/:type" component={IntegrationsOverview} />
-          <Route path="/integrations" component={IntegrationsOverview} />
-          <Route path="/integrations*" component={IntegrationsOverview} />
+          <Route
+            path="/integrations/:type"
+            element={<IntegrationsOverview />}
+          />
+          <Route path="/integrations" element={<IntegrationsOverview />} />
+          <Route path="/integrations/*" element={<IntegrationsOverview />} />
           <Route
             path="/developers/personal-api-keys"
-            component={PersonalApiKeysPage}
+            element={<PersonalApiKeysPage />}
           />
           <Route
             path="/developers/event-subscriptions"
-            component={EventSubscriptionsPage}
+            element={<EventSubscriptionsPage />}
           />
           <Route
             path="/developers/_templates"
-            component={EmailTemplateBuilder}
+            element={<EmailTemplateBuilder />}
           />
-          <Route path="/functions/:id" component={LambdaDetailsPage} />
-          <Route path="/functions" component={LambdasOverview} />
-          <Route path="/reporting" component={ReportingDashboard} />
-          <Route path="/sessions/live/:session" component={LiveSessionViewer} />
-          <Route path="/sessions/list" component={SessionsOverview} />
-          <Route path="/sessions/setup" component={InstallingStorytime} />
-          <Route path="/sessions*" component={SessionsOverview} />
-          <Route path="/tags/:id" component={TagDetailsPage} />
-          <Route path="/tags" component={TagsOverview} />
-          <Route path="/issues/:id" component={IssueDetailsPage} />
-          <Route path="/issues" component={IssuesOverview} />
-          <Route path="/notes" component={NotesOverview} />
-          <Route path="/conversations*" component={InboxesDashboard} />
-          <Route path="/inboxes*" component={InboxesDashboard} />
-          <Route path="*" render={() => <Redirect to="/conversations/all" />} />
-        </Switch>
+          <Route path="/functions/:id" element={<LambdaDetailsPage />} />
+          <Route path="/functions" element={<LambdasOverview />} />
+          <Route path="/reporting" element={<ReportingDashboard />} />
+          <Route
+            path="/sessions/live/:session"
+            element={<LiveSessionViewer />}
+          />
+          <Route path="/sessions/list" element={<SessionsOverview />} />
+          <Route path="/sessions/setup" element={<InstallingStorytime />} />
+          <Route path="/sessions/*" element={<SessionsOverview />} />
+          <Route path="/tags/:id" element={<TagDetailsPage />} />
+          <Route path="/tags" element={<TagsOverview />} />
+          <Route path="/issues/:id" element={<IssueDetailsPage />} />
+          <Route path="/issues" element={<IssuesOverview />} />
+          <Route path="/notes" element={<NotesOverview />} />
+          <Route path="/conversations/*" element={<InboxesDashboard />} />
+          <Route path="/inboxes/*" element={<InboxesDashboard />} />
+          <Route
+            path="*"
+            element={<Navigate to="/conversations/all" replace />}
+          />
+        </Routes>
       </Layout>
 
       {currentUser && shouldDisplayChat(pathname) && (
@@ -478,4 +519,4 @@ const DashboardWrapper = (props: RouteComponentProps) => {
   );
 };
 
-export default DashboardWrapper;
+export default withRouter(DashboardWrapper);

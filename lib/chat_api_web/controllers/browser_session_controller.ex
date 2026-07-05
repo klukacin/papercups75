@@ -12,7 +12,7 @@ defmodule ChatApiWeb.BrowserSessionController do
     with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
       browser_sessions = BrowserSessions.list_browser_sessions(account_id, params)
 
-      render(conn, "index.json", browser_sessions: browser_sessions)
+      render(conn, :index, browser_sessions: browser_sessions)
     end
   end
 
@@ -23,7 +23,7 @@ defmodule ChatApiWeb.BrowserSessionController do
       conn
       |> put_status(:created)
       |> put_resp_header("location", Routes.browser_session_path(conn, :show, browser_session))
-      |> render("create.json", browser_session: browser_session)
+      |> render(:create, browser_session: browser_session)
     end
   end
 
@@ -31,7 +31,7 @@ defmodule ChatApiWeb.BrowserSessionController do
   def show(conn, %{"id" => id}) do
     with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
       browser_session = BrowserSessions.get_browser_session!(id, account_id)
-      render(conn, "show.json", browser_session: browser_session)
+      render(conn, :show, browser_session: browser_session)
     end
   end
 
@@ -41,7 +41,7 @@ defmodule ChatApiWeb.BrowserSessionController do
 
     with {:ok, %BrowserSession{} = browser_session} <-
            BrowserSessions.update_browser_session(browser_session, browser_session_params) do
-      render(conn, "create.json", browser_session: browser_session)
+      render(conn, :create, browser_session: browser_session)
     end
   end
 
@@ -72,7 +72,7 @@ defmodule ChatApiWeb.BrowserSessionController do
 
     with {:ok, %BrowserSession{} = browser_session} <-
            BrowserSessions.update_browser_session(browser_session, updates) do
-      render(conn, "create.json", browser_session: browser_session)
+      render(conn, :create, browser_session: browser_session)
     end
   end
 
@@ -83,7 +83,7 @@ defmodule ChatApiWeb.BrowserSessionController do
 
     with {:ok, %BrowserSession{} = browser_session} <-
            BrowserSessions.update_browser_session(browser_session, updates) do
-      render(conn, "create.json", browser_session: browser_session)
+      render(conn, :create, browser_session: browser_session)
     end
   end
 
@@ -94,7 +94,7 @@ defmodule ChatApiWeb.BrowserSessionController do
 
     with {:ok, %BrowserSession{} = browser_session} <-
            BrowserSessions.update_browser_session(browser_session, updates) do
-      render(conn, "create.json", browser_session: browser_session)
+      render(conn, :create, browser_session: browser_session)
     end
   end
 

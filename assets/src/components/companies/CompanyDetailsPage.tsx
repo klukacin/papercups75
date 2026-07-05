@@ -1,5 +1,6 @@
 import React from 'react';
-import {Link, RouteComponentProps} from 'react-router-dom';
+import {Link} from 'react-router-dom';
+import {RouteComponentProps, withRouter} from '../../router-compat';
 import {Box, Flex} from 'theme-ui';
 import {Button, Card, Popconfirm, Result, Text, Title} from '../common';
 import {ArrowLeftOutlined, DeleteOutlined} from '../icons';
@@ -241,4 +242,4 @@ class CompanyDetailsPage extends React.Component<Props, State> {
   }
 }
 
-export default CompanyDetailsPage;
+export default withRouter(CompanyDetailsPage);

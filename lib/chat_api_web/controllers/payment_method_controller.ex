@@ -17,7 +17,7 @@ defmodule ChatApiWeb.PaymentMethodController do
 
       case result do
         {:ok, payment_method} ->
-          render(conn, "show.json", payment_method: payment_method)
+          render(conn, :show, payment_method: payment_method)
 
         {:error, err} ->
           conn
@@ -37,7 +37,7 @@ defmodule ChatApiWeb.PaymentMethodController do
         %{stripe_default_payment_method_id: payment_method_id} ->
           case Stripe.PaymentMethod.retrieve(payment_method_id) do
             {:ok, payment_method} ->
-              render(conn, "show.json", payment_method: payment_method)
+              render(conn, :show, payment_method: payment_method)
 
             {:error, err} ->
               conn

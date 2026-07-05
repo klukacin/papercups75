@@ -24,7 +24,7 @@ defmodule ChatApiWeb.CompanyController do
   def index(conn, _params) do
     with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
       companies = Companies.list_companies(account_id)
-      render(conn, "index.json", companies: companies)
+      render(conn, :index, companies: companies)
     end
   end
 
@@ -38,20 +38,20 @@ defmodule ChatApiWeb.CompanyController do
       conn
       |> put_status(:created)
       |> put_resp_header("location", Routes.company_path(conn, :show, company))
-      |> render("show.json", company: company)
+      |> render(:show, company: company)
     end
   end
 
   @spec show(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def show(conn, %{"id" => _id}) do
-    render(conn, "show.json", company: conn.assigns.current_company)
+    render(conn, :show, company: conn.assigns.current_company)
   end
 
   @spec update(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def update(conn, %{"id" => _id, "company" => company_params}) do
     with {:ok, %Company{} = company} <-
            Companies.update_company(conn.assigns.current_company, company_params) do
-      render(conn, "show.json", company: company)
+      render(conn, :show, company: company)
     end
   end
 

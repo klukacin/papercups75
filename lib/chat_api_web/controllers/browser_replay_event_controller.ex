@@ -9,13 +9,13 @@ defmodule ChatApiWeb.BrowserReplayEventController do
   def index(conn, _params) do
     with %{account_id: account_id} <- conn.assigns.current_user do
       browser_replay_events = BrowserReplayEvents.list_browser_replay_events(account_id)
-      render(conn, "index.json", browser_replay_events: browser_replay_events)
+      render(conn, :index, browser_replay_events: browser_replay_events)
     end
   end
 
   def show(conn, %{"id" => id}) do
     browser_replay_event = BrowserReplayEvents.get_browser_replay_event!(id)
-    render(conn, "show.json", browser_replay_event: browser_replay_event)
+    render(conn, :show, browser_replay_event: browser_replay_event)
   end
 
   def delete(conn, %{"id" => id}) do

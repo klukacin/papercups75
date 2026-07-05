@@ -177,7 +177,7 @@ defmodule ChatApiWeb.GithubController do
     ChatApiWeb.Endpoint.broadcast!(
       "issue:lobby:" <> customer_id,
       "issue:updated",
-      ChatApiWeb.IssueView.render("issue.json", issue: issue)
+      ChatApiWeb.IssueJSON.issue(issue)
     )
   end
 

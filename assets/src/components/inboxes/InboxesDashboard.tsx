@@ -1,11 +1,6 @@
 import React from 'react';
-import {
-  useLocation,
-  Switch,
-  Redirect,
-  Route,
-  RouteComponentProps,
-} from 'react-router-dom';
+import {useLocation, Navigate, Route, Routes} from 'react-router-dom';
+import {RouteComponentProps, withRouter} from '../../router-compat';
 import {Box, Flex} from 'theme-ui';
 
 import {colors, Layout, Menu, Sider} from '../common';
@@ -110,70 +105,78 @@ const InboxesDashboard = (props: RouteComponentProps) => {
           marginLeft: INBOXES_DASHBOARD_SIDER_WIDTH,
         }}
       >
-        <Switch>
-          <Route
-            path="/conversations/:bucket/:conversation_id"
-            component={ConversationsDashboard}
-          />
-          <Route
-            path="/conversations/:bucket"
-            component={ConversationsDashboard}
-          />
-          <Route
-            path="/inboxes/:inbox_id/conversations/:conversation_id"
-            component={InboxConversations}
-          />
-          <Route
-            path="/inboxes/:inbox_id/conversations"
-            component={InboxConversations}
-          />
-          <Route
-            path="/inboxes/:inbox_id/conversations"
-            component={InboxesDashboard}
-          />
-          <Route
-            path="/inboxes/:inbox_id/chat-widget"
-            component={ChatWidgetSettings}
-          />
-          <Route
-            path="/inboxes/:inbox_id/integrations/slack/reply"
-            component={SlackReplyIntegrationDetails}
-          />
-          <Route
-            path="/inboxes/:inbox_id/integrations/slack/support"
-            component={SlackSyncIntegrationDetails}
-          />
-          <Route
-            path="/inboxes/:inbox_id/integrations/slack"
-            component={SlackIntegrationDetails}
-          />
-          <Route
-            path="/inboxes/:inbox_id/integrations/google/gmail"
-            component={GmailIntegrationDetails}
-          />
-          <Route
-            path="/inboxes/:inbox_id/integrations/google"
-            component={GoogleIntegrationDetails}
-          />
-          <Route
-            path="/inboxes/:inbox_id/integrations/mattermost"
-            component={MattermostIntegrationDetails}
-          />
-          <Route
-            path="/inboxes/:inbox_id/integrations/twilio"
-            component={TwilioIntegrationDetails}
-          />
-          <Route
-            path="/inboxes/:inbox_id/email-forwarding"
-            component={InboxEmailForwardingPage}
-          />
-          <Route path="/inboxes/:inbox_id" component={InboxDetailsPage} />
-          <Route path="/inboxes" component={InboxesOverview} />
-          <Route path="*" render={() => <Redirect to="/conversations/all" />} />
-        </Switch>
+        {/* NB: this component is mounted at both `/conversations/*` and
+            `/inboxes/*` (see Dashboard.tsx), so the descendant routes below
+            are relative to whichever prefix matched. */}
+        {pathname.startsWith('/inboxes') ? (
+          <Routes>
+            <Route
+              path=":inbox_id/conversations/:conversation_id"
+              element={<InboxConversations />}
+            />
+            <Route
+              path=":inbox_id/conversations"
+              element={<InboxConversations />}
+            />
+            <Route
+              path=":inbox_id/chat-widget"
+              element={<ChatWidgetSettings />}
+            />
+            <Route
+              path=":inbox_id/integrations/slack/reply"
+              element={<SlackReplyIntegrationDetails />}
+            />
+            <Route
+              path=":inbox_id/integrations/slack/support"
+              element={<SlackSyncIntegrationDetails />}
+            />
+            <Route
+              path=":inbox_id/integrations/slack"
+              element={<SlackIntegrationDetails />}
+            />
+            <Route
+              path=":inbox_id/integrations/google/gmail"
+              element={<GmailIntegrationDetails />}
+            />
+            <Route
+              path=":inbox_id/integrations/google"
+              element={<GoogleIntegrationDetails />}
+            />
+            <Route
+              path=":inbox_id/integrations/mattermost"
+              element={<MattermostIntegrationDetails />}
+            />
+            <Route
+              path=":inbox_id/integrations/twilio"
+              element={<TwilioIntegrationDetails />}
+            />
+            <Route
+              path=":inbox_id/email-forwarding"
+              element={<InboxEmailForwardingPage />}
+            />
+            <Route path=":inbox_id/*" element={<InboxDetailsPage />} />
+            <Route index element={<InboxesOverview />} />
+            <Route
+              path="*"
+              element={<Navigate to="/conversations/all" replace />}
+            />
+          </Routes>
+        ) : (
+          <Routes>
+            <Route
+              path=":bucket/:conversation_id"
+              element={<ConversationsDashboard />}
+            />
+            <Route path=":bucket" element={<ConversationsDashboard />} />
+            <Route
+              path="*"
+              element={<Navigate to="/conversations/all" replace />}
+            />
+          </Routes>
+        )}
       </Layout>
     </Layout>
   );
 };
 
-export default InboxesDashboard;
+export default withRouter(InboxesDashboard);

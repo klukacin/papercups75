@@ -1,5 +1,5 @@
 import React from 'react';
-import {RouteComponentProps} from 'react-router';
+import {RouteComponentProps, withRouter} from '../../router-compat';
 import {Link} from 'react-router-dom';
 import {Box, Flex} from 'theme-ui';
 import qs from 'query-string';
@@ -330,4 +330,4 @@ class SlackReplyIntegrationDetails extends React.Component<Props, State> {
   }
 }
 
-export default SlackReplyIntegrationDetails;
+export default withRouter(SlackReplyIntegrationDetails);

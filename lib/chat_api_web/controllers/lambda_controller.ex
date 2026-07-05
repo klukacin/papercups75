@@ -26,7 +26,7 @@ defmodule ChatApiWeb.LambdaController do
     account_id = Accounts.get_current_account_id(conn)
     lambdas = Lambdas.list_lambdas(account_id, params)
 
-    render(conn, "index.json", lambdas: lambdas)
+    render(conn, :index, lambdas: lambdas)
   end
 
   @spec create(Plug.Conn.t(), map()) :: Plug.Conn.t()
@@ -42,20 +42,20 @@ defmodule ChatApiWeb.LambdaController do
       conn
       |> put_status(:created)
       |> put_resp_header("location", Routes.lambda_path(conn, :show, lambda))
-      |> render("show.json", lambda: lambda)
+      |> render(:show, lambda: lambda)
     end
   end
 
   @spec show(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def show(conn, _params) do
-    render(conn, "show.json", lambda: conn.assigns.current_lambda)
+    render(conn, :show, lambda: conn.assigns.current_lambda)
   end
 
   @spec update(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def update(conn, %{"lambda" => lambda_params}) do
     with {:ok, %Lambda{} = lambda} <-
            Lambdas.update_lambda(conn.assigns.current_lambda, lambda_params) do
-      render(conn, "show.json", lambda: lambda)
+      render(conn, :show, lambda: lambda)
     end
   end
 
@@ -80,14 +80,14 @@ defmodule ChatApiWeb.LambdaController do
          {:ok, %Lambda{} = lambda} <- Lambdas.deploy_file(lambda, file, opts),
          updates <- Map.take(params, ["name", "description", "code"]),
          {:ok, %Lambda{} = lambda} <- Lambdas.update_lambda(lambda, updates) do
-      render(conn, "show.json", lambda: lambda)
+      render(conn, :show, lambda: lambda)
     end
   end
 
   def deploy(conn, params) do
     with {:ok, %Lambda{} = lambda} <-
            Lambdas.deploy(conn.assigns.current_lambda, params) do
-      render(conn, "show.json", lambda: lambda)
+      render(conn, :show, lambda: lambda)
     end
   end
 

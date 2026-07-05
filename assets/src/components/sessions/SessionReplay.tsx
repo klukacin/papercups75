@@ -1,5 +1,6 @@
 import React from 'react';
-import {RouteComponentProps, Link} from 'react-router-dom';
+import {Link} from 'react-router-dom';
+import {RouteComponentProps} from '../../router-compat';
 import {Box, Flex} from 'theme-ui';
 import {Replayer} from 'rrweb';
 import qs from 'query-string';
