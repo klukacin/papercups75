@@ -9,7 +9,7 @@ defmodule ChatApiWeb.UserProfileController do
   def show(conn, _params) do
     with %{id: user_id} <- conn.assigns.current_user do
       user_profile = Users.get_user_info(user_id)
-      render(conn, "show.json", user_profile: user_profile)
+      render(conn, :show, user_profile: user_profile)
     end
   end
 
@@ -19,7 +19,7 @@ defmodule ChatApiWeb.UserProfileController do
          params <- Map.merge(user_profile_params, %{"user_id" => user_id}),
          {:ok, _user_profile} <- Users.update_user_profile(user_id, params) do
       user_profile = Users.get_user_info(user_id)
-      render(conn, "show.json", user_profile: user_profile)
+      render(conn, :show, user_profile: user_profile)
     end
   end
 end

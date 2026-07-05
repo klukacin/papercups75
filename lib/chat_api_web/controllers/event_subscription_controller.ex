@@ -11,7 +11,7 @@ defmodule ChatApiWeb.EventSubscriptionController do
   def index(conn, _params) do
     with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
       event_subscriptions = EventSubscriptions.list_event_subscriptions(account_id)
-      render(conn, "index.json", event_subscriptions: event_subscriptions)
+      render(conn, :index, event_subscriptions: event_subscriptions)
     end
   end
 
@@ -36,14 +36,14 @@ defmodule ChatApiWeb.EventSubscriptionController do
         "location",
         Routes.event_subscription_path(conn, :show, result)
       )
-      |> render("show.json", event_subscription: result)
+      |> render(:show, event_subscription: result)
     end
   end
 
   @spec show(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def show(conn, %{"id" => id}) do
     event_subscription = EventSubscriptions.get_event_subscription!(id)
-    render(conn, "show.json", event_subscription: event_subscription)
+    render(conn, :show, event_subscription: event_subscription)
   end
 
   @spec update(Plug.Conn.t(), map()) :: Plug.Conn.t()
@@ -59,7 +59,7 @@ defmodule ChatApiWeb.EventSubscriptionController do
 
     with {:ok, %EventSubscription{} = event_subscription} <-
            EventSubscriptions.update_event_subscription(event_subscription, params) do
-      render(conn, "show.json", event_subscription: event_subscription)
+      render(conn, :show, event_subscription: event_subscription)
     end
   end
 

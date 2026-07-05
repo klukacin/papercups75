@@ -9,7 +9,7 @@ defmodule ChatApi.Conversations.Helpers do
 
   @spec format(Conversation.t()) :: map()
   def format(%Conversation{} = conversation),
-    do: ChatApiWeb.ConversationView.render("basic.json", conversation: conversation)
+    do: ChatApiWeb.ConversationJSON.basic(conversation)
 
   @spec broadcast_conversation_updates_to_slack(Conversation.t()) :: any()
   def broadcast_conversation_updates_to_slack(

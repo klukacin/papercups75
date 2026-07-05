@@ -14,7 +14,7 @@ defmodule ChatApiWeb.WidgetSettingsController do
       filters = ensure_inbox_filter_included(account_id, params)
       widget_settings = WidgetSettings.get_settings_by_account!(account_id, filters)
 
-      render(conn, "show.json", widget_settings: widget_settings)
+      render(conn, :show, widget_settings: widget_settings)
     else
       send_account_not_found_error(conn, account_id)
     end
@@ -38,7 +38,7 @@ defmodule ChatApiWeb.WidgetSettingsController do
       with filters <- ensure_inbox_filter_included(account_id, params),
            {:ok, widget_settings} <-
              WidgetSettings.update_widget_metadata(account_id, metadata, filters) do
-        render(conn, "update.json", widget_settings: widget_settings)
+        render(conn, :update, widget_settings: widget_settings)
       end
     else
       send_account_not_found_error(conn, account_id)
@@ -67,7 +67,7 @@ defmodule ChatApiWeb.WidgetSettingsController do
         |> WidgetSettings.get_settings_by_account!(filters)
         |> WidgetSettings.update_widget_setting(params)
 
-      render(conn, "update.json", widget_settings: widget_settings)
+      render(conn, :update, widget_settings: widget_settings)
     end
   end
 

@@ -1,7 +1,7 @@
 defmodule ChatApiWeb.UploadController do
   use ChatApiWeb, :controller
 
-  alias ChatApiWeb.FileView
+  alias ChatApiWeb.FileJSON
   alias ChatApi.{Aws, Files}
   alias ChatApi.Files.FileUpload
 
@@ -34,8 +34,8 @@ defmodule ChatApiWeb.UploadController do
          {:ok, %FileUpload{} = file} <- Files.create_file(uploaded_file_params) do
       conn
       |> put_status(:created)
-      |> put_view(FileView)
-      |> render("show.json", file: file)
+      |> put_view(json: FileJSON)
+      |> render(:show, file: file)
     else
       {:error, :invalid_aws_config, errors} ->
         conn

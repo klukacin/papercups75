@@ -25,7 +25,7 @@ defmodule ChatApiWeb.IssueController do
     account_id = Accounts.get_current_account_id(conn)
     issues = Issues.list_issues(account_id, params)
 
-    render(conn, "index.json", issues: issues)
+    render(conn, :index, issues: issues)
   end
 
   @spec create(Plug.Conn.t(), map()) :: Plug.Conn.t()
@@ -41,17 +41,17 @@ defmodule ChatApiWeb.IssueController do
       conn
       |> put_status(:created)
       |> put_resp_header("location", Routes.issue_path(conn, :show, issue))
-      |> render("show.json", issue: issue)
+      |> render(:show, issue: issue)
     end
   end
 
   def show(conn, _params) do
-    render(conn, "show.json", issue: conn.assigns.current_issue)
+    render(conn, :show, issue: conn.assigns.current_issue)
   end
 
   def update(conn, %{"issue" => issue_params}) do
     with {:ok, %Issue{} = issue} <- Issues.update_issue(conn.assigns.current_issue, issue_params) do
-      render(conn, "show.json", issue: issue)
+      render(conn, :show, issue: issue)
     end
   end
 

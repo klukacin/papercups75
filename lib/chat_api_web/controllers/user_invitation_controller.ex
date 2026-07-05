@@ -12,7 +12,7 @@ defmodule ChatApiWeb.UserInvitationController do
   def index(conn, _params) do
     with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
       user_invitations = UserInvitations.list_user_invitations(account_id)
-      render(conn, "index.json", user_invitations: user_invitations)
+      render(conn, :index, user_invitations: user_invitations)
     end
   end
 
@@ -37,7 +37,7 @@ defmodule ChatApiWeb.UserInvitationController do
         conn
         |> put_status(:created)
         |> put_resp_header("location", Routes.user_invitation_path(conn, :show, user_invitation))
-        |> render("show.json", user_invitation: user_invitation)
+        |> render(:show, user_invitation: user_invitation)
       end
     end
   end
@@ -45,7 +45,7 @@ defmodule ChatApiWeb.UserInvitationController do
   @spec show(Plug.Conn.t(), map) :: Plug.Conn.t()
   def show(conn, %{"id" => id}) do
     user_invitation = UserInvitations.get_user_invitation!(id)
-    render(conn, "show.json", user_invitation: user_invitation)
+    render(conn, :show, user_invitation: user_invitation)
   end
 
   @spec update(Plug.Conn.t(), map()) :: Plug.Conn.t()
@@ -54,7 +54,7 @@ defmodule ChatApiWeb.UserInvitationController do
 
     with {:ok, %UserInvitation{} = user_invitation} <-
            UserInvitations.update_user_invitation(user_invitation, user_invitation_params) do
-      render(conn, "show.json", user_invitation: user_invitation)
+      render(conn, :show, user_invitation: user_invitation)
     end
   end
 

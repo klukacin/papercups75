@@ -24,7 +24,7 @@ defmodule ChatApiWeb.InboxController do
   def index(conn, _params) do
     with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
       inboxes = Inboxes.list_inboxes(account_id)
-      render(conn, "index.json", inboxes: inboxes)
+      render(conn, :index, inboxes: inboxes)
     end
   end
 
@@ -41,7 +41,7 @@ defmodule ChatApiWeb.InboxController do
         "location",
         Routes.inbox_path(conn, :show, inbox)
       )
-      |> render("show.json", inbox: inbox)
+      |> render(:show, inbox: inbox)
     end
   end
 
@@ -50,12 +50,12 @@ defmodule ChatApiWeb.InboxController do
     account_id = Accounts.get_current_account_id(conn)
     inbox = Inboxes.get_account_primary_inbox(account_id)
 
-    render(conn, "show.json", inbox: inbox)
+    render(conn, :show, inbox: inbox)
   end
 
   @spec show(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def show(conn, %{"id" => _id}) do
-    render(conn, "show.json", inbox: conn.assigns.current_inbox)
+    render(conn, :show, inbox: conn.assigns.current_inbox)
   end
 
   @spec update(Plug.Conn.t(), map()) :: Plug.Conn.t()
@@ -65,7 +65,7 @@ defmodule ChatApiWeb.InboxController do
              conn.assigns.current_inbox,
              inbox_params
            ) do
-      render(conn, "show.json", inbox: inbox)
+      render(conn, :show, inbox: inbox)
     end
   end
 

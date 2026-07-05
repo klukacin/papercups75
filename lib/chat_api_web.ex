@@ -6,10 +6,9 @@ defmodule ChatApiWeb do
   This can be used in your application as:
 
       use ChatApiWeb, :controller
-      use ChatApiWeb, :view
 
-  The definitions below will be executed for every view,
-  controller, etc, so keep them short and clean, focused
+  The definitions below will be executed for every controller,
+  channel, etc, so keep them short and clean, focused
   on imports, uses and aliases.
 
   Do NOT define functions inside the quoted expressions
@@ -19,26 +18,11 @@ defmodule ChatApiWeb do
 
   def controller do
     quote do
-      use Phoenix.Controller, namespace: ChatApiWeb
+      use Phoenix.Controller, formats: [:json]
 
       import Plug.Conn
       use Gettext, backend: ChatApiWeb.Gettext
       alias ChatApiWeb.Router.Helpers, as: Routes
-    end
-  end
-
-  def view do
-    quote do
-      use Phoenix.View,
-        root: "lib/chat_api_web/templates",
-        namespace: ChatApiWeb
-
-      # Import convenience functions from controllers
-      import Phoenix.Controller,
-        only: [get_flash: 1, get_flash: 2, view_module: 1, view_template: 1]
-
-      # Include shared imports and aliases for views
-      unquote(view_helpers())
     end
   end
 
@@ -55,17 +39,6 @@ defmodule ChatApiWeb do
     quote do
       use Phoenix.Channel
       use Gettext, backend: ChatApiWeb.Gettext
-    end
-  end
-
-  defp view_helpers do
-    quote do
-      # Import basic rendering functionality (render, render_layout, etc)
-      import Phoenix.View
-
-      import ChatApiWeb.ErrorHelpers
-      use Gettext, backend: ChatApiWeb.Gettext
-      alias ChatApiWeb.Router.Helpers, as: Routes
     end
   end
 

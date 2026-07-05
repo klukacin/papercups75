@@ -16,14 +16,14 @@ defmodule ChatApiWeb.UserController do
   def index(conn, params) do
     users = ChatApi.Users.list_users_by_account(Accounts.get_current_account_id(conn), params)
 
-    render(conn, "index.json", users: users)
+    render(conn, :index, users: users)
   end
 
   @spec show(Plug.Conn.t(), map) :: Plug.Conn.t()
   def show(conn, %{"id" => id}) do
     user = ChatApi.Users.get_user_info(Accounts.get_current_account_id(conn), id)
 
-    render(conn, "show.json", user: user)
+    render(conn, :show, user: user)
   end
 
   @spec verify_email(Plug.Conn.t(), map) :: Plug.Conn.t()
@@ -101,7 +101,7 @@ defmodule ChatApiWeb.UserController do
         account_id = Accounts.get_current_account_id(conn)
         {:ok, user} = user_id |> Users.find_by_id(account_id) |> Users.disable_user()
 
-        render(conn, "show.json", user: user)
+        render(conn, :show, user: user)
 
       nil ->
         conn
@@ -115,7 +115,7 @@ defmodule ChatApiWeb.UserController do
     with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          %User{} = user <- Users.find_by_id(user_id, account_id),
          {:ok, user} <- Users.set_user_role(user) do
-      render(conn, "show.json", user: user)
+      render(conn, :show, user: user)
     end
   end
 
@@ -123,7 +123,7 @@ defmodule ChatApiWeb.UserController do
     with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
          %User{} = user <- Users.find_by_id(user_id, account_id),
          {:ok, user} <- Users.set_admin_role(user) do
-      render(conn, "show.json", user: user)
+      render(conn, :show, user: user)
     end
   end
 
@@ -170,7 +170,7 @@ defmodule ChatApiWeb.UserController do
         account_id = Accounts.get_current_account_id(conn)
         {:ok, user} = user_id |> Users.find_by_id(account_id) |> Users.archive_user()
 
-        render(conn, "show.json", user: user)
+        render(conn, :show, user: user)
 
       nil ->
         conn
@@ -193,7 +193,7 @@ defmodule ChatApiWeb.UserController do
         account_id = Accounts.get_current_account_id(conn)
         {:ok, user} = user_id |> Users.find_by_id(account_id) |> Users.enable_user()
 
-        render(conn, "show.json", user: user)
+        render(conn, :show, user: user)
 
       nil ->
         conn

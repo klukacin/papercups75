@@ -42,7 +42,16 @@ defmodule ChatApiWeb.CustomerController do
   def index(conn, params) do
     with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
       page = Customers.list_customers(account_id, params, format_pagination_options(params))
-      render(conn, "index.#{resp_format(params)}", page: page)
+
+      case resp_format(params) do
+        "csv" ->
+          conn
+          |> put_view(csv: ChatApiWeb.CustomerCSV)
+          |> render("index.csv", page: page)
+
+        _ ->
+          render(conn, :index, page: page)
+      end
     end
   end
 
@@ -68,13 +77,13 @@ defmodule ChatApiWeb.CustomerController do
       conn
       |> put_status(:created)
       |> put_resp_header("location", Routes.customer_path(conn, :show, customer))
-      |> render("show.json", customer: customer)
+      |> render(:show, customer: customer)
     end
   end
 
   @spec show(Plug.Conn.t(), map) :: Plug.Conn.t()
   def show(conn, _params) do
-    render(conn, "show.json", customer: conn.assigns.current_customer)
+    render(conn, :show, customer: conn.assigns.current_customer)
   end
 
   @spec identify(Plug.Conn.t(), map) :: Plug.Conn.t()
@@ -130,7 +139,7 @@ defmodule ChatApiWeb.CustomerController do
     customer = conn.assigns.current_customer
 
     with {:ok, %Customer{} = customer} <- Customers.update_customer(customer, customer_params) do
-      render(conn, "show.json", customer: customer)
+      render(conn, :show, customer: customer)
     end
   end
 
@@ -153,7 +162,7 @@ defmodule ChatApiWeb.CustomerController do
       |> Customers.sanitize_metadata()
 
     with {:ok, %Customer{} = customer} <- Customers.update_customer_metadata(customer, updates) do
-      render(conn, "show.json", customer: customer)
+      render(conn, :show, customer: customer)
     end
   end
 

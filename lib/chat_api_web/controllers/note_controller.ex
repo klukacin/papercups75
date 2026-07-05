@@ -24,7 +24,7 @@ defmodule ChatApiWeb.NoteController do
   def index(conn, filters) do
     with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn) do
       notes = Notes.list_notes_by_account(account_id, filters)
-      render(conn, "index.json", notes: notes)
+      render(conn, :index, notes: notes)
     end
   end
 
@@ -47,13 +47,13 @@ defmodule ChatApiWeb.NoteController do
         "location",
         Routes.note_path(conn, :show, note.id)
       )
-      |> render("show.json", note: note)
+      |> render(:show, note: note)
     end
   end
 
   @spec show(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def show(conn, _params) do
-    render(conn, "show.json", note: conn.assigns.current_note)
+    render(conn, :show, note: conn.assigns.current_note)
   end
 
   @spec update(Plug.Conn.t(), map()) :: Plug.Conn.t()
@@ -61,7 +61,7 @@ defmodule ChatApiWeb.NoteController do
     note = conn.assigns.current_note
 
     with {:ok, %Note{} = note} <- Notes.update_note(note, note_params) do
-      render(conn, "show.json", note: note)
+      render(conn, :show, note: note)
     end
   end
 

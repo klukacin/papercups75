@@ -9,7 +9,7 @@ defmodule ChatApiWeb.UserSettingsController do
   def show(conn, _params) do
     with %{id: user_id} <- conn.assigns.current_user do
       user_settings = Users.get_user_settings(user_id)
-      render(conn, "show.json", user_settings: user_settings)
+      render(conn, :show, user_settings: user_settings)
     end
   end
 
@@ -18,7 +18,7 @@ defmodule ChatApiWeb.UserSettingsController do
     with %{id: user_id} <- conn.assigns.current_user,
          params <- Map.merge(user_settings_params, %{"user_id" => user_id}),
          {:ok, user_settings} <- Users.update_user_settings(user_id, params) do
-      render(conn, "show.json", user_settings: user_settings)
+      render(conn, :show, user_settings: user_settings)
     end
   end
 end
