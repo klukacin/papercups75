@@ -29,11 +29,14 @@ jobs:
           ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 0        # full history so Gitea gets every commit
 
-      - name: Push tested commit to Gitea master
+      - name: Push tested commit to Gitea master (SSH deploy key)
         env:
-          GITEA_PUSH_TOKEN: ${{ secrets.GITEA_PUSH_TOKEN }}
+          GITEA_SSH_KEY: ${{ secrets.GITEA_SSH_KEY }}
         run: |
           set -e
-          git push --force \
-            "https://oauth2:${GITEA_PUSH_TOKEN}@git.wsagency.io/ws-agency/papercups75.git" \
-            HEAD:refs/heads/master
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$GITEA_SSH_KEY" > ~/.ssh/id_gitea
+          chmod 600 ~/.ssh/id_gitea
+          ssh-keyscan -H git.wsagency.io >> ~/.ssh/known_hosts 2>/dev/null
+          export GIT_SSH_COMMAND="ssh -i ~/.ssh/id_gitea -o IdentitiesOnly=yes"
+          git push --force git@git.wsagency.io:ws-agency/papercups75.git HEAD:refs/heads/master
