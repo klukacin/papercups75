@@ -19,3 +19,18 @@ Object.defineProperty(window, 'matchMedia', {
     dispatchEvent: () => false,
   }),
 });
+
+// antd 6 dropdown/menu internals (@rc-component/resize-observer) require
+// ResizeObserver, which jsdom does not implement. Provide a no-op stub.
+if (typeof window.ResizeObserver === 'undefined') {
+  class ResizeObserverMock {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  }
+
+  Object.defineProperty(window, 'ResizeObserver', {
+    writable: true,
+    value: ResizeObserverMock,
+  });
+}

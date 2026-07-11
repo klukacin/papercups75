@@ -2,12 +2,14 @@ import React from 'react';
 import type {InputRef} from 'antd';
 import {Box, Flex} from '../ui';
 import {
+  message,
   notification,
   Button,
   Container,
   Divider,
   Input,
   Paragraph,
+  Select,
   Text,
   Title,
 } from '../common';
@@ -23,9 +25,12 @@ import logger from '../../logger';
 type Props = {};
 type State = {
   account: Account | null;
+  addMemberEmail: string;
+  addMemberRole: 'user' | 'admin';
   currentUser: User | null;
   inviteUrl: string;
   inviteUserEmail: string;
+  isAddingMember: boolean;
   isLoading: boolean;
   isRefreshing: boolean;
   showInviteMoreInput: boolean;
@@ -36,9 +41,12 @@ class TeamOverview extends React.Component<Props, State> {
 
   state: State = {
     account: null,
+    addMemberEmail: '',
+    addMemberRole: 'user',
     currentUser: null,
     inviteUrl: '',
     inviteUserEmail: '',
+    isAddingMember: false,
     isLoading: true,
     isRefreshing: false,
     showInviteMoreInput: false,
@@ -166,6 +174,41 @@ class TeamOverview extends React.Component<Props, State> {
     this.setState({inviteUserEmail: e.target.value});
   };
 
+  handleChangeAddMemberEmail = (e: React.ChangeEvent<HTMLInputElement>) => {
+    this.setState({addMemberEmail: e.target.value});
+  };
+
+  handleChangeAddMemberRole = (role: 'user' | 'admin') => {
+    this.setState({addMemberRole: role});
+  };
+
+  handleAddExistingMember = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const {addMemberEmail, addMemberRole} = this.state;
+
+    this.setState({isAddingMember: true});
+
+    try {
+      const member = await API.addAccountMember(addMemberEmail, addMemberRole);
+
+      message.success(`Successfully added ${member.email} to your workspace!`);
+      this.setState({addMemberEmail: '', addMemberRole: 'user'});
+      // Refresh the team list so the newly added member shows up.
+      await this.fetchLatestAccountInfo();
+    } catch (err) {
+      const status = err?.response?.status ?? err?.status;
+      const description =
+        status === 404
+          ? 'No user found with that email'
+          : err?.response?.body?.error?.message || err?.message || String(err);
+
+      message.error(description);
+    } finally {
+      this.setState({isAddingMember: false});
+    }
+  };
+
   handleDisableUser = async ({id: userId}: User) => {
     this.setState({isRefreshing: true});
 
@@ -275,9 +318,12 @@ class TeamOverview extends React.Component<Props, State> {
   render() {
     const {
       account,
+      addMemberEmail,
+      addMemberRole,
       currentUser,
       inviteUrl,
       inviteUserEmail,
+      isAddingMember,
       isLoading,
       isRefreshing,
       showInviteMoreInput,
@@ -339,6 +385,54 @@ class TeamOverview extends React.Component<Props, State> {
                   ></Input>
                 </Box>
               </Flex>
+            </Box>
+
+            <Box mb={4}>
+              <Title level={4}>Add existing member</Title>
+
+              <Paragraph>
+                <Text>
+                  Add a user who already has an account to this workspace by
+                  email.
+                </Text>
+              </Paragraph>
+
+              <form
+                aria-label="Add existing member"
+                onSubmit={this.handleAddExistingMember}
+              >
+                <Flex sx={{maxWidth: 640}}>
+                  <Box mr={1} sx={{flex: 1}}>
+                    <Input
+                      aria-label="Member email"
+                      onChange={this.handleChangeAddMemberEmail}
+                      placeholder="Email address"
+                      required
+                      type="email"
+                      value={addMemberEmail}
+                    />
+                  </Box>
+                  <Box mr={1}>
+                    <Select
+                      aria-label="Member role"
+                      style={{width: 120}}
+                      value={addMemberRole}
+                      onChange={this.handleChangeAddMemberRole}
+                      options={[
+                        {value: 'user', label: 'User'},
+                        {value: 'admin', label: 'Admin'},
+                      ]}
+                    />
+                  </Box>
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    loading={isAddingMember}
+                  >
+                    Add
+                  </Button>
+                </Flex>
+              </form>
             </Box>
             <Divider />
           </>

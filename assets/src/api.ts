@@ -354,6 +354,46 @@ export const fetchAccounts = async (
     .then((res) => res.body.data);
 };
 
+export const createWorkspace = async (
+  companyName: string,
+  token = getAccessToken()
+): Promise<Account> => {
+  if (!token) {
+    throw new Error('Invalid token!');
+  }
+
+  return request
+    .post(`/api/workspaces`)
+    .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
+    .send({company_name: companyName})
+    .then((res) => res.body.data);
+};
+
+export type AccountMember = {
+  account_id: string;
+  user_id: number;
+  role: 'user' | 'admin';
+  email: string;
+};
+
+export const addAccountMember = async (
+  email: string,
+  role?: 'user' | 'admin',
+  token = getAccessToken()
+): Promise<AccountMember> => {
+  if (!token) {
+    throw new Error('Invalid token!');
+  }
+
+  return request
+    .post(`/api/account_members`)
+    .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
+    .send({email, role})
+    .then((res) => res.body.data);
+};
+
 export const updateAccountInfo = async (
   updates: Record<string, any>,
   token = getAccessToken()
