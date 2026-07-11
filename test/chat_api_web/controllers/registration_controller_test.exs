@@ -110,6 +110,61 @@ defmodule ChatApiWeb.RegistrationControllerTest do
       assert(Enum.any?(account.users, fn u -> u.email == registration_email end))
     end
 
+    # Regression: Pow.Plug.create_user bypasses Users.create_user/1 and its
+    # account_users membership mirror, so freshly registered users used to get
+    # 403 ("not a member of this account") from CurrentAccountPlug on every
+    # protected route (observed in production).
+    test "a freshly registered user can access protected routes", %{conn: conn} do
+      params = %{
+        "user" => %{
+          "company_name" => "Membership Test Co",
+          "email" => "membership-test@example.com",
+          "password" => @password,
+          "password_confirmation" => @password
+        }
+      }
+
+      registration = post(conn, Routes.registration_path(conn, :create, params))
+      assert token = json_response(registration, 200)["data"]["token"]
+
+      me =
+        build_conn()
+        |> put_req_header("authorization", token)
+        |> get("/api/me")
+
+      assert %{"email" => "membership-test@example.com"} = json_response(me, 200)["data"]
+    end
+
+    # Regression: the invite path used to run Pow.Plug.create_user twice (a
+    # leftover duplicated block), so the happy path returned a 500
+    # ("Couldn't create user") even though the user WAS created - and the user
+    # had no account_users membership either.
+    test "invite registration returns 200 and the user can access protected routes",
+         %{conn: conn, account: account} do
+      {:ok, invite} = UserInvitations.create_user_invitation(%{account_id: account.id})
+
+      email = "invited-member-#{:rand.uniform(1_000_000_000)}@example.com"
+
+      params = %{
+        "user" => %{
+          "invite_token" => invite.id,
+          "email" => email,
+          "password" => @password,
+          "password_confirmation" => @password
+        }
+      }
+
+      registration = post(conn, Routes.registration_path(conn, :create, params))
+      assert token = json_response(registration, 200)["data"]["token"]
+
+      me =
+        build_conn()
+        |> put_req_header("authorization", token)
+        |> get("/api/me")
+
+      assert %{"email" => ^email} = json_response(me, 200)["data"]
+    end
+
     test "error for non-existing invite token", %{conn: conn} do
       random_number =
         :rand.uniform(1_000_000_000)

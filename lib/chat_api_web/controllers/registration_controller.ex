@@ -36,6 +36,7 @@ defmodule ChatApiWeb.RegistrationController do
               # # obvious that a user invitation expires after one use.
               # ChatApi.UserInvitations.expire_user_invitation(invite)
               conn
+              |> mirror_account_membership()
               |> send_registration_event(invite.account.company_name)
               |> enqueue_welcome_email()
               |> notify_slack()
@@ -45,28 +46,6 @@ defmodule ChatApiWeb.RegistrationController do
               errors = Changeset.traverse_errors(changeset, &ErrorHelpers.translate_error/1)
               send_user_create_errors(conn, errors)
           end
-      end
-
-      if ChatApi.UserInvitations.expired?(invite) do
-        send_server_error(conn, 403, "Invitation token has expired")
-      else
-        conn
-        |> Pow.Plug.create_user(params)
-        |> case do
-          {:ok, _user, conn} ->
-            # # TODO: figure out what we want to do here -- it's not currently
-            # # obvious that a user invitation expires after one use.
-            # ChatApi.UserInvitations.expire_user_invitation(invite)
-            conn
-            |> send_registration_event(invite.account.company_name)
-            |> enqueue_welcome_email()
-            |> notify_slack()
-            |> send_api_token()
-
-          {:error, changeset, conn} ->
-            errors = Changeset.traverse_errors(changeset, &ErrorHelpers.translate_error/1)
-            send_user_create_errors(conn, errors)
-        end
       end
     rescue
       Ecto.NoResultsError ->
@@ -122,6 +101,15 @@ defmodule ChatApiWeb.RegistrationController do
           {:error, reason}
       end
     end)
+    |> Ecto.Multi.run(:membership, fn _repo, %{account: account, conn: conn} ->
+      # Pow.Plug.create_user/2 inserts the user directly (bypassing
+      # Users.create_user/1 and its membership mirror), so create the
+      # account_users row here. Without it, CurrentAccountPlug rejects every
+      # protected request from the freshly registered user with a 403.
+      user = conn.assigns.current_user
+
+      ChatApi.Accounts.create_account_user(account.id, user.id, user.role || "admin")
+    end)
     |> Ecto.Multi.run(:inbox, fn _repo, %{account: account} ->
       ChatApi.Inboxes.create_inbox(%{
         account_id: account.id,
@@ -140,6 +128,22 @@ defmodule ChatApiWeb.RegistrationController do
         role: conn.assigns.current_user.role
       })
     end)
+  end
+
+  # Pow.Plug.create_user/2 inserts users directly, bypassing Users.create_user/1
+  # and its account_users membership mirror. CurrentAccountPlug authorizes every
+  # protected request via that membership, so a user created without it is
+  # locked out (403) of their own account. Idempotent (on_conflict: :nothing).
+  @spec mirror_account_membership(Conn.t()) :: Conn.t()
+  defp mirror_account_membership(conn) do
+    case conn.assigns[:current_user] do
+      %{id: user_id, account_id: account_id} = user when not is_nil(account_id) ->
+        ChatApi.Accounts.create_account_user(account_id, user_id, user.role || "user")
+        conn
+
+      _ ->
+        conn
+    end
   end
 
   @spec default_subscription_plan() :: String.t()
