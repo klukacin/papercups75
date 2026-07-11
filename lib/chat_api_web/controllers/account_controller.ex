@@ -38,8 +38,9 @@ defmodule ChatApiWeb.AccountController do
   end
 
   @spec update(Plug.Conn.t(), map()) :: Plug.Conn.t()
-  def update(conn, %{"account" => account_params}) do
+  def update(conn, %{"account" => account_params} = params) do
     with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
+         :ok <- verify_path_account(params["id"], account_id),
          :ok <- require_admin(conn, account_id) do
       account = Accounts.get_account!(account_id)
 
@@ -50,8 +51,9 @@ defmodule ChatApiWeb.AccountController do
   end
 
   @spec delete(Plug.Conn.t(), map()) :: Plug.Conn.t()
-  def delete(conn, _params) do
+  def delete(conn, params) do
     with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
+         :ok <- verify_path_account(params["id"], account_id),
          :ok <- require_admin(conn, account_id) do
       account = Accounts.get_account!(account_id)
 
@@ -60,6 +62,17 @@ defmodule ChatApiWeb.AccountController do
       end
     end
   end
+
+  # These routes are `/api/accounts/:id`, but the operation always targets the
+  # RESOLVED account (x-account-id header / primary). Reject a concrete path id
+  # that differs from the resolved account so a caller cannot believe they are
+  # deleting/renaming the account named in the URL while actually operating on
+  # another one. The frontend passes the symbolic id "me".
+  @spec verify_path_account(binary() | nil, binary()) :: :ok | {:error, :not_found}
+  defp verify_path_account(nil, _account_id), do: :ok
+  defp verify_path_account("me", _account_id), do: :ok
+  defp verify_path_account(id, account_id) when id == account_id, do: :ok
+  defp verify_path_account(_id, _account_id), do: {:error, :not_found}
 
   # Renaming or deleting the resolved account (which cascades its data) is an
   # admin-only operation. Membership alone is not enough: the current user must
