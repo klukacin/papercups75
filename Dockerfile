@@ -60,7 +60,10 @@ WORKDIR /app
 COPY rel rel
 RUN mix release papercups
 
-FROM alpine:3.21 AS app
+# Must match the elixir builder's Alpine (3.22 → libcrypto 3.5.x). On alpine:3.21
+# (libcrypto 3.3.x) Erlang's crypto NIF fails to load: "EVP_MD_CTX_get_size_ex:
+# symbol not found" (that symbol is OpenSSL 3.4+), crashing every boot.
+FROM alpine:3.22 AS app
 # libgcc/libstdc++ are needed by mdex's precompiled Rust NIF (musl target).
 RUN apk add --no-cache openssl ncurses-libs libgcc libstdc++
 ENV LANG=C.UTF-8
