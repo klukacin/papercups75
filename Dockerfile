@@ -33,8 +33,13 @@ RUN apk add --no-cache git nodejs yarn python3 npm ca-certificates wget gnupg ma
     npm install npm@latest -g
 
 # Client side
+# --include=dev is required: vite + @vitejs/plugin-react are devDependencies and
+# the build (`vite build`) needs them. Without it a production `npm install`
+# omits devDeps → `sh: vite: not found` (exit 127). The final stage is a separate
+# image that only copies the compiled Elixir release + priv/static, so these
+# build-time devDeps never ship.
 COPY assets/package.json assets/package-lock.json ./assets/
-RUN npm install --prefix=assets --legacy-peer-deps
+RUN npm install --prefix=assets --legacy-peer-deps --include=dev
 
 COPY priv priv
 COPY assets assets
