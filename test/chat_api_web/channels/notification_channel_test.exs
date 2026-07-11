@@ -60,7 +60,7 @@ defmodule ChatApiWeb.NotificationChannelTest do
       }
 
       ref = push(socket, "shout", msg)
-      assert_reply(ref, :ok)
+      assert_reply(ref, :ok, %{}, 1000)
       user_id = user.id
 
       assert %Conversation{assignee_id: ^user_id} =
@@ -81,7 +81,7 @@ defmodule ChatApiWeb.NotificationChannelTest do
 
       # First reply message
       ref = push(socket, "shout", msg)
-      assert_reply(ref, :ok)
+      assert_reply(ref, :ok, %{}, 1000)
 
       other_agent = insert(:user, account: account)
 
@@ -94,7 +94,7 @@ defmodule ChatApiWeb.NotificationChannelTest do
 
       # Second reply message
       other_ref = push(other_socket, "shout", msg)
-      assert_reply(other_ref, :ok)
+      assert_reply(other_ref, :ok, %{}, 1000)
 
       assert %Conversation{assignee_id: assignee_id} =
                Conversations.get_conversation(conversation.id)
@@ -120,7 +120,7 @@ defmodule ChatApiWeb.NotificationChannelTest do
       }
 
       ref = push(socket, "shout", msg)
-      assert_reply(ref, :ok)
+      assert_reply(ref, :ok, %{}, 1000)
       conv = Conversations.get_conversation(conversation.id)
 
       assert conv.first_replied_at == DateTime.truncate(inserted_at, :second)
@@ -146,7 +146,7 @@ defmodule ChatApiWeb.NotificationChannelTest do
       }
 
       initial_reply_ref = push(socket, "shout", msg)
-      assert_reply(initial_reply_ref, :ok)
+      assert_reply(initial_reply_ref, :ok, %{}, 1000)
 
       conv = Conversations.get_conversation(conversation.id)
 
@@ -155,7 +155,7 @@ defmodule ChatApiWeb.NotificationChannelTest do
       Process.sleep(1000)
 
       next_reply_ref = push(socket, "shout", response)
-      assert_reply(next_reply_ref, :ok)
+      assert_reply(next_reply_ref, :ok, %{}, 1000)
 
       conv = Conversations.get_conversation(conversation.id)
 
