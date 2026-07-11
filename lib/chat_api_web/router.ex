@@ -148,6 +148,8 @@ defmodule ChatApiWeb.Router do
     resources("/user_invitations", UserInvitationController, except: [:new, :edit])
     resources("/user_invitation_emails", UserInvitationEmailController, only: [:create])
     resources("/accounts", AccountController, only: [:index, :update, :delete])
+    post("/workspaces", WorkspaceController, :create)
+    post("/account_members", AccountMemberController, :create)
     resources("/messages", MessageController, except: [:new, :edit])
     resources("/conversations", ConversationController, except: [:new, :edit, :create])
     resources("/companies", CompanyController, except: [:new, :edit])

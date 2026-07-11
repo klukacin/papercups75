@@ -22,6 +22,17 @@ defmodule ChatApiWeb.FallbackController do
     })
   end
 
+  def call(conn, {:error, :not_found, message}) do
+    conn
+    |> put_status(404)
+    |> json(%{
+      error: %{
+        status: 404,
+        message: message
+      }
+    })
+  end
+
   def call(conn, {:error, %Ecto.Changeset{} = changeset}) do
     errors = Changeset.traverse_errors(changeset, &ErrorHelpers.translate_error/1)
 

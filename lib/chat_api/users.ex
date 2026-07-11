@@ -23,11 +23,26 @@ defmodule ChatApi.Users do
   @spec list_users_by_account(binary(), map()) :: [User.t()]
   def list_users_by_account(account_id, filters \\ %{}) do
     User
-    |> where(account_id: ^account_id)
+    |> scope_to_account(account_id)
     |> where([u], is_nil(u.disabled_at))
     |> where(^filter_where(filters))
     |> Repo.all()
     |> Repo.preload([:profile, :settings])
+  end
+
+  # A user belongs to an account's team if it is their primary account
+  # (`users.account_id`) OR they have an `account_users` membership row for it
+  # (multi-account members added via POST /api/account_members). The membership
+  # check is a subquery (rather than a join) so users are never duplicated.
+  @spec scope_to_account(Ecto.Queryable.t(), binary()) :: Ecto.Query.t()
+  defp scope_to_account(query, account_id) do
+    membership =
+      from(au in ChatApi.Accounts.AccountUser,
+        where: au.account_id == ^account_id,
+        select: au.user_id
+      )
+
+    where(query, [u], u.account_id == ^account_id or u.id in subquery(membership))
   end
 
   @spec find_by_id!(integer() | binary()) :: User.t()
@@ -310,7 +325,9 @@ defmodule ChatApi.Users do
   def list_users_for_push_notification(account_id, excluded_user_id \\ nil) do
     User
     |> join(:left, [u], s in assoc(u, :settings))
-    |> where([u], u.account_id == ^account_id)
+    # Membership-based: cross-account members added via `account_users` are
+    # part of the team and should receive this account's push notifications.
+    |> scope_to_account(account_id)
     |> excluding_user_id(excluded_user_id)
     |> where([u], is_nil(u.disabled_at) and is_nil(u.archived_at))
     |> where([_u, s], not is_nil(s.expo_push_token))

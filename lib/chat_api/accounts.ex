@@ -116,6 +116,18 @@ defmodule ChatApi.Accounts do
   end
 
   @doc """
+  Returns true if the user is an ADMIN member of the given account, based on the
+  `account_users` role (not the user's global `users.role`).
+  """
+  @spec account_admin?(integer(), binary()) :: boolean()
+  def account_admin?(user_id, account_id) do
+    case get_account_user(user_id, account_id) do
+      %AccountUser{role: "admin"} -> true
+      _ -> false
+    end
+  end
+
+  @doc """
   Returns the resolved account id assigned by `ChatApiWeb.CurrentAccountPlug`.
   Raises if the plug was not applied to the conn.
   """

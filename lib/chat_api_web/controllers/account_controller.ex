@@ -67,7 +67,7 @@ defmodule ChatApiWeb.AccountController do
   @spec require_admin(Plug.Conn.t(), binary()) :: :ok | {:error, :forbidden, binary()}
   defp require_admin(conn, account_id) do
     with %{id: user_id} <- conn.assigns.current_user,
-         %{role: "admin"} <- Accounts.get_account_user(user_id, account_id) do
+         true <- Accounts.account_admin?(user_id, account_id) do
       :ok
     else
       _ -> {:error, :forbidden, "Must be an admin of this account."}
