@@ -1,0 +1,39 @@
+name: Mirror to Gitea (deploy)
+
+# GitHub stays the source of truth. After the "Papercups" CI workflow finishes
+# GREEN on master, this pushes the exact tested commit into the native Gitea repo
+# ws-agency/papercups75, which triggers Gitea Actions (.gitea/workflows/deploy.yml)
+# to build the image and deploy it to ws03.
+#
+# Why a real push (not a Gitea pull-mirror): Gitea pull-mirrors do NOT fire Actions.
+# A genuine `git push` into a normal Gitea repo does.
+
+on:
+  workflow_run:
+    workflows: ["Papercups"]   # name: of .github/workflows/papercups.yml
+    types: [completed]
+    branches: [master]
+
+concurrency:
+  group: mirror-to-gitea
+  cancel-in-progress: false
+
+jobs:
+  mirror:
+    # Only mirror when the CI run actually succeeded.
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0        # full history so Gitea gets every commit
+
+      - name: Push tested commit to Gitea master
+        env:
+          GITEA_PUSH_TOKEN: ${{ secrets.GITEA_PUSH_TOKEN }}
+        run: |
+          set -e
+          git push --force \
+            "https://oauth2:${GITEA_PUSH_TOKEN}@git.wsagency.io/ws-agency/papercups75.git" \
+            HEAD:refs/heads/master

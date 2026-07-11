@@ -1,0 +1,66 @@
+name: Build & Deploy
+
+# papercups75 (Elixir/Phoenix + React) → factory-dind build → Harbor → ws03 pull.
+# GitHub is the source of truth; a GitHub Action (.github/workflows/deploy-mirror.yml)
+# pushes master into this Gitea repo ONLY after the GitHub "Papercups" CI is green,
+# so this pipeline can trust the code and skip re-testing.
+#
+# Migration gate: the app container runs `db createdb && db migrate && run` on boot
+# (see /opt/papercups75.com/docker-compose.yml). A failed migration crashes the
+# container = de-facto gate. No Supabase job (own Postgres on ws03).
+
+on:
+  push:
+    branches: [master]
+
+env:
+  IMAGE: registry.wsagency.io/papercups75.com/app
+
+jobs:
+  build:
+    runs-on: dind
+    services:
+      docker:
+        image: docker:27-dind
+        env:
+          DOCKER_TLS_CERTDIR: ""
+        options: --privileged
+    env:
+      DOCKER_HOST: tcp://docker:2375
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build & push image
+        env:
+          HARBOR_CI_USER: ${{ secrets.HARBOR_CI_USER }}
+          HARBOR_CI_SECRET: ${{ secrets.HARBOR_CI_SECRET }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -e
+          for i in $(seq 1 60); do docker info >/dev/null 2>&1 && break; sleep 1; done
+          docker build -t "$IMAGE:$SHA" -t "$IMAGE:latest" .
+          echo "$HARBOR_CI_SECRET" | docker login registry.wsagency.io -u "$HARBOR_CI_USER" --password-stdin
+          docker push "$IMAGE:$SHA"
+          docker push "$IMAGE:latest"
+
+  deploy:
+    needs: build          # broken build never deploys
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy (pull image by SHA)
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          GIT_SHA: ${{ github.sha }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          envs: GIT_SHA
+          script: |
+            set -e
+            # Server is NOT a git checkout — compose + secrets (app.env / db.env) are
+            # placed once out-of-band. CI only flips the image tag and pulls.
+            cd /opt/papercups75.com
+            echo "IMAGE_TAG=${GIT_SHA}" > .env   # only IMAGE_TAG here; secrets live in app.env / db.env
+            docker compose pull
+            docker compose up -d
+            docker image prune -f
