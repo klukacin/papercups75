@@ -5,6 +5,7 @@ import {Link} from 'react-router-dom';
 import type {Inbox, OnboardingStatus} from '../../types';
 import {colors, Button, Divider, Text} from '../common';
 import {CheckOutlined} from '../icons';
+import {hasValidStripeKey} from '../../utils';
 
 type StepMetadata = {
   completed?: boolean;
@@ -85,17 +86,24 @@ const getStepsMetadata = (
         </>
       ),
     },
-    {
-      completed: onboardingStatus.has_upgraded_subscription,
-      ctaHref: '/settings/billing',
-      ctaText: 'Upgrade subscription',
-      text: (
-        <>
-          <Text strong>Upgrade your subscription</Text> for access to even more
-          features!
-        </>
-      ),
-    },
+    // Billing/subscriptions only make sense when Stripe is configured (same
+    // gate as the Billing menu item); self-hosted instances without a Stripe
+    // key should not be nudged to "upgrade".
+    ...(hasValidStripeKey()
+      ? [
+          {
+            completed: onboardingStatus.has_upgraded_subscription,
+            ctaHref: '/settings/billing',
+            ctaText: 'Upgrade subscription',
+            text: (
+              <>
+                <Text strong>Upgrade your subscription</Text> for access to even
+                more features!
+              </>
+            ),
+          },
+        ]
+      : []),
   ];
 };
 

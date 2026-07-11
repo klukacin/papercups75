@@ -92,19 +92,17 @@ class TeamOverview extends React.Component<Props, State> {
           : 'Failed to generate user invitation!',
         description,
         duration: 10, // 10 seconds
-        btn: (
-          <a
-            href={
-              shouldDisplayBillingLink
-                ? '/billing'
-                : 'https://papercups.io/pricing'
-            }
-          >
+        // Only offer an upgrade CTA when billing (Stripe) is actually
+        // configured; a self-hosted instance without Stripe has nowhere
+        // sensible to send the user (papercups.io/pricing is the upstream
+        // SaaS, not this fork).
+        btn: shouldDisplayBillingLink ? (
+          <a href="/billing">
             <Button type="primary" size="small">
               Upgrade subscription
             </Button>
           </a>
-        ),
+        ) : undefined,
       });
     }
   };
@@ -135,19 +133,17 @@ class TeamOverview extends React.Component<Props, State> {
           : 'Failed to generate user invitation!',
         description,
         duration: 10, // 10 seconds
-        btn: (
-          <a
-            href={
-              shouldDisplayBillingLink
-                ? '/billing'
-                : 'https://papercups.io/pricing'
-            }
-          >
+        // Only offer an upgrade CTA when billing (Stripe) is actually
+        // configured; a self-hosted instance without Stripe has nowhere
+        // sensible to send the user (papercups.io/pricing is the upstream
+        // SaaS, not this fork).
+        btn: shouldDisplayBillingLink ? (
+          <a href="/billing">
             <Button type="primary" size="small">
               Upgrade subscription
             </Button>
           </a>
-        ),
+        ) : undefined,
       });
     }
   };
