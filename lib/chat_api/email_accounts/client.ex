@@ -289,7 +289,17 @@ defmodule ChatApi.EmailAccounts.Client do
 
   ## Shared helpers
 
-  defp ssl_opts(host, settings) do
+  @doc """
+  Secure-by-default TLS options for connections to `host` (verify_peer, the
+  OS trust store, SNI and a sane chain depth). Setting
+  `settings["allow_insecure_tls"]` downgrades this to `verify: :verify_none`
+  for self-signed/internal servers.
+
+  Also used by `ChatApi.Workers.SendEmailAccountReply` so outbound SMTP
+  deliveries use the same TLS posture as credential verification.
+  """
+  @spec ssl_opts(String.t(), map() | nil) :: Keyword.t()
+  def ssl_opts(host, settings) do
     if allow_insecure_tls?(settings) do
       [verify: :verify_none]
     else

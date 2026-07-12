@@ -145,6 +145,7 @@ defmodule ChatApiWeb.NotificationChannel do
     |> Messages.Notification.notify(:gmail)
     |> Messages.Notification.notify(:sms)
     |> Messages.Notification.notify(:ses)
+    |> Messages.Notification.notify(:email_account)
   end
 
   @spec authorized?(any(), binary()) :: boolean()

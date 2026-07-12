@@ -111,6 +111,7 @@ defmodule ChatApi.Slack.Event do
         |> Messages.Notification.notify(:gmail)
         |> Messages.Notification.notify(:sms)
         |> Messages.Notification.notify(:ses)
+        |> Messages.Notification.notify(:email_account)
         |> Messages.Notification.notify(:mattermost)
         |> Messages.Helpers.handle_post_creation_hooks()
       else
