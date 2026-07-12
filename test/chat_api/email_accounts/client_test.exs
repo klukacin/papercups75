@@ -162,4 +162,96 @@ defmodule ChatApi.EmailAccounts.ClientTest do
       assert opts[:password] == "imap-pass"
     end
   end
+
+  describe "fetch_unseen/2 and mark_seen/2 (against a real IMAP socket)" do
+    @fixtures Path.expand("../../fixtures/email", __DIR__)
+
+    defp fixture(name), do: File.read!(Path.join(@fixtures, name))
+
+    defp sink_account(port) do
+      %EmailAccount{
+        from_address: "support@company.test",
+        imap_host: "127.0.0.1",
+        imap_port: port,
+        imap_tls: "none",
+        imap_username: "imap-user",
+        imap_password: "imap-pass",
+        imap_folder: "INBOX",
+        settings: %{}
+      }
+    end
+
+    test "fetches unseen messages byte-for-byte (uid + raw) via UID commands" do
+      simple = fixture("simple.eml")
+      reply = fixture("reply_with_references.eml")
+
+      {:ok, port} = ChatApi.ImapSink.start(messages: %{5 => simple, 7 => reply})
+
+      assert {:ok, [%{uid: 5, raw: ^simple}, %{uid: 7, raw: ^reply}]} =
+               Client.fetch_unseen(sink_account(port))
+
+      assert_received {:imap_sink, "SELECT INBOX"}
+      assert_received {:imap_sink, "UID SEARCH UNSEEN"}
+      assert_received {:imap_sink, "UID FETCH 5 (BODY.PEEK[])"}
+      assert_received {:imap_sink, "UID FETCH 7 (BODY.PEEK[])"}
+    end
+
+    test "fetches at most `limit` messages (oldest uid first)" do
+      simple = fixture("simple.eml")
+      reply = fixture("reply_with_references.eml")
+
+      {:ok, port} = ChatApi.ImapSink.start(messages: %{7 => reply, 5 => simple})
+
+      assert {:ok, [%{uid: 5, raw: ^simple}]} = Client.fetch_unseen(sink_account(port), 1)
+
+      assert_received {:imap_sink, "UID FETCH 5 (BODY.PEEK[])"}
+      refute_received {:imap_sink, "UID FETCH 7" <> _}
+    end
+
+    test "returns an empty list for a mailbox without unseen messages" do
+      {:ok, port} = ChatApi.ImapSink.start(messages: %{})
+
+      assert {:ok, []} = Client.fetch_unseen(sink_account(port))
+
+      assert_received {:imap_sink, "UID SEARCH UNSEEN"}
+      refute_received {:imap_sink, "UID FETCH" <> _}
+    end
+
+    test "marks uids seen via UID STORE, grouping contiguous uids into ranges" do
+      {:ok, port} = ChatApi.ImapSink.start(messages: %{})
+
+      assert :ok = Client.mark_seen(sink_account(port), [6, 5, 9])
+
+      assert_received {:imap_sink, "UID STORE 5:6 +FLAGS.SILENT (\\Seen)"}
+      assert_received {:imap_sink, "UID STORE 9 +FLAGS.SILENT (\\Seen)"}
+    end
+
+    test "mark_seen with no uids is a no-op (no connection is made)" do
+      assert :ok = Client.mark_seen(sink_account(1), [])
+    end
+
+    test "surfaces authentication failures as human-readable errors" do
+      {:ok, port} = ChatApi.ImapSink.start(deny: ["LOGIN"])
+
+      assert {:error, "Authentication failed: LOGIN denied by test script"} =
+               Client.fetch_unseen(sink_account(port))
+    end
+
+    test "surfaces folder-selection failures as human-readable errors" do
+      {:ok, port} = ChatApi.ImapSink.start(deny: ["SELECT"])
+
+      assert {:error, "Could not open folder INBOX: SELECT denied by test script"} =
+               Client.mark_seen(sink_account(port), [1])
+    end
+
+    test "surfaces connection failures as human-readable errors" do
+      # Grab an ephemeral port and close it again so nothing is listening.
+      {:ok, listen} = :gen_tcp.listen(0, [])
+      {:ok, port} = :inet.port(listen)
+      :ok = :gen_tcp.close(listen)
+
+      assert {:error, "Unable to connect to server — check host and port"} =
+               Client.fetch_unseen(sink_account(port))
+    end
+  end
 end

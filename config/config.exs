@@ -64,13 +64,15 @@ config :chat_api, :pow,
 config :chat_api, Oban,
   repo: ChatApi.Repo,
   plugins: [{Oban.Plugins.Pruner, limit: 1000, max_age: 300}],
-  queues: [default: 10, events: 50, mailers: 20],
+  queues: [default: 10, events: 50, mailers: 20, email_sync: 5],
   crontab: [
     # Hourly example worker
     {"0 * * * *", ChatApi.Workers.Example},
     {"0 * * * *", ChatApi.Workers.ArchiveStaleClosedConversations},
     # Syncs every minute
     {"* * * * *", ChatApi.Workers.SyncGmailInboxes},
+    # Polls IMAP email accounts every minute
+    {"* * * * *", ChatApi.Workers.SyncEmailAccounts},
     # Check for reminders every 30 mins
     {"*/30 * * * *", ChatApi.Workers.SendAllConversationReminders},
     # Sends everyday at 2pm UTC/9am EST

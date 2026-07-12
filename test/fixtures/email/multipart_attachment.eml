@@ -1,0 +1,28 @@
+Message-ID: <multipart-001@customer.test>
+Date: Fri, 10 Jul 2026 11:00:00 +0000
+From: Jane Customer <jane@customer.test>
+To: support@company.test
+Subject: Invoice attached
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="mixed-boundary"
+
+--mixed-boundary
+Content-Type: multipart/alternative; boundary="alt-boundary"
+
+--alt-boundary
+Content-Type: text/plain; charset=utf-8
+
+Please find the invoice attached.
+--alt-boundary
+Content-Type: text/html; charset=utf-8
+
+<p>Please find the invoice <b>attached</b>.</p>
+--alt-boundary--
+--mixed-boundary
+Content-Type: application/pdf; name="invoice.pdf"
+Content-Disposition: attachment; filename="invoice.pdf"
+Content-Transfer-Encoding: base64
+
+JVBERi0xLjQgZmFrZSBpbnZvaWNlIGJ5dGVzIGZvciB0ZXN0aW5n
+--mixed-boundary--
+
