@@ -22,6 +22,18 @@ defmodule ChatApi.EmailAccounts do
     |> Repo.all()
   end
 
+  @doc """
+  Lists the active email accounts across all workspaces (used by the
+  inbound sync cron fan-out).
+  """
+  @spec list_active_email_accounts() :: [EmailAccount.t()]
+  def list_active_email_accounts do
+    EmailAccount
+    |> where(status: "active")
+    |> order_by(asc: :inserted_at)
+    |> Repo.all()
+  end
+
   @spec get_email_account!(binary()) :: EmailAccount.t()
   def get_email_account!(id), do: Repo.get!(EmailAccount, id)
 

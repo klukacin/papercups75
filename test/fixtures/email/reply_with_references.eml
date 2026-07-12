@@ -1,0 +1,12 @@
+Message-ID: <reply-001@customer.test>
+Date: Sat, 11 Jul 2026 09:00:00 +0000
+From: Jane Customer <jane@customer.test>
+To: Support <support@company.test>
+Subject: Re: Need help with my account
+In-Reply-To: <outbound-001@company.test>
+References: <simple-001@customer.test>
+ <outbound-001@company.test>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+
+Thanks! That fixed it.

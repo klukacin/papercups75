@@ -5,11 +5,8 @@ defmodule ChatApi.Workers.ProcessSesEvent do
 
   alias ChatApi.{
     Aws,
-    Conversations,
     Customers,
-    Files,
-    ForwardingAddresses,
-    Messages
+    ForwardingAddresses
   }
 
   alias ChatApi.Conversations.Conversation
@@ -150,80 +147,16 @@ defmodule ChatApi.Workers.ProcessSesEvent do
     end
   end
 
-  @spec create_and_broadcast_conversation(map()) :: {:ok, Conversation.t()} | {:error, any()}
-  def create_and_broadcast_conversation(params) do
-    case Conversations.create_conversation(params) do
-      {:ok, conversation} ->
-        conversation
-        |> Conversations.Notification.broadcast_new_conversation_to_admin!()
-        |> Conversations.Notification.notify(:webhooks, event: "conversation:created")
+  # These creation helpers are channel-neutral and now live in
+  # `ChatApi.EmailChannels` (shared with the generic IMAP email channel);
+  # they are delegated here to keep this worker's public API intact.
+  defdelegate create_and_broadcast_conversation(params), to: ChatApi.EmailChannels
 
-        {:ok, conversation}
+  defdelegate create_and_broadcast_message(params, attachments \\ []), to: ChatApi.EmailChannels
 
-      error ->
-        error
-    end
-  end
+  defdelegate process_email_attachment(attachment, message), to: ChatApi.EmailChannels
 
-  @spec create_and_broadcast_message(map(), list()) :: {:ok, Message.t()} | {:error, any()}
-  def create_and_broadcast_message(params, attachments \\ []) do
-    case Messages.create_message(params) do
-      {:ok, message} ->
-        process_email_attachments(attachments, message)
-
-        message.id
-        |> Messages.get_message!()
-        |> Messages.Notification.broadcast_to_admin!()
-        |> Messages.Notification.notify(:webhooks)
-        |> Messages.Notification.notify(:push)
-        |> Messages.Notification.notify(:slack)
-        |> Messages.Notification.notify(:mattermost)
-        # NB: for email threads, for now we want to reopen the conversation if it was closed
-        |> Messages.Helpers.handle_post_creation_hooks()
-
-        {:ok, message}
-
-      error ->
-        error
-    end
-  end
-
-  def process_email_attachment(
-        %{
-          filename: filename,
-          body: body,
-          content_type: content_type
-        },
-        %Message{} = message
-      ) do
-    with identifier <- Aws.generate_unique_filename(filename),
-         {:ok, %{status_code: 200}} <- Aws.upload_binary(body, identifier),
-         file_url <- Aws.get_file_url(identifier),
-         {:ok, file} <-
-           Files.create_file(%{
-             "filename" => filename,
-             "unique_filename" => identifier,
-             "file_url" => file_url,
-             "content_type" => content_type,
-             "account_id" => message.account_id
-           }),
-         {:ok, _} <- Messages.add_attachment(message, file) do
-      {:ok, file}
-    else
-      error ->
-        Logger.error("Failed to process attachment #{inspect(filename)}: #{inspect(error)}")
-
-        error
-    end
-  end
-
-  def process_email_attachments(nil, _), do: :ok
-  def process_email_attachments([], _), do: :ok
-
-  def process_email_attachments([_ | _] = attachments, %Message{} = message),
-    do: Enum.each(attachments, &process_email_attachment(&1, message))
-
-  def process_email_attachments(_, _), do: :ok
+  defdelegate process_email_attachments(attachments, message), to: ChatApi.EmailChannels
 
   @spec find_forwarding_address(binary()) :: ForwardingAddress.t() | nil
   def find_forwarding_address(email) do

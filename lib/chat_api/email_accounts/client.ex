@@ -1,10 +1,19 @@
 defmodule ChatApi.EmailAccounts.Client do
   @moduledoc """
-  A thin IMAP/SMTP client wrapper used to verify email account credentials.
+  A thin IMAP/SMTP client wrapper used to verify email account credentials
+  and to poll the mailbox for inbound messages.
 
   Workers and controllers should always go through this module (and tests
   mock it) rather than talking to `Mailroom.IMAP` / `:gen_smtp_client`
   directly.
+
+  ## Inbound polling
+
+  `fetch_unseen/2` and `mark_seen/2` run in IMAP *UID* mode (`UID SEARCH` /
+  `UID FETCH` / `UID STORE`), so the uids handed to the sync worker stay
+  valid across connections regardless of mailbox reshuffling. Fetching uses
+  `BODY.PEEK[]`, which does **not** set the `\\Seen` flag — messages are
+  only flagged via `mark_seen/2` once they have actually been processed.
 
   ## TLS notes
 
@@ -24,10 +33,15 @@ defmodule ChatApi.EmailAccounts.Client do
       to `verify: :verify_none` for self-signed/internal servers.
   """
 
+  require Logger
+
   alias ChatApi.EmailAccounts
   alias ChatApi.EmailAccounts.EmailAccount
 
   @verify_timeout 30_000
+  @sync_timeout 120_000
+  @imap_call_timeout 60_000
+  @default_fetch_limit 50
 
   @config_fields [
     :from_address,
@@ -94,6 +108,42 @@ defmodule ChatApi.EmailAccounts.Client do
       true ->
         run_isolated(fn -> do_verify_smtp(email_account) end)
     end
+  end
+
+  @doc """
+  Fetches up to `limit` unseen messages from the account's IMAP folder
+  (oldest first), without marking them seen.
+
+  Returns `{:ok, [%{uid: uid, raw: raw_message_binary}]}` or
+  `{:error, reason}` with a human-readable reason.
+  """
+  @spec fetch_unseen(EmailAccount.t(), pos_integer()) ::
+          {:ok, [%{uid: pos_integer(), raw: binary()}]} | {:error, String.t()}
+  def fetch_unseen(%EmailAccount{} = email_account, limit \\ @default_fetch_limit) do
+    run_isolated(
+      fn ->
+        with_imap_client(email_account, fn client -> do_fetch_unseen(client, limit) end)
+      end,
+      @sync_timeout
+    )
+  end
+
+  @doc """
+  Marks the given uids as `\\Seen` in the account's IMAP folder. Returns
+  `:ok` or `{:error, reason}` with a human-readable reason.
+  """
+  @spec mark_seen(EmailAccount.t(), [pos_integer()]) :: :ok | {:error, String.t()}
+  def mark_seen(email_account, uids)
+
+  def mark_seen(%EmailAccount{}, []), do: :ok
+
+  def mark_seen(%EmailAccount{} = email_account, [_ | _] = uids) do
+    run_isolated(
+      fn ->
+        with_imap_client(email_account, fn client -> do_mark_seen(client, uids) end)
+      end,
+      @sync_timeout
+    )
   end
 
   @doc """
@@ -175,6 +225,17 @@ defmodule ChatApi.EmailAccounts.Client do
   ## IMAP
 
   defp do_verify_imap(%EmailAccount{} = email_account) do
+    with_imap_client(email_account, fn client ->
+      {:ok, %{exists: Mailroom.IMAP.email_count(client)}}
+    end)
+  end
+
+  # Connects, logs in, verifies the STARTTLS upgrade and selects the
+  # configured folder, then hands the connected client to `fun`. The
+  # connection is always logged out afterwards. Must be called from within
+  # `run_isolated/2` (mailroom's GenServer is linked to its caller and can
+  # raise).
+  defp with_imap_client(%EmailAccount{} = email_account, fun) do
     opts = imap_opts(email_account)
     folder = presence(email_account.imap_folder) || "INBOX"
 
@@ -188,7 +249,7 @@ defmodule ChatApi.EmailAccounts.Client do
         try do
           with :ok <- ensure_starttls_upgraded(client, email_account),
                {:ok, _msg} <- select_folder(client, folder) do
-            {:ok, %{exists: Mailroom.IMAP.email_count(client)}}
+            fun.(client)
           end
         after
           safe_logout(client)
@@ -197,6 +258,61 @@ defmodule ChatApi.EmailAccounts.Client do
       {:error, reason} ->
         {:error, format_reason(reason)}
     end
+  end
+
+  defp do_fetch_unseen(client, limit) do
+    # UID mode: SEARCH returns uids and FETCH/STORE address messages by uid.
+    Mailroom.IMAP.mode(client, :uid)
+
+    case GenServer.call(client, {:search, "UNSEEN"}, @imap_call_timeout) do
+      {:ok, uids} when is_list(uids) ->
+        messages =
+          uids
+          |> Enum.sort()
+          |> Enum.take(limit)
+          |> Enum.map(&fetch_raw_message(client, &1))
+          |> Enum.reject(&is_nil/1)
+
+        {:ok, messages}
+
+      {:error, reason} ->
+        {:error, "Could not search for unseen messages: #{format_reason(reason)}"}
+    end
+  end
+
+  # Fetches the full raw message (headers + body) for one uid via
+  # `UID FETCH <uid> (BODY.PEEK[])`. A message that cannot be fetched is
+  # skipped for this poll (it stays unseen, so it is retried next time).
+  defp fetch_raw_message(client, uid) do
+    case GenServer.call(client, {:fetch, uid, ["BODY.PEEK[]"]}, @imap_call_timeout) do
+      {:ok, [{_seq, %{"BODY[]" => raw}} | _rest]} when is_binary(raw) ->
+        %{uid: uid, raw: raw}
+
+      other ->
+        Logger.warning("Could not fetch IMAP message #{uid}: #{inspect(other)}")
+        nil
+    end
+  end
+
+  defp do_mark_seen(client, uids) do
+    Mailroom.IMAP.mode(client, :uid)
+
+    uids
+    |> Enum.uniq()
+    |> Mailroom.IMAP.Utils.numbers_to_sequences()
+    |> Enum.reduce_while(:ok, fn sequence, :ok ->
+      case GenServer.call(
+             client,
+             {:add_flags, sequence, [:seen], [silent: true]},
+             @imap_call_timeout
+           ) do
+        {:ok, _response} ->
+          {:cont, :ok}
+
+        {:error, reason} ->
+          {:halt, {:error, "Could not mark messages as seen: #{format_reason(reason)}"}}
+      end
+    end)
   end
 
   # `Mailroom.IMAP.select/2` swallows errors (it returns the pid even when
