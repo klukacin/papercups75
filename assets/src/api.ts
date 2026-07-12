@@ -21,6 +21,9 @@ import {
   SlackAuthorization,
   UserSettings,
   ForwardingAddress,
+  EmailAccount,
+  EmailAccountParams,
+  EmailAccountVerification,
 } from './types';
 
 // TODO: handle this on the server instead
@@ -1502,6 +1505,91 @@ export const deleteForwardingAddress = async (
     .delete(`/api/forwarding_addresses/${id}`)
     .set('Authorization', token)
     .set('X-Account-Id', getCurrentAccountId() ?? '');
+};
+
+export const fetchEmailAccounts = async (
+  query = {},
+  token = getAccessToken()
+): Promise<Array<EmailAccount>> => {
+  if (!token) {
+    throw new Error('Invalid token!');
+  }
+
+  return request
+    .get(`/api/email_accounts`)
+    .query(query)
+    .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
+    .then((res) => res.body.data);
+};
+
+export const createEmailAccount = async (
+  params: EmailAccountParams,
+  token = getAccessToken()
+): Promise<EmailAccount> => {
+  if (!token) {
+    throw new Error('Invalid token!');
+  }
+
+  return request
+    .post(`/api/email_accounts`)
+    .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
+    .send({
+      email_account: params,
+    })
+    .then((res) => res.body.data);
+};
+
+export const updateEmailAccount = async (
+  id: string,
+  updates: EmailAccountParams,
+  token = getAccessToken()
+): Promise<EmailAccount> => {
+  if (!token) {
+    throw new Error('Invalid token!');
+  }
+
+  return request
+    .put(`/api/email_accounts/${id}`)
+    .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
+    .send({
+      email_account: updates,
+    })
+    .then((res) => res.body.data);
+};
+
+export const deleteEmailAccount = async (
+  id: string,
+  token = getAccessToken()
+) => {
+  if (!token) {
+    throw new Error('Invalid token!');
+  }
+
+  return request
+    .delete(`/api/email_accounts/${id}`)
+    .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '');
+};
+
+// Verifies IMAP/SMTP connectivity for either a saved account (`{id}`) or a
+// flat map of credentials (same field names as create).
+export const verifyEmailAccount = async (
+  params: {id: string} | EmailAccountParams,
+  token = getAccessToken()
+): Promise<EmailAccountVerification> => {
+  if (!token) {
+    throw new Error('Invalid token!');
+  }
+
+  return request
+    .post(`/api/email_accounts/verify`)
+    .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
+    .send(params)
+    .then((res) => res.body.data);
 };
 
 type SlackAuthorizationParams = {

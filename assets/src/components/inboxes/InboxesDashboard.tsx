@@ -18,6 +18,7 @@ import GmailIntegrationDetails from '../integrations/GmailIntegrationDetails';
 import GoogleIntegrationDetails from '../integrations/GoogleIntegrationDetails';
 import MattermostIntegrationDetails from '../integrations/MattermostIntegrationDetails';
 import TwilioIntegrationDetails from '../integrations/TwilioIntegrationDetails';
+import InboxEmailAccountPage from './InboxEmailAccountPage';
 import InboxEmailForwardingPage from './InboxEmailForwardingPage';
 import InboxDetailsPage from './InboxDetailsPage';
 import InboxesOverview from './InboxesOverview';
@@ -153,6 +154,10 @@ const InboxesDashboard = (props: RouteComponentProps) => {
             <Route
               path=":inbox_id/email-forwarding"
               element={<InboxEmailForwardingPage />}
+            />
+            <Route
+              path=":inbox_id/email-account"
+              element={<InboxEmailAccountPage />}
             />
             <Route path=":inbox_id/*" element={<InboxDetailsPage />} />
             <Route index element={<InboxesOverview />} />

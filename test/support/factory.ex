@@ -140,6 +140,31 @@ defmodule ChatApi.Factory do
     }
   end
 
+  def email_account_factory do
+    account = build(:account)
+
+    %ChatApi.EmailAccounts.EmailAccount{
+      account: account,
+      inbox: build(:inbox, account: account),
+      from_address: sequence(:from_address, &"support-#{&1}@company.test"),
+      imap_host: "imap.company.test",
+      imap_port: 993,
+      imap_tls: "ssl",
+      imap_username: "support@company.test",
+      imap_password: "some-imap-password",
+      imap_folder: "INBOX",
+      smtp_host: "smtp.company.test",
+      smtp_port: 587,
+      smtp_tls: "starttls",
+      smtp_username: nil,
+      smtp_password: nil,
+      status: "active",
+      failure_count: 0,
+      settings: %{},
+      metadata: %{}
+    }
+  end
+
   def github_authorization_factory do
     %ChatApi.Github.GithubAuthorization{
       access_token: "some access_token",

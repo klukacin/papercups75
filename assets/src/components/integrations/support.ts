@@ -15,6 +15,7 @@ export type IntegrationType = {
     | 'mattermost'
     | 'gmail'
     | 'ses'
+    | 'email-account'
     | 'sheets'
     | 'github'
     | 'microsoft-teams'

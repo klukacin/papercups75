@@ -75,6 +75,7 @@ defmodule ChatApi.MixProject do
       {:google_api_gmail, "~> 0.13"},
       {:oauth2, "~> 2.0"},
       {:mail, "~> 0.2"},
+      {:mailroom, "~> 0.7"},
       {:phoenix_swagger, "~> 0.8"},
       {:uuid, "~> 1.1"},
       {:ex_json_schema, "~> 0.5"},
