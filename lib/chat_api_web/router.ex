@@ -185,6 +185,8 @@ defmodule ChatApiWeb.Router do
 
     post("/admin/notifications", AdminNotificationController, :create)
     get("/admin/users", AdminUserController, :index)
+    get("/admin/settings", AdminSettingsController, :index)
+    put("/admin/settings", AdminSettingsController, :update)
   end
 
   scope "/api/v1", ChatApiWeb do

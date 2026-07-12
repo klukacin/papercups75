@@ -226,11 +226,10 @@ defmodule ChatApiWeb.RegistrationController do
     |> json(%{error: %{status: status_code, message: message}})
   end
 
+  # DB override (superadmin-managed) -> PAPERCUPS_REGISTRATION_DISABLED env
+  # var -> enabled. Same truthiness as before: "1"/"true" disable registration.
   @spec registration_disabled?() :: boolean()
   defp registration_disabled?() do
-    case System.get_env("PAPERCUPS_REGISTRATION_DISABLED") do
-      x when x == "1" or x == "true" -> true
-      _ -> false
-    end
+    ChatApi.InstanceSettings.enabled?("PAPERCUPS_REGISTRATION_DISABLED")
   end
 end

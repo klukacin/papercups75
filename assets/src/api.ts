@@ -1830,6 +1830,56 @@ export const fetchAllUsersAdmin = async (
     .then((res) => res.body.data);
 };
 
+export type InstanceSettingSource = 'override' | 'env' | null;
+
+export type EditableInstanceSetting = {
+  key: string;
+  type: 'boolean' | 'string';
+  value: string | null;
+  source: InstanceSettingSource;
+};
+
+export type EnvOnlyInstanceSetting = {
+  key: string;
+  is_set: boolean;
+  preview: string | null;
+};
+
+export type InstanceSettings = {
+  editable: Array<EditableInstanceSetting>;
+  env_only: Array<EnvOnlyInstanceSetting>;
+};
+
+export const fetchInstanceSettings = async (
+  token = getAccessToken()
+): Promise<InstanceSettings> => {
+  if (!token) {
+    throw new Error('Invalid token!');
+  }
+
+  return request
+    .get(`/api/admin/settings`)
+    .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
+    .then((res) => res.body.data);
+};
+
+export const updateInstanceSettings = async (
+  settings: Record<string, string | boolean | null>,
+  token = getAccessToken()
+): Promise<InstanceSettings> => {
+  if (!token) {
+    throw new Error('Invalid token!');
+  }
+
+  return request
+    .put(`/api/admin/settings`)
+    .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
+    .send({settings})
+    .then((res) => res.body.data);
+};
+
 export const enableAccountUser = async (
   userId: number | string,
   token = getAccessToken()

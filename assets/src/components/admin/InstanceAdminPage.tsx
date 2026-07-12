@@ -10,11 +10,13 @@ import {
   Paragraph,
   Switch,
   Table,
+  Tabs,
   Tag,
   Text,
   Title,
 } from '../common';
 import Spinner from '../Spinner';
+import InstanceSettingsSection from './InstanceSettingsSection';
 import * as API from '../../api';
 import {Account, Alignment} from '../../types';
 import {getCurrentAccountId, setCurrentAccountId} from '../../storage';
@@ -183,8 +185,9 @@ const AdminUsersTable = ({
 
 // Instance-wide administration for superadmins: lists every workspace on the
 // instance (with a quick "switch into it" action) and every user (with the
-// ability to grant/revoke the superadmin flag). Non-superadmins are redirected
-// away; the server enforces the same restrictions on every endpoint used here.
+// ability to grant/revoke the superadmin flag), plus a Settings tab for
+// instance-wide runtime configuration. Non-superadmins are redirected away;
+// the server enforces the same restrictions on every endpoint used here.
 const InstanceAdminPage = () => {
   const {account: primaryAccount, currentUser} = useAuth();
   const isSuperadmin = !!currentUser?.is_superadmin;
@@ -286,42 +289,62 @@ const InstanceAdminPage = () => {
         <Title level={3}>Instance admin</Title>
       </Box>
 
-      <Box mb={4}>
-        <Title level={4}>Workspaces</Title>
+      <Tabs
+        defaultActiveKey="users"
+        items={[
+          {
+            key: 'users',
+            label: 'Users & workspaces',
+            children: (
+              <>
+                <Box mb={4}>
+                  <Title level={4}>Workspaces</Title>
 
-        <Paragraph>
-          <Text>
-            All workspaces on this instance. Switching reloads the dashboard
-            scoped to the selected workspace.
-          </Text>
-        </Paragraph>
+                  <Paragraph>
+                    <Text>
+                      All workspaces on this instance. Switching reloads the
+                      dashboard scoped to the selected workspace.
+                    </Text>
+                  </Paragraph>
 
-        <WorkspacesTable
-          workspaces={workspaces}
-          selectedWorkspaceId={selectedWorkspaceId}
-          onSelectWorkspace={handleSelectWorkspace}
-        />
-      </Box>
+                  <WorkspacesTable
+                    workspaces={workspaces}
+                    selectedWorkspaceId={selectedWorkspaceId}
+                    onSelectWorkspace={handleSelectWorkspace}
+                  />
+                </Box>
 
-      <Divider />
+                <Divider />
 
-      <Box mb={4}>
-        <Title level={4}>Users</Title>
+                <Box mb={4}>
+                  <Title level={4}>Users</Title>
 
-        <Paragraph>
-          <Text>
-            All users on this instance, across every workspace. Superadmins can
-            manage all workspaces and users.
-          </Text>
-        </Paragraph>
+                  <Paragraph>
+                    <Text>
+                      All users on this instance, across every workspace.
+                      Superadmins can manage all workspaces and users.
+                    </Text>
+                  </Paragraph>
 
-        <AdminUsersTable
-          users={users}
-          currentUserId={currentUser?.id}
-          pendingUserId={pendingUserId}
-          onToggleSuperadmin={handleToggleSuperadmin}
-        />
-      </Box>
+                  <AdminUsersTable
+                    users={users}
+                    currentUserId={currentUser?.id}
+                    pendingUserId={pendingUserId}
+                    onToggleSuperadmin={handleToggleSuperadmin}
+                  />
+                </Box>
+              </>
+            ),
+          },
+          {
+            key: 'settings',
+            label: 'Settings',
+            // NB: antd renders inactive tab panes lazily, so the settings
+            // fetch only fires once this tab is first activated.
+            children: <InstanceSettingsSection />,
+          },
+        ]}
+      />
     </Container>
   );
 };
