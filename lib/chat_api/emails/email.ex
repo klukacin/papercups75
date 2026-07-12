@@ -35,6 +35,14 @@ defmodule ChatApi.Emails.Email do
     |> prepare_gmail_attachments(Map.get(params, :attachments, []))
   end
 
+  @doc """
+  Generic threaded-reply builder for the email channel (per-inbox SMTP
+  accounts): to/from/cc/bcc/subject/text/html/attachments plus optional
+  `In-Reply-To`/`References` threading headers. Same shape as `gmail/1`,
+  which it delegates to.
+  """
+  def email_channel_reply(params), do: gmail(params)
+
   def prepare_gmail_headers(message, %{in_reply_to: in_reply_to, references: references}) do
     message
     |> header("In-Reply-To", in_reply_to)

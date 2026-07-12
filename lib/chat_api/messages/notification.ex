@@ -260,6 +260,27 @@ defmodule ChatApi.Messages.Notification do
 
   def notify(%Message{} = message, :ses, _opts), do: message
 
+  def notify(
+        %Message{
+          private: false,
+          id: message_id,
+          user: %User{},
+          conversation: %Conversation{source: "email"}
+        } = message,
+        :email_account,
+        _opts
+      ) do
+    Logger.info("Sending message notification: :email_account (message #{inspect(message.id)})")
+
+    %{message_id: message_id}
+    |> ChatApi.Workers.SendEmailAccountReply.new()
+    |> Oban.insert()
+
+    message
+  end
+
+  def notify(%Message{} = message, :email_account, _opts), do: message
+
   def notify(%Message{private: true} = message, type, _opts) do
     Logger.debug(
       "Skipping notification type #{inspect(type)} for private message #{inspect(message)}"
