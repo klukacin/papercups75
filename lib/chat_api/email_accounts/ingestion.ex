@@ -5,28 +5,35 @@ defmodule ChatApi.EmailAccounts.Ingestion do
 
   ## Pipeline (per raw message)
 
-    1. **Parse** via `ChatApi.EmailChannels.Mime.parse/1`. Anything
+    1. **Size guard** → `{:ok, :skipped}`: raw messages larger than
+       `settings["max_message_bytes"]` (default 10MB) are skipped without
+       being parsed — the caller marks them seen so they are never
+       re-downloaded.
+    2. **Parse** via `ChatApi.EmailChannels.Mime.parse/1`. Anything
        unparseable (or without a usable `From` address) returns
        `{:error, :parse_failure}` — the caller still marks such messages
        seen so one poison message can never wedge the mailbox.
-    2. **Loop/abuse guards** → `{:ok, :skipped}`: auto-generated /
+    3. **Loop/abuse guards** → `{:ok, :skipped}`: auto-generated /
        auto-replied (`Auto-Submitted`), bulk/junk (`Precedence`),
        autoresponder headers (`X-Autoreply`/`X-Autorespond`), or mail sent
        from the account's own address (bounce/self-loop).
-    3. **Dedup** on the RFC `Message-ID` against previously stored
+    4. **Dedup** on the RFC `Message-ID` against previously stored
        `email_message_id` metadata, scoped to the workspace →
        `{:ok, :duplicate}`. This also makes reprocessing safe when a
-       previous poll processed a message but failed to mark it seen.
-    4. **Sender resolution** (the Gmail rule): a `From` address matching a
+       previous poll processed a message but failed to mark it seen. (The
+       dedup and threading lookups are backed by partial expression indexes
+       on `messages ((metadata->>'email_message_id'))` — see the
+       `AddEmailMessageIdIndexesToMessages` migration.)
+    5. **Sender resolution** (the Gmail rule): a `From` address matching a
        workspace user creates an *agent* message, anything else a
        *customer* message (`Customers.find_or_create_by_email/2`).
-    5. **Thread resolution**, in order:
+    6. **Thread resolution**, in order:
        1. any id in `References`/`In-Reply-To` matching a stored
           `email_message_id` in this workspace → that message's conversation;
        2. an open conversation on the same inbox with the same customer and
           the same normalized subject (leading `Re:`/`Fwd:` stripped);
        3. otherwise a new conversation (source `"email"`).
-    6. **Create** the message with `email_*` metadata (so outbound replies
+    7. **Create** the message with `email_*` metadata (so outbound replies
        via `ChatApi.Workers.SendEmailAccountReply` can thread onto it),
        attach files, and fire the shared notification chain — all through
        `ChatApi.EmailChannels`.
@@ -50,13 +57,16 @@ defmodule ChatApi.EmailAccounts.Ingestion do
   @type result ::
           {:ok, Message.t()} | {:ok, :skipped} | {:ok, :duplicate} | {:error, any()}
 
+  @default_max_message_bytes 10 * 1024 * 1024
+
   @doc """
   Processes one raw RFC 2822 message fetched from the account's mailbox.
 
   Returns:
 
     * `{:ok, %Message{}}` — a message (and possibly conversation) was created
-    * `{:ok, :skipped}` — auto-generated/bulk/self-addressed mail
+    * `{:ok, :skipped}` — auto-generated/bulk/self-addressed mail, or a
+      message larger than `settings["max_message_bytes"]` (default 10MB)
     * `{:ok, :duplicate}` — the `Message-ID` was already ingested
     * `{:error, :parse_failure}` — poison message; safe to mark seen
     * `{:error, other}` — transient failure (e.g. database unavailable);
@@ -64,6 +74,23 @@ defmodule ChatApi.EmailAccounts.Ingestion do
   """
   @spec process_raw_email(binary(), EmailAccount.t()) :: result()
   def process_raw_email(raw, %EmailAccount{} = email_account) do
+    max_bytes = max_message_bytes(email_account)
+
+    if byte_size(raw) > max_bytes do
+      # Terminal: the caller marks it seen, so an enormous newsletter or
+      # attachment bomb can never be re-downloaded on every poll.
+      Logger.warning(
+        "[EmailAccounts.Ingestion] Skipping oversized inbound email for account " <>
+          "#{email_account.id} (#{byte_size(raw)} bytes > #{max_bytes} byte limit)"
+      )
+
+      {:ok, :skipped}
+    else
+      parse_and_process(raw, email_account)
+    end
+  end
+
+  defp parse_and_process(raw, %EmailAccount{} = email_account) do
     case Mime.parse(raw) do
       {:ok, email} ->
         process_email(email, email_account)
@@ -75,6 +102,25 @@ defmodule ChatApi.EmailAccounts.Ingestion do
         )
 
         {:error, :parse_failure}
+    end
+  end
+
+  # The raw-size cap: `settings["max_message_bytes"]`, defaulting to 10MB.
+  # Invalid/non-positive values fall back to the default.
+  defp max_message_bytes(%EmailAccount{settings: settings}) when is_map(settings) do
+    case Map.get(settings, "max_message_bytes", Map.get(settings, :max_message_bytes)) do
+      value when is_integer(value) and value > 0 -> value
+      value when is_binary(value) -> parse_max_bytes(value)
+      _missing_or_invalid -> @default_max_message_bytes
+    end
+  end
+
+  defp max_message_bytes(_email_account), do: @default_max_message_bytes
+
+  defp parse_max_bytes(value) do
+    case Integer.parse(value) do
+      {parsed, ""} when parsed > 0 -> parsed
+      _other -> @default_max_message_bytes
     end
   end
 

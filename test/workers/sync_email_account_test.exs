@@ -133,6 +133,8 @@ defmodule ChatApi.SyncEmailAccountTest do
       assert updated.last_error == "Connection refused — check host and port"
       assert updated.status == "active"
       assert updated.last_synced_at == nil
+      # The failure starts a backoff window for the fan-out
+      assert %DateTime{} = updated.last_failed_at
     end
 
     test "the 10th consecutive failure flips the account status to \"error\"", ctx do
@@ -154,7 +156,8 @@ defmodule ChatApi.SyncEmailAccountTest do
       {:ok, email_account} =
         EmailAccounts.update_email_account(ctx.email_account, %{
           failure_count: 9,
-          last_error: "Connection timed out"
+          last_error: "Connection timed out",
+          last_failed_at: DateTime.utc_now() |> DateTime.truncate(:second)
         })
 
       with_mock Client,
@@ -169,20 +172,67 @@ defmodule ChatApi.SyncEmailAccountTest do
       updated = reload(email_account)
       assert updated.failure_count == 0
       assert updated.last_error == nil
+      assert updated.last_failed_at == nil
       assert %DateTime{} = updated.last_synced_at
     end
 
-    test "tolerates mark_seen failures (dedup makes reprocessing safe)", ctx do
+    test "a mark_seen failure counts as a poll failure (dedup keeps reprocessing safe)", ctx do
       with_mock Client,
         fetch_unseen: fn _email_account, _limit ->
           {:ok, [%{uid: 31, raw: fixture("simple.eml")}]}
         end,
-        mark_seen: fn _email_account, _uids -> {:error, "Connection closed by server"} end do
+        mark_seen: fn _email_account, _uids ->
+          {:error, "Could not mark messages as seen: Connection closed by server"}
+        end do
         assert :ok = perform(ctx.email_account)
       end
 
+      # The message itself was still ingested...
       assert Message |> where(account_id: ^ctx.account.id) |> Repo.aggregate(:count) == 1
-      assert %DateTime{} = reload(ctx.email_account).last_synced_at
+
+      # ...but the inability to flag it is surfaced as a failure: without the
+      # \Seen flag the same mail is re-fetched every poll, and only Message-ID
+      # dedup prevents duplicates — repeated failures must escalate.
+      updated = reload(ctx.email_account)
+      assert updated.failure_count == 1
+      assert updated.last_error =~ "Could not mark messages as seen"
+      assert %DateTime{} = updated.last_failed_at
+      assert updated.last_synced_at == nil
+    end
+
+    test "skips (and marks seen) messages over the max message size", ctx do
+      # Large enough for the simple.eml fixture (~400 bytes), small enough to test
+      {:ok, email_account} =
+        EmailAccounts.update_email_account(ctx.email_account, %{
+          settings: %{"max_message_bytes" => 1_000}
+        })
+
+      oversized = String.duplicate("x", 1_001)
+      test_pid = self()
+
+      with_mock Client,
+        fetch_unseen: fn _email_account, _limit ->
+          {:ok, [%{uid: 41, raw: oversized}, %{uid: 42, raw: fixture("simple.eml")}]}
+        end,
+        mark_seen: fn _email_account, uids ->
+          send(test_pid, {:mark_seen, uids})
+          :ok
+        end do
+        assert :ok = perform(email_account)
+
+        # The oversized message is terminal (skipped), so it is flagged too
+        assert_receive {:mark_seen, [41, 42]}
+      end
+
+      # Only the normal-sized message was ingested
+      assert [%Message{body: body}] =
+               Message |> where(account_id: ^ctx.account.id) |> Repo.all()
+
+      assert body =~ "Hello, I cannot log in to my account"
+
+      updated = reload(email_account)
+      assert updated.failure_count == 0
+      assert %DateTime{} = updated.last_synced_at
     end
 
     test "does not poll accounts that are not active", ctx do
