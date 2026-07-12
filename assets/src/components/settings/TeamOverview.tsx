@@ -233,11 +233,11 @@ class TeamOverview extends React.Component<Props, State> {
   handleUpdateRole = async ({id: userId}: User, role: 'user' | 'admin') => {
     this.setState({isRefreshing: true});
 
-    return API.setAccountUserRole(userId, role)
-      .then((user) => {
+    return API.updateAccountMemberRole(userId, role)
+      .then((member) => {
         notification.success({
           message: 'Successfully changed role!',
-          description: `${user.email} is now ${
+          description: `${member.email} is now ${
             role === 'user' ? 'a team member' : 'an admin'
           }.`,
         });
@@ -245,12 +245,39 @@ class TeamOverview extends React.Component<Props, State> {
       .then(() => sleep(400)) // Add slight delay so not too jarring
       .then(() => this.fetchLatestAccountInfo())
       .catch((err) => {
+        // e.g. 422 when demoting the last admin of the workspace
         const description =
           err?.response?.body?.error?.message ||
           err?.message ||
           'Something went wrong. Please contact us or try again in a few minutes.';
         notification.error({
           message: 'Failed to update role!',
+          description,
+        });
+      })
+      .then(() => this.setState({isRefreshing: false}));
+  };
+
+  handleRemoveMember = async ({id: userId, email}: User) => {
+    this.setState({isRefreshing: true});
+
+    return API.removeAccountMember(userId)
+      .then(() => {
+        notification.success({
+          message: 'Successfully removed member!',
+          description: `${email} no longer has access to this workspace.`,
+        });
+      })
+      .then(() => sleep(400)) // Add slight delay so not too jarring
+      .then(() => this.fetchLatestAccountInfo())
+      .catch((err) => {
+        // e.g. 422 for a member's primary workspace or the last admin
+        const description =
+          err?.response?.body?.error?.message ||
+          err?.message ||
+          'Something went wrong. Please contact us or try again in a few minutes.';
+        notification.error({
+          message: 'Failed to remove member!',
           description,
         });
       })
@@ -444,6 +471,7 @@ class TeamOverview extends React.Component<Props, State> {
             isAdmin={isAdmin}
             onDisableUser={this.handleDisableUser}
             onUpdateRole={this.handleUpdateRole}
+            onRemoveMember={this.handleRemoveMember}
           />
 
           {isAdmin && isUserInvitationEmailEnabled && (

@@ -59,6 +59,25 @@ defmodule ChatApiWeb.RegistrationControllerTest do
       assert [] = Accounts.list_accounts()
     end
 
+    test "is_superadmin cannot be set through registration params", %{conn: conn} do
+      params = %{
+        "user" => %{
+          "company_name" => "Sneaky Co",
+          "email" => "sneaky-registration@example.com",
+          "password" => @password,
+          "password_confirmation" => @password,
+          "is_superadmin" => true
+        }
+      }
+
+      conn = post(conn, Routes.registration_path(conn, :create, params))
+      assert json_response(conn, 200)["data"]["token"]
+
+      user = ChatApi.Users.find_user_by_email("sneaky-registration@example.com")
+      refute user.is_superadmin
+      refute Accounts.superadmin?(user.id)
+    end
+
     test "with missing company name", %{conn: conn} do
       conn = post(conn, Routes.registration_path(conn, :create, @missing_company_name))
 

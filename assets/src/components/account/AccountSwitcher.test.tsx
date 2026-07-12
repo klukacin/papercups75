@@ -7,8 +7,10 @@ import {getCurrentAccountId} from '../../storage';
 
 vi.mock('../../api');
 
+const {mockUseAuth} = vi.hoisted(() => ({mockUseAuth: vi.fn()}));
+
 vi.mock('../auth/AuthProvider', () => ({
-  useAuth: () => ({account: {id: 'primary-account', company_name: 'Primary'}}),
+  useAuth: mockUseAuth,
 }));
 
 const mockFetchAccounts = API.fetchAccounts as ReturnType<typeof vi.fn>;
@@ -17,6 +19,15 @@ const mockCreateWorkspace = API.createWorkspace as ReturnType<typeof vi.fn>;
 const buildAccount = (id: string, name: string): any => ({
   id,
   company_name: name,
+});
+
+const authState = ({isSuperadmin = false}: {isSuperadmin?: boolean} = {}) => ({
+  account: {id: 'primary-account', company_name: 'Primary'},
+  currentUser: {
+    id: 1,
+    email: 'me@test.com',
+    is_superadmin: isSuperadmin,
+  },
 });
 
 // jsdom does not implement navigation, so replace `window.location` with a
@@ -44,6 +55,7 @@ describe('AccountSwitcher', () => {
   beforeEach(() => {
     localStorage.clear();
     vi.clearAllMocks();
+    mockUseAuth.mockReturnValue(authState({isSuperadmin: true}));
   });
 
   it('renders the switch-account control even for a single account', async () => {
@@ -69,6 +81,38 @@ describe('AccountSwitcher', () => {
     await waitFor(() =>
       expect(screen.getByLabelText('Switch account')).toBeInTheDocument()
     );
+  });
+
+  it('shows the create-workspace item for superadmins', async () => {
+    const user = userEvent.setup();
+    mockFetchAccounts.mockResolvedValue([
+      buildAccount('primary-account', 'Primary'),
+    ]);
+
+    render(<AccountSwitcher />);
+
+    const trigger = await screen.findByLabelText('Switch account');
+    await user.click(trigger);
+
+    expect(await screen.findByText('Create new workspace')).toBeInTheDocument();
+  });
+
+  it('hides the create-workspace item from non-superadmins', async () => {
+    const user = userEvent.setup();
+    mockUseAuth.mockReturnValue(authState({isSuperadmin: false}));
+    mockFetchAccounts.mockResolvedValue([
+      buildAccount('primary-account', 'Primary'),
+    ]);
+
+    render(<AccountSwitcher />);
+
+    const trigger = await screen.findByLabelText('Switch account');
+    await user.click(trigger);
+
+    // Wait for the popover (account list) to be visible, then assert the
+    // create action is absent.
+    await screen.findByRole('menu');
+    expect(screen.queryByText('Create new workspace')).not.toBeInTheDocument();
   });
 
   it('opens the create-workspace modal from the dropdown menu', async () => {

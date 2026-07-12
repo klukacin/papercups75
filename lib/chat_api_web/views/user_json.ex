@@ -24,7 +24,8 @@ defmodule ChatApiWeb.UserJSON do
           full_name: profile.full_name,
           display_name: profile.display_name,
           profile_photo_url: profile.profile_photo_url,
-          role: user.role
+          role: user.role,
+          is_superadmin: user.is_superadmin
         }
 
       _ ->
@@ -35,7 +36,8 @@ defmodule ChatApiWeb.UserJSON do
           created_at: user.inserted_at,
           disabled_at: user.disabled_at,
           archived_at: user.archived_at,
-          role: user.role
+          role: user.role,
+          is_superadmin: user.is_superadmin
         }
     end
   end

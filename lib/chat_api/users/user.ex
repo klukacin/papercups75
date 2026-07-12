@@ -16,6 +16,7 @@ defmodule ChatApi.Users.User do
           disabled_at: any(),
           archived_at: any(),
           role: String.t() | nil,
+          is_superadmin: boolean(),
           has_valid_email: boolean() | nil,
           # Pow fields
           email: String.t(),
@@ -35,6 +36,11 @@ defmodule ChatApi.Users.User do
     field(:disabled_at, :utc_datetime)
     field(:archived_at, :utc_datetime)
     field(:role, :string, default: "user")
+    # Instance-level superadmin flag. SECURITY: this field must NEVER appear in
+    # any changeset `cast` list in this module — it is only set internally via
+    # `ChatApi.Users.set_superadmin/2` and the bootstrap migration, so it can
+    # never be injected through registration/update params.
+    field(:is_superadmin, :boolean, default: false)
     field(:has_valid_email, :boolean)
 
     has_many(:conversations, Conversation, foreign_key: :assignee_id)

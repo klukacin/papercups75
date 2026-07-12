@@ -76,6 +76,87 @@ defmodule ChatApiWeb.CurrentAccountPlugTest do
     end
   end
 
+  describe "superadmin bypass" do
+    test "a superadmin can resolve ANY existing account via x-account-id", %{conn: conn} do
+      superadmin = insert(:superadmin)
+      foreign_account = insert(:account)
+
+      refute ChatApi.Accounts.user_member_of?(superadmin, foreign_account.id)
+
+      conn =
+        conn
+        |> Pow.Plug.assign_current_user(superadmin, [])
+        |> put_req_header("x-account-id", foreign_account.id)
+        |> CurrentAccountPlug.call([])
+
+      refute conn.halted
+      assert conn.assigns.current_account_id == foreign_account.id
+    end
+
+    test "a superadmin gets 403 for a NON-EXISTENT account id", %{conn: conn} do
+      superadmin = insert(:superadmin)
+
+      conn =
+        conn
+        |> Pow.Plug.assign_current_user(superadmin, [])
+        |> put_req_header("x-account-id", Ecto.UUID.generate())
+        |> CurrentAccountPlug.call([])
+
+      assert conn.halted
+      assert conn.status == 403
+      assert is_nil(conn.assigns[:current_account_id])
+    end
+
+    test "a superadmin with a malformed x-account-id still gets 403", %{conn: conn} do
+      superadmin = insert(:superadmin)
+
+      conn =
+        conn
+        |> Pow.Plug.assign_current_user(superadmin, [])
+        |> put_req_header("x-account-id", "not-a-uuid")
+        |> CurrentAccountPlug.call([])
+
+      assert conn.halted
+      assert conn.status == 403
+    end
+
+    test "end-to-end: a superadmin can enter a foreign workspace (200)", %{conn: conn} do
+      superadmin = insert(:superadmin)
+      foreign_account = insert(:account)
+
+      authed_conn =
+        conn
+        |> put_req_header("accept", "application/json")
+        |> Pow.Plug.assign_current_user(superadmin, [])
+
+      resp =
+        authed_conn
+        |> put_req_header("x-account-id", foreign_account.id)
+        |> get(Routes.account_path(authed_conn, :me))
+
+      assert json_response(resp, 200)["data"]["id"] == foreign_account.id
+    end
+
+    test "end-to-end: a regular user still gets 403 for a foreign workspace", %{
+      conn: conn,
+      user: user
+    } do
+      foreign_account = insert(:account)
+
+      authed_conn =
+        conn
+        |> put_req_header("accept", "application/json")
+        |> Pow.Plug.assign_current_user(user, [])
+
+      resp =
+        authed_conn
+        |> put_req_header("x-account-id", foreign_account.id)
+        |> get(Routes.account_path(authed_conn, :me))
+
+      assert json_response(resp, 403)
+    end
+  end
+
   # These exercise the plug end-to-end through the `:api_protected` pipeline
   # (see router.ex) rather than calling `call/2` directly.
   describe ":api_protected pipeline wiring" do

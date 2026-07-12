@@ -133,6 +133,77 @@ defmodule ChatApiWeb.UserController do
     |> json(%{error: %{status: 400, message: "Role must be either 'user' or 'admin'"}})
   end
 
+  @doc """
+  Grants or revokes INSTANCE-superadmin access (`PUT /api/users/:id/superadmin`
+  with body `{"is_superadmin": true | false}`). Superadmin-only.
+
+  Guards: a superadmin cannot revoke their own access, and the last superadmin
+  on the instance can never be revoked (both 422).
+  """
+  @spec update_superadmin(Plug.Conn.t(), map) :: Plug.Conn.t()
+  def update_superadmin(conn, %{"id" => id} = params) do
+    with %User{} = current_user <- conn.assigns.current_user,
+         :ok <- require_superadmin(current_user),
+         {:ok, is_superadmin} <- validate_is_superadmin_param(params),
+         %User{} = user <- find_instance_user(id),
+         :ok <- verify_not_self_revocation(current_user, user, is_superadmin),
+         {:ok, user} <- apply_superadmin_change(user, is_superadmin) do
+      render(conn, :show, user: user)
+    end
+  end
+
+  @spec require_superadmin(User.t()) :: :ok | {:error, :forbidden, String.t()}
+  defp require_superadmin(%User{} = user) do
+    if Accounts.superadmin?(user) do
+      :ok
+    else
+      {:error, :forbidden, "Only instance admins can manage instance-admin access."}
+    end
+  end
+
+  @spec validate_is_superadmin_param(map) ::
+          {:ok, boolean()} | {:error, :unprocessable_entity, String.t()}
+  defp validate_is_superadmin_param(%{"is_superadmin" => is_superadmin})
+       when is_boolean(is_superadmin),
+       do: {:ok, is_superadmin}
+
+  defp validate_is_superadmin_param(_params),
+    do: {:error, :unprocessable_entity, "is_superadmin must be true or false"}
+
+  # Superadmins manage users across the WHOLE instance, so this lookup is
+  # deliberately not account-scoped. Non-numeric ids fail closed as a 404.
+  @spec find_instance_user(binary() | integer()) ::
+          User.t() | {:error, :not_found, String.t()}
+  defp find_instance_user(id) do
+    with {user_id, ""} <- Integer.parse(to_string(id)),
+         %User{} = user <- ChatApi.Repo.get(User, user_id) do
+      user
+    else
+      _ -> {:error, :not_found, "No user found with that id"}
+    end
+  end
+
+  @spec verify_not_self_revocation(User.t(), User.t(), boolean()) ::
+          :ok | {:error, :unprocessable_entity, String.t()}
+  defp verify_not_self_revocation(%User{id: id}, %User{id: id}, false),
+    do: {:error, :unprocessable_entity, "You cannot revoke your own instance-admin access."}
+
+  defp verify_not_self_revocation(_current_user, _user, _is_superadmin), do: :ok
+
+  @spec apply_superadmin_change(User.t(), boolean()) ::
+          {:ok, User.t()}
+          | {:error, :unprocessable_entity, String.t()}
+          | {:error, Ecto.Changeset.t()}
+  defp apply_superadmin_change(user, is_superadmin) do
+    case Users.set_superadmin(user, is_superadmin) do
+      {:error, :last_superadmin} ->
+        {:error, :unprocessable_entity, "You cannot revoke the last instance admin's access."}
+
+      result ->
+        result
+    end
+  end
+
   @spec delete(Plug.Conn.t(), map) :: Plug.Conn.t()
   def delete(conn, %{"id" => user_id}) do
     parsed_id = String.to_integer(user_id)

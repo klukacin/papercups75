@@ -78,13 +78,16 @@ defmodule ChatApiWeb.SessionController do
   @spec me(Conn.t(), map()) :: Conn.t()
   def me(conn, _params) do
     case conn.assigns.current_user do
-      %{id: id, email: email, account_id: account_id, role: role} ->
+      %{id: id, email: email, account_id: account_id, role: role} = user ->
         json(conn, %{
           data: %{
             id: id,
             email: email,
             account_id: account_id,
-            role: role
+            role: role,
+            # Read from the database (not the cached token struct) so
+            # superadmin grants/revocations apply without re-login.
+            is_superadmin: ChatApi.Accounts.superadmin?(user)
           }
         })
 

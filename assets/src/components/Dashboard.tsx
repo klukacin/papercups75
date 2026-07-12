@@ -85,6 +85,7 @@ import LambdasOverview from './lambdas/LambdasOverview';
 import CannedResponsesOverview from './canned-responses/CannedResponsesOverview';
 import ForwardingAddressSettings from './settings/ForwardingAddressSettings';
 import InboxesDashboard from './inboxes/InboxesDashboard';
+import InstanceAdminPage from './admin/InstanceAdminPage';
 
 const {REACT_APP_ADMIN_ACCOUNT_ID = 'eb504736-0f20-4978-98ff-1a82ae60b266'} =
   env;
@@ -246,6 +247,9 @@ const Dashboard = (props: RouteComponentProps) => {
 
   const {currentUser, account} = auth;
   const isAdminUser = currentUser?.role === 'admin';
+  // Instance-level superadmin (from `/api/me`), distinct from the
+  // per-workspace admin role above.
+  const isSuperadmin = !!currentUser?.is_superadmin;
 
   const [section, key] = getSectionKey(pathname);
   const totalNumUnread = unread.conversations.open || 0;
@@ -303,6 +307,7 @@ const Dashboard = (props: RouteComponentProps) => {
               theme="dark"
               items={buildPrimaryMenuItems({
                 isAdminUser,
+                isSuperadmin,
                 shouldHighlightInbox,
                 totalNumUnread,
                 shouldDisplayBilling,
@@ -388,6 +393,8 @@ const Dashboard = (props: RouteComponentProps) => {
             <Route path="/settings/billing" element={<BillingOverview />} />
           )}
           <Route path="/settings/*" element={<AccountOverview />} />
+          {/* Superadmin-only; the page itself redirects everyone else to "/" */}
+          <Route path="/admin" element={<InstanceAdminPage />} />
           <Route path="/v1/customers/:id" element={<CustomerDetailsPage />} />
           <Route path="/customers/:id" element={<CustomerDetailsPageV2 />} />
           <Route path="/customers" element={<CustomersPage />} />

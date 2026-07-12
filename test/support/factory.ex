@@ -339,6 +339,14 @@ defmodule ChatApi.Factory do
     }
   end
 
+  # Instance superadmin convenience: `insert(:superadmin)` (or
+  # `insert(:user, is_superadmin: true)`) sets the flag directly on the struct.
+  # This is intentionally only possible via the factory/internal code — no
+  # public changeset casts :is_superadmin.
+  def superadmin_factory do
+    struct!(user_factory(), %{is_superadmin: true})
+  end
+
   def user_settings_factory do
     %ChatApi.Users.UserSettings{
       user: build(:user),

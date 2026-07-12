@@ -1,7 +1,16 @@
 import React from 'react';
 import {Flex} from '../ui';
 import dayjs from 'dayjs';
-import {colors, Button, Table, Tag, Text, Dropdown} from '../common';
+import {
+  colors,
+  Button,
+  Dropdown,
+  Popconfirm,
+  Select,
+  Table,
+  Tag,
+  Text,
+} from '../common';
 import {SettingOutlined, SmileTwoTone} from '../icons';
 import {User, Alignment} from '../../types';
 
@@ -12,6 +21,7 @@ const AccountUsersTable = ({
   isAdmin,
   onDisableUser,
   onUpdateRole,
+  onRemoveMember,
 }: {
   loading?: boolean;
   users: Array<User>;
@@ -19,6 +29,7 @@ const AccountUsersTable = ({
   isAdmin?: boolean;
   onDisableUser: (user: User) => void;
   onUpdateRole: (user: User, role: 'user' | 'admin') => void;
+  onRemoveMember: (user: User) => void;
 }) => {
   // TODO: how should we sort the users?
   const data = users
@@ -74,7 +85,28 @@ const AccountUsersTable = ({
       title: 'Role',
       dataIndex: 'role',
       key: 'role',
-      render: (value: string) => {
+      render: (value: string, record: User) => {
+        // Admins can change other members' roles in this workspace; their own
+        // role (and everyone's, for non-admins) renders as a read-only tag.
+        // (The server also blocks demoting the last admin with a 422.)
+        if (isAdmin && currentUser && record.id !== currentUser.id) {
+          return (
+            <Select
+              aria-label={`Change role for ${record.email}`}
+              style={{width: 120}}
+              value={record.role}
+              // Two options need no virtual scrolling; non-virtual lists also
+              // expose real `role="option"` items (better a11y + testability).
+              virtual={false}
+              onChange={(role: 'user' | 'admin') => onUpdateRole(record, role)}
+              options={[
+                {value: 'user', label: 'Member'},
+                {value: 'admin', label: 'Admin'},
+              ]}
+            />
+          );
+        }
+
         switch (value) {
           case 'admin':
             return <Tag color={colors.green}>Admin</Tag>;
@@ -95,17 +127,13 @@ const AccountUsersTable = ({
           return null;
         }
 
-        // Current user cannot disable themselves
+        // Current user cannot disable/demote/remove themselves
         if (currentUser && record.id === currentUser.id) {
           return null;
         }
 
         const handleMenuClick = (data: any) => {
           switch (data.key) {
-            case 'admin':
-              return onUpdateRole(record, 'admin');
-            case 'user':
-              return onUpdateRole(record, 'user');
             case 'disable':
               return onDisableUser(record);
             default:
@@ -114,19 +142,24 @@ const AccountUsersTable = ({
         };
 
         return (
-          <Dropdown
-            menu={{
-              onClick: handleMenuClick,
-              items: [
-                record.role === 'user'
-                  ? {key: 'admin', label: 'Grant admin permissions'}
-                  : {key: 'user', label: 'Remove admin permissions'},
-                {key: 'disable', label: 'Disable user'},
-              ],
-            }}
-          >
-            <Button icon={<SettingOutlined />} />
-          </Dropdown>
+          <Flex sx={{justifyContent: 'flex-end', gap: '8px'}}>
+            <Popconfirm
+              title="Remove from workspace?"
+              description={`${record.email} will lose access to this workspace.`}
+              onConfirm={() => onRemoveMember(record)}
+            >
+              <Button danger>Remove</Button>
+            </Popconfirm>
+
+            <Dropdown
+              menu={{
+                onClick: handleMenuClick,
+                items: [{key: 'disable', label: 'Disable user'}],
+              }}
+            >
+              <Button icon={<SettingOutlined />} />
+            </Dropdown>
+          </Flex>
         );
       },
     },

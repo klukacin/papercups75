@@ -7,6 +7,7 @@ describe('dashboard menu builders', () => {
   it('includes admin-only sections for admins', () => {
     const items = buildPrimaryMenuItems({
       isAdminUser: true,
+      isSuperadmin: false,
       shouldHighlightInbox: false,
       totalNumUnread: 3,
       shouldDisplayBilling: true,
@@ -35,6 +36,7 @@ describe('dashboard menu builders', () => {
   it('hides admin-only sections for non-admins', () => {
     const items = buildPrimaryMenuItems({
       isAdminUser: false,
+      isSuperadmin: false,
       shouldHighlightInbox: false,
       totalNumUnread: 0,
       shouldDisplayBilling: false,
@@ -56,6 +58,7 @@ describe('dashboard menu builders', () => {
   it('omits billing when shouldDisplayBilling is false (admin)', () => {
     const items = buildPrimaryMenuItems({
       isAdminUser: true,
+      isSuperadmin: false,
       shouldHighlightInbox: false,
       totalNumUnread: 0,
       shouldDisplayBilling: false,
@@ -64,6 +67,34 @@ describe('dashboard menu builders', () => {
       (i) => i && i.key === 'settings'
     );
     expect(keysOf(settings.children)).not.toContain('billing');
+  });
+
+  it('shows the instance admin item only for superadmins', () => {
+    const superadmin = buildPrimaryMenuItems({
+      isAdminUser: true,
+      isSuperadmin: true,
+      shouldHighlightInbox: false,
+      totalNumUnread: 0,
+      shouldDisplayBilling: false,
+    });
+    const workspaceAdmin = buildPrimaryMenuItems({
+      isAdminUser: true,
+      isSuperadmin: false,
+      shouldHighlightInbox: false,
+      totalNumUnread: 0,
+      shouldDisplayBilling: false,
+    });
+    const regularUser = buildPrimaryMenuItems({
+      isAdminUser: false,
+      isSuperadmin: false,
+      shouldHighlightInbox: false,
+      totalNumUnread: 0,
+      shouldDisplayBilling: false,
+    });
+
+    expect(keysOf(superadmin as any[])).toContain('admin');
+    expect(keysOf(workspaceAdmin as any[])).not.toContain('admin');
+    expect(keysOf(regularUser as any[])).not.toContain('admin');
   });
 
   it('secondary menu shows chat only when enabled', () => {

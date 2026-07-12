@@ -7,6 +7,7 @@ import CheckOutlined from '@ant-design/icons/CheckOutlined';
 import CodeOutlined from '@ant-design/icons/CodeOutlined';
 import CreditCardOutlined from '@ant-design/icons/CreditCardOutlined';
 import CreditCardTwoTone from '@ant-design/icons/CreditCardTwoTone';
+import CrownOutlined from '@ant-design/icons/CrownOutlined';
 import DeleteOutlined from '@ant-design/icons/DeleteOutlined';
 import DeleteTwoTone from '@ant-design/icons/DeleteTwoTone';
 import DesktopOutlined from '@ant-design/icons/DesktopOutlined';
@@ -47,6 +48,7 @@ export {
   CodeOutlined,
   CreditCardOutlined,
   CreditCardTwoTone,
+  CrownOutlined,
   DeleteOutlined,
   DeleteTwoTone,
   DesktopOutlined,

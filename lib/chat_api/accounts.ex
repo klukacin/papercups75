@@ -110,21 +110,78 @@ defmodule ChatApi.Accounts do
     |> Repo.all()
   end
 
+  @doc """
+  Returns the ACTUAL membership row (with its stored role) for the user in the
+  given account, or nil when the user is not a member. This is the low-level
+  "real membership" read: it deliberately has NO superadmin override, so member
+  listings / role updates / removals always operate on stored roles.
+  """
   @spec get_account_user(integer(), binary()) :: AccountUser.t() | nil
   def get_account_user(user_id, account_id) do
     Repo.get_by(AccountUser, user_id: user_id, account_id: account_id)
   end
 
   @doc """
-  Returns true if the user is an ADMIN member of the given account, based on the
-  `account_users` role (not the user's global `users.role`).
+  Returns true if the user is an instance superadmin.
+
+  Accepts a `%User{}` or a user id. The flag is always re-read from the
+  database (never trusted from a possibly stale struct, e.g. one cached in the
+  auth-token store), so grants and revocations take effect immediately.
+  Fails closed on nil/garbage input.
+  """
+  @spec superadmin?(User.t() | integer() | nil | any()) :: boolean()
+  def superadmin?(%User{id: user_id}), do: superadmin?(user_id)
+
+  def superadmin?(user_id) when is_integer(user_id) do
+    User
+    |> where(id: ^user_id, is_superadmin: true)
+    |> Repo.exists?()
+  end
+
+  def superadmin?(_user_or_id), do: false
+
+  @doc """
+  Returns true if the user may ADMINISTER the given account: either they are an
+  admin MEMBER (based on the `account_users` role, not the user's global
+  `users.role`) or they are an instance superadmin (who acts as an admin of
+  every workspace, without needing a membership row).
+
+  Use `get_account_user/2` instead when you need the user's REAL stored
+  membership/role (the superadmin override never changes stored roles).
   """
   @spec account_admin?(integer(), binary()) :: boolean()
   def account_admin?(user_id, account_id) do
     case get_account_user(user_id, account_id) do
       %AccountUser{role: "admin"} -> true
-      _ -> false
+      _ -> superadmin?(user_id)
     end
+  end
+
+  @doc """
+  Updates the stored membership role (`account_users.role`) for an existing
+  membership. Role validity is enforced by the `AccountUser` changeset.
+  """
+  @spec update_account_user_role(AccountUser.t(), String.t()) ::
+          {:ok, AccountUser.t()} | {:error, Ecto.Changeset.t()}
+  def update_account_user_role(%AccountUser{} = account_user, role) do
+    account_user
+    |> AccountUser.changeset(%{role: role})
+    |> Repo.update()
+  end
+
+  @doc "Removes a membership row (the user itself is untouched)."
+  @spec delete_account_user(AccountUser.t()) ::
+          {:ok, AccountUser.t()} | {:error, Ecto.Changeset.t()}
+  def delete_account_user(%AccountUser{} = account_user) do
+    Repo.delete(account_user)
+  end
+
+  @doc "Counts the ADMIN memberships of an account (stored roles only)."
+  @spec count_account_admins(binary()) :: non_neg_integer()
+  def count_account_admins(account_id) do
+    AccountUser
+    |> where(account_id: ^account_id, role: "admin")
+    |> Repo.aggregate(:count)
   end
 
   @doc """
@@ -156,9 +213,12 @@ defmodule ChatApi.Accounts do
 
   def get_current_account_id(%Plug.Conn{}), do: nil
 
+  @doc "Lists ALL accounts on the instance, ordered by creation date."
   @spec list_accounts() :: [Account.t()]
   def list_accounts do
-    Repo.all(Account)
+    Account
+    |> order_by([a], asc: a.inserted_at, asc: a.id)
+    |> Repo.all()
   end
 
   @spec get_account!(binary()) :: Account.t()

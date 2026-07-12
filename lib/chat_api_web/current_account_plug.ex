@@ -15,6 +15,11 @@ defmodule ChatApiWeb.CurrentAccountPlug do
   `ChatApi.Accounts.user_member_of?/2`. If the user is not a member of the
   resolved account, the request is halted with a 403 response.
 
+  Instance SUPERADMINS bypass the membership check: they may resolve ANY
+  account that exists (they administer the whole instance). A non-existent
+  account id still fails closed with the same 403 as before, and the UUID
+  validation applies to superadmins too.
+
   ## Example
 
       plug ChatApiWeb.CurrentAccountPlug
@@ -39,7 +44,7 @@ defmodule ChatApiWeb.CurrentAccountPlug do
       current_user ->
         case resolve_account_id(conn, current_user) do
           {:ok, account_id} ->
-            if Accounts.user_member_of?(current_user, account_id) do
+            if authorized?(current_user, account_id) do
               assign(conn, :current_account_id, account_id)
             else
               forbidden(conn)
@@ -53,6 +58,15 @@ defmodule ChatApiWeb.CurrentAccountPlug do
             forbidden(conn)
         end
     end
+  end
+
+  # Members are always allowed. Instance superadmins may resolve ANY account,
+  # as long as it exists — a non-existent id fails closed (403) exactly like a
+  # non-membership does for regular users. The membership check runs first so
+  # the common (member) case costs a single query.
+  defp authorized?(current_user, account_id) do
+    Accounts.user_member_of?(current_user, account_id) or
+      (Accounts.superadmin?(current_user) and Accounts.exists?(account_id))
   end
 
   defp resolve_account_id(conn, current_user) do
