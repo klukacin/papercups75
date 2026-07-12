@@ -19,6 +19,12 @@ const mockFetchAllUsersAdmin = API.fetchAllUsersAdmin as ReturnType<
   typeof vi.fn
 >;
 const mockSetUserSuperadmin = API.setUserSuperadmin as ReturnType<typeof vi.fn>;
+const mockFetchInstanceSettings = API.fetchInstanceSettings as ReturnType<
+  typeof vi.fn
+>;
+const mockUpdateInstanceSettings = API.updateInstanceSettings as ReturnType<
+  typeof vi.fn
+>;
 
 const authState = ({isSuperadmin = true}: {isSuperadmin?: boolean} = {}) => ({
   account: {id: 'account-1', company_name: 'Acme Inc'},
@@ -54,6 +60,33 @@ const adminUsers: any[] = [
   },
 ];
 
+const instanceSettings: API.InstanceSettings = {
+  editable: [
+    {
+      key: 'REGISTRATION_DISABLED',
+      type: 'boolean',
+      value: 'false',
+      source: 'env',
+    },
+    {
+      key: 'DASHBOARD_URL',
+      type: 'string',
+      value: 'https://app.example.com',
+      source: 'override',
+    },
+    {
+      key: 'SUPPORT_EMAIL',
+      type: 'string',
+      value: null,
+      source: null,
+    },
+  ],
+  env_only: [
+    {key: 'DATABASE_URL', is_set: true, preview: 'ecto://po********'},
+    {key: 'MAILGUN_API_KEY', is_set: false, preview: null},
+  ],
+};
+
 // jsdom does not implement navigation, so replace `window.location` with a
 // stub whose `reload` we can observe.
 const reloadSpy = vi.fn();
@@ -75,6 +108,14 @@ const renderPage = () =>
     </MemoryRouter>
   );
 
+// The settings pane is rendered lazily by antd Tabs, so the settings fetch
+// only fires (and its content only mounts) once the tab has been clicked.
+const openSettingsTab = async (user: ReturnType<typeof userEvent.setup>) => {
+  const tab = await screen.findByRole('tab', {name: 'Settings'});
+
+  await user.click(tab);
+};
+
 describe('InstanceAdminPage', () => {
   beforeEach(() => {
     localStorage.clear();
@@ -82,6 +123,7 @@ describe('InstanceAdminPage', () => {
     mockUseAuth.mockReturnValue(authState({isSuperadmin: true}));
     mockFetchAccounts.mockResolvedValue(workspaces);
     mockFetchAllUsersAdmin.mockResolvedValue(adminUsers);
+    mockFetchInstanceSettings.mockResolvedValue(instanceSettings);
   });
 
   it('redirects non-superadmins to the dashboard home', async () => {
@@ -176,5 +218,171 @@ describe('InstanceAdminPage', () => {
       await screen.findByText('Cannot revoke the last superadmin')
     ).toBeInTheDocument();
     await waitFor(() => expect(toggle).not.toBeChecked());
+  });
+
+  it('renders editable settings with controls and source tags in the settings tab', async () => {
+    const user = userEvent.setup();
+
+    renderPage();
+    await openSettingsTab(user);
+
+    // Boolean settings render as a switch; string settings as a text input.
+    const toggle = await screen.findByRole('switch', {
+      name: 'Toggle REGISTRATION_DISABLED',
+    });
+    expect(toggle).not.toBeChecked();
+
+    const input = screen.getByRole('textbox', {
+      name: 'Value for DASHBOARD_URL',
+    });
+    expect(input).toHaveValue('https://app.example.com');
+
+    // Each row shows a humanized label plus the raw key.
+    expect(screen.getByText('Registration disabled')).toBeInTheDocument();
+    expect(screen.getByText('REGISTRATION_DISABLED')).toBeInTheDocument();
+
+    // Source tags: DB override (blue), from env (default), unset (gray).
+    expect(screen.getByText('DB override')).toBeInTheDocument();
+    expect(screen.getByText('from env')).toBeInTheDocument();
+    expect(screen.getByText('unset')).toBeInTheDocument();
+
+    // Only settings backed by a DB override can be reset to env.
+    expect(
+      screen.getByRole('button', {name: 'Reset DASHBOARD_URL to env'})
+    ).toBeEnabled();
+    expect(
+      screen.getByRole('button', {name: 'Reset REGISTRATION_DISABLED to env'})
+    ).toBeDisabled();
+
+    // Env-only settings are listed read-only with a set/not set status.
+    expect(screen.getByText('DATABASE_URL')).toBeInTheDocument();
+    expect(screen.getByText('ecto://po********')).toBeInTheDocument();
+    expect(screen.getByText('MAILGUN_API_KEY')).toBeInTheDocument();
+    expect(screen.getByText('set')).toBeInTheDocument();
+    expect(screen.getByText('not set')).toBeInTheDocument();
+  });
+
+  it('saves only the changed settings', async () => {
+    const user = userEvent.setup();
+    mockUpdateInstanceSettings.mockResolvedValue({
+      editable: [
+        {
+          key: 'REGISTRATION_DISABLED',
+          type: 'boolean',
+          value: 'true',
+          source: 'override',
+        },
+        {
+          key: 'DASHBOARD_URL',
+          type: 'string',
+          value: 'https://app.example.com',
+          source: 'override',
+        },
+        {
+          key: 'SUPPORT_EMAIL',
+          type: 'string',
+          value: 'help@acme.co',
+          source: 'override',
+        },
+      ],
+      env_only: instanceSettings.env_only,
+    });
+
+    renderPage();
+    await openSettingsTab(user);
+
+    const toggle = await screen.findByRole('switch', {
+      name: 'Toggle REGISTRATION_DISABLED',
+    });
+    await user.click(toggle);
+    await user.type(
+      screen.getByRole('textbox', {name: 'Value for SUPPORT_EMAIL'}),
+      'help@acme.co'
+    );
+    await user.click(screen.getByRole('button', {name: 'Save'}));
+
+    // Only the two edited keys are sent; DASHBOARD_URL is untouched.
+    await waitFor(() =>
+      expect(mockUpdateInstanceSettings).toHaveBeenCalledWith({
+        REGISTRATION_DISABLED: true,
+        SUPPORT_EMAIL: 'help@acme.co',
+      })
+    );
+    expect(mockUpdateInstanceSettings).toHaveBeenCalledTimes(1);
+
+    expect(
+      await screen.findByText('Instance settings updated')
+    ).toBeInTheDocument();
+
+    // The section re-renders from the server response.
+    await waitFor(() =>
+      expect(screen.getAllByText('DB override')).toHaveLength(3)
+    );
+    expect(toggle).toBeChecked();
+  });
+
+  it('resets a setting to its env value by sending null', async () => {
+    const user = userEvent.setup();
+    mockUpdateInstanceSettings.mockResolvedValue({
+      editable: [
+        instanceSettings.editable[0],
+        {
+          key: 'DASHBOARD_URL',
+          type: 'string',
+          value: 'https://env.example.com',
+          source: 'env',
+        },
+        instanceSettings.editable[2],
+      ],
+      env_only: instanceSettings.env_only,
+    });
+
+    renderPage();
+    await openSettingsTab(user);
+
+    const resetButton = await screen.findByRole('button', {
+      name: 'Reset DASHBOARD_URL to env',
+    });
+    await user.click(resetButton);
+
+    await waitFor(() =>
+      expect(mockUpdateInstanceSettings).toHaveBeenCalledWith({
+        DASHBOARD_URL: null,
+      })
+    );
+
+    // The row re-renders from the response: the override is gone and the
+    // input now reflects the env-provided value.
+    await waitFor(() =>
+      expect(
+        screen.getByRole('textbox', {name: 'Value for DASHBOARD_URL'})
+      ).toHaveValue('https://env.example.com')
+    );
+    expect(screen.queryByText('DB override')).not.toBeInTheDocument();
+  });
+
+  it('shows the server error message when saving settings fails', async () => {
+    const user = userEvent.setup();
+    mockUpdateInstanceSettings.mockRejectedValue({
+      response: {
+        status: 422,
+        body: {error: {message: 'Unknown setting: REGISTRATION_DISABLED'}},
+      },
+    });
+
+    renderPage();
+    await openSettingsTab(user);
+
+    const toggle = await screen.findByRole('switch', {
+      name: 'Toggle REGISTRATION_DISABLED',
+    });
+    await user.click(toggle);
+    await user.click(screen.getByRole('button', {name: 'Save'}));
+
+    expect(
+      await screen.findByText('Unknown setting: REGISTRATION_DISABLED')
+    ).toBeInTheDocument();
+    // Local edits are preserved so they can be corrected and retried.
+    expect(toggle).toBeChecked();
   });
 });

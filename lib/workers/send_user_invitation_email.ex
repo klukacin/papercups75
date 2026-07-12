@@ -48,11 +48,10 @@ defmodule ChatApi.Workers.SendUserInvitationEmail do
     :ok
   end
 
+  # DB override (superadmin-managed) -> USER_INVITATION_EMAIL_ENABLED env var
+  # -> disabled. Same truthiness as before: "1"/"true" enable sending.
   @spec send_user_invitation_email_enabled? :: boolean()
   def send_user_invitation_email_enabled?() do
-    case System.get_env("USER_INVITATION_EMAIL_ENABLED") do
-      x when x == "1" or x == "true" -> true
-      _ -> false
-    end
+    ChatApi.InstanceSettings.enabled?("USER_INVITATION_EMAIL_ENABLED")
   end
 end
