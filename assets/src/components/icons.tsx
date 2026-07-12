@@ -4,6 +4,7 @@ import CalendarOutlined from '@ant-design/icons/CalendarOutlined';
 import CheckCircleOutlined from '@ant-design/icons/CheckCircleOutlined';
 import CheckCircleTwoTone from '@ant-design/icons/CheckCircleTwoTone';
 import CheckOutlined from '@ant-design/icons/CheckOutlined';
+import CloseCircleOutlined from '@ant-design/icons/CloseCircleOutlined';
 import CodeOutlined from '@ant-design/icons/CodeOutlined';
 import CreditCardOutlined from '@ant-design/icons/CreditCardOutlined';
 import CreditCardTwoTone from '@ant-design/icons/CreditCardTwoTone';
@@ -45,6 +46,7 @@ export {
   CheckCircleOutlined,
   CheckCircleTwoTone,
   CheckOutlined,
+  CloseCircleOutlined,
   CodeOutlined,
   CreditCardOutlined,
   CreditCardTwoTone,

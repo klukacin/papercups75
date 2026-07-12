@@ -139,6 +139,55 @@ export type ForwardingAddress = {
   inbox_id?: string | null;
 };
 
+export type EmailAccountTlsMode = 'ssl' | 'starttls' | 'none';
+export type EmailAccountStatus = 'active' | 'disabled' | 'error';
+
+// NB: passwords are write-only -- the server never returns them, only
+// `has_imap_password`/`has_smtp_password` flags.
+export type EmailAccount = {
+  id: string;
+  inbox_id: string;
+  account_id: string;
+  from_address: string;
+  imap_host: string;
+  imap_port: number;
+  imap_tls: EmailAccountTlsMode;
+  imap_username: string;
+  imap_folder: string;
+  has_imap_password: boolean;
+  smtp_host: string;
+  smtp_port: number;
+  smtp_tls: EmailAccountTlsMode;
+  smtp_username: string;
+  has_smtp_password: boolean;
+  status: EmailAccountStatus;
+  last_error: string | null;
+  last_synced_at: string | null;
+};
+
+// Create/update params. On updates, blank/absent password fields keep the
+// stored password; blank SMTP credentials fall back to the IMAP credentials.
+export type EmailAccountParams = {
+  inbox_id?: string;
+  from_address?: string;
+  imap_host?: string;
+  imap_port?: number;
+  imap_tls?: EmailAccountTlsMode;
+  imap_username?: string;
+  imap_password?: string;
+  imap_folder?: string;
+  smtp_host?: string;
+  smtp_port?: number;
+  smtp_tls?: EmailAccountTlsMode;
+  smtp_username?: string;
+  smtp_password?: string;
+};
+
+export type EmailAccountVerification = {
+  imap: {ok: boolean; error?: string | null; exists?: number | null};
+  smtp: {ok: boolean; error?: string | null};
+};
+
 // Alias
 export type Attachment = FileUpload;
 

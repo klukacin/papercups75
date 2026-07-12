@@ -23,6 +23,8 @@ const getDefaultConfigurationUrl = (key: string, inboxId: string) => {
       return `/inboxes/${inboxId}/integrations/google/gmail`;
     case 'ses':
       return `/inboxes/${inboxId}/email-forwarding`;
+    case 'email-account':
+      return `/inboxes/${inboxId}/email-account`;
     case 'twilio':
       return `/inboxes/${inboxId}/integrations/twilio`;
     case 'slack:sync':
@@ -150,6 +152,7 @@ class InboxIntegrations extends React.Component<Props, State> {
         this.fetchChatIntegration(),
         this.fetchSlackIntegration(),
         this.fetchEmailForwardingIntegration(),
+        this.fetchEmailAccountIntegration(),
         this.fetchMattermostIntegration(),
         this.fetchGmailIntegration(),
         this.fetchTwilioIntegration(),
@@ -302,6 +305,31 @@ class InboxIntegrations extends React.Component<Props, State> {
     };
   };
 
+  fetchEmailAccountIntegration = async (): Promise<IntegrationType> => {
+    const {id: inboxId} = this.props.inbox;
+    // NB: an error here (e.g. the API not being available yet) should not
+    // take down the entire channel list, so we treat it as "not connected".
+    const account = await API.fetchEmailAccounts()
+      .then((accounts) => accounts.find((acc) => acc.inbox_id === inboxId))
+      .catch((err) => {
+        logger.error('Error fetching email accounts:', err);
+
+        return undefined;
+      });
+
+    return {
+      key: 'email-account',
+      integration: 'Email account (IMAP/SMTP)',
+      status: account ? 'connected' : 'not_connected',
+      createdAt: null,
+      authorizationId: account ? account.id : null,
+      icon: '/ses.svg',
+      description:
+        'Sync mail from any email account with Papercups via IMAP/SMTP.',
+      configurationUrl: `/inboxes/${inboxId}/email-account`,
+    };
+  };
+
   fetchMicrosoftTeamsIntegration = async (): Promise<IntegrationType> => {
     return {
       key: 'microsoft-teams',
@@ -350,6 +378,7 @@ class InboxIntegrations extends React.Component<Props, State> {
     return this.getIntegrationsByKeys([
       'chat',
       'ses',
+      'email-account',
       'gmail',
       'twilio',
       'slack:sync',
