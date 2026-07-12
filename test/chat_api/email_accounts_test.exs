@@ -318,6 +318,51 @@ defmodule ChatApi.EmailAccountsTest do
     end
   end
 
+  describe "failure backoff" do
+    defp with_failure(minutes_ago, failure_count) do
+      %EmailAccount{
+        last_failed_at: DateTime.add(DateTime.utc_now(), -minutes_ago * 60, :second),
+        failure_count: failure_count
+      }
+    end
+
+    test "backoff_until/1 doubles with the failure count and caps at 60 minutes" do
+      failed_at = ~U[2026-07-12 12:00:00Z]
+
+      for {failure_count, minutes} <- [
+            {1, 2},
+            {2, 4},
+            {3, 8},
+            {5, 32},
+            # 2^6 = 64 → capped
+            {6, 60},
+            {10, 60},
+            # huge counts must not overflow into bignum exponents
+            {1_000, 60}
+          ] do
+        assert EmailAccounts.backoff_until(%EmailAccount{
+                 last_failed_at: failed_at,
+                 failure_count: failure_count
+               }) == DateTime.add(failed_at, minutes * 60, :second)
+      end
+    end
+
+    test "in_backoff?/1 is false when the account never failed" do
+      refute EmailAccounts.in_backoff?(%EmailAccount{last_failed_at: nil, failure_count: 0})
+      refute EmailAccounts.in_backoff?(%EmailAccount{last_failed_at: nil, failure_count: 5})
+    end
+
+    test "in_backoff?/1 is true inside the window and false after it" do
+      # failure_count 3 → 8 minute window
+      assert EmailAccounts.in_backoff?(with_failure(7, 3))
+      refute EmailAccounts.in_backoff?(with_failure(9, 3))
+
+      # capped at 60 minutes no matter the failure count
+      assert EmailAccounts.in_backoff?(with_failure(59, 12))
+      refute EmailAccounts.in_backoff?(with_failure(61, 12))
+    end
+  end
+
   describe "verify_inbox_ownership/2" do
     test "returns :ok when the inbox belongs to the account", %{account: account, inbox: inbox} do
       assert EmailAccounts.verify_inbox_ownership(account.id, inbox.id) == :ok

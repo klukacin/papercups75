@@ -14,11 +14,19 @@ defmodule ChatApi.Workers.SyncEmailAccount do
 
   ## Failure bookkeeping
 
-  A successful poll updates `last_synced_at` and resets `failure_count`;
-  a failed connect/fetch increments `failure_count` and records
-  `last_error`. After 10 consecutive failures the account's status is
-  flipped to `"error"` so it stops being polled (finer-grained backoff is
-  deliberately left to a later stage).
+  A successful poll updates `last_synced_at` and resets
+  `failure_count`/`last_error`/`last_failed_at`; a failed connect/fetch —
+  or a failed `mark_seen` (see below) — increments `failure_count` and
+  records `last_error` + `last_failed_at`. The fan-out
+  (`ChatApi.Workers.SyncEmailAccounts`) uses `last_failed_at`/`failure_count`
+  for exponential backoff, and after 10 consecutive failures the account's
+  status is flipped to `"error"` so it stops being polled until a successful
+  "Test connection" (the verify endpoint) resets it.
+
+  A `mark_seen` failure counts as a poll failure on purpose: when messages
+  cannot be flagged `\\Seen` they are re-fetched and re-processed on every
+  poll, and only the Message-ID dedup prevents duplicates — that state must
+  surface (and back off) instead of silently looping.
   """
 
   use Oban.Worker, queue: :email_sync, unique: [period: 55], max_attempts: 1
@@ -44,16 +52,14 @@ defmodule ChatApi.Workers.SyncEmailAccount do
 
   @spec sync(EmailAccount.t()) :: :ok
   def sync(%EmailAccount{} = email_account) do
-    case Client.fetch_unseen(email_account, @fetch_limit) do
-      {:ok, messages} ->
-        messages
-        |> process_messages(email_account)
-        |> mark_processed_seen(email_account)
-
-        record_success(email_account)
-
-      {:error, reason} ->
-        record_failure(email_account, reason)
+    with {:ok, messages} <- Client.fetch_unseen(email_account, @fetch_limit),
+         :ok <-
+           messages
+           |> process_messages(email_account)
+           |> mark_processed_seen(email_account) do
+      record_success(email_account)
+    else
+      {:error, reason} -> record_failure(email_account, reason)
     end
 
     :ok
@@ -100,15 +106,17 @@ defmodule ChatApi.Workers.SyncEmailAccount do
       :ok ->
         :ok
 
-      {:error, reason} ->
+      {:error, reason} = error ->
         # Already-ingested messages are deduplicated by Message-ID on the
-        # next poll, so failing to flag them is safe (just wasteful).
+        # next poll, so failing to flag them is safe for correctness — but
+        # it means the same mail is re-fetched every poll, so it counts as
+        # a poll failure (backoff + last_error) instead of being swallowed.
         Logger.warning(
           "[SyncEmailAccount] Could not mark messages #{inspect(uids)} as seen for " <>
             "email account #{email_account.id}: #{inspect(reason)}"
         )
 
-        :ok
+        error
     end
   end
 
@@ -117,7 +125,8 @@ defmodule ChatApi.Workers.SyncEmailAccount do
       EmailAccounts.update_email_account(email_account, %{
         last_synced_at: DateTime.utc_now() |> DateTime.truncate(:second),
         failure_count: 0,
-        last_error: nil
+        last_error: nil,
+        last_failed_at: nil
       })
 
     :ok
@@ -131,7 +140,11 @@ defmodule ChatApi.Workers.SyncEmailAccount do
         "(failure ##{failure_count}): #{inspect(reason)}"
     )
 
-    attrs = %{failure_count: failure_count, last_error: format_error(reason)}
+    attrs = %{
+      failure_count: failure_count,
+      last_error: format_error(reason),
+      last_failed_at: DateTime.utc_now() |> DateTime.truncate(:second)
+    }
 
     attrs =
       if failure_count >= @max_failures_before_error do

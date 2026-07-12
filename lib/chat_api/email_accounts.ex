@@ -84,6 +84,39 @@ defmodule ChatApi.EmailAccounts do
     EmailAccount.changeset(email_account, attrs)
   end
 
+  # Exponential failure backoff: after a failed poll the next attempt is
+  # allowed at `last_failed_at + min(2^failure_count, 60) minutes` (capped at
+  # one hour). 1 failure → 2 min, 2 → 4 min, ... 6+ → 60 min.
+  @backoff_cap_minutes 60
+  # 2^6 = 64 already exceeds the cap, so never exponentiate beyond that
+  @backoff_max_exponent 6
+
+  @doc """
+  When the account's next poll attempt is allowed, based on the exponential
+  failure backoff (see `in_backoff?/2`). Only meaningful when the account has
+  a `last_failed_at`.
+  """
+  @spec backoff_until(EmailAccount.t()) :: DateTime.t()
+  def backoff_until(%EmailAccount{last_failed_at: %DateTime{} = last_failed_at} = email_account) do
+    exponent = min(email_account.failure_count || 0, @backoff_max_exponent)
+    minutes = min(Integer.pow(2, exponent), @backoff_cap_minutes)
+
+    DateTime.add(last_failed_at, minutes * 60, :second)
+  end
+
+  @doc """
+  Whether the account is still inside its failure backoff window, i.e. the
+  sync fan-out should skip it for now. Accounts that never failed (or whose
+  last poll succeeded — success clears `last_failed_at`) are never in backoff.
+  """
+  @spec in_backoff?(EmailAccount.t(), DateTime.t()) :: boolean()
+  def in_backoff?(email_account, now \\ DateTime.utc_now())
+
+  def in_backoff?(%EmailAccount{last_failed_at: nil}, _now), do: false
+
+  def in_backoff?(%EmailAccount{} = email_account, %DateTime{} = now),
+    do: DateTime.compare(now, backoff_until(email_account)) == :lt
+
   @doc """
   The effective SMTP username: falls back to the IMAP username when the
   SMTP-specific one is blank.

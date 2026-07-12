@@ -25,6 +25,7 @@ defmodule ChatApi.EmailAccounts.EmailAccount do
           status: String.t(),
           last_error: String.t() | nil,
           last_synced_at: DateTime.t() | nil,
+          last_failed_at: DateTime.t() | nil,
           failure_count: integer(),
           settings: map(),
           metadata: map(),
@@ -46,18 +47,21 @@ defmodule ChatApi.EmailAccounts.EmailAccount do
     field(:imap_port, :integer, default: 993)
     field(:imap_tls, :string, default: "ssl")
     field(:imap_username, :string)
-    field(:imap_password, :string)
+    # Encrypted at rest (AES-256-GCM) when PAPERCUPS_ENCRYPTION_KEY is set;
+    # application code always sees the plaintext.
+    field(:imap_password, ChatApi.Ecto.EncryptedString)
     field(:imap_folder, :string, default: "INBOX")
 
     field(:smtp_host, :string)
     field(:smtp_port, :integer, default: 587)
     field(:smtp_tls, :string, default: "starttls")
     field(:smtp_username, :string)
-    field(:smtp_password, :string)
+    field(:smtp_password, ChatApi.Ecto.EncryptedString)
 
     field(:status, :string, default: "active")
     field(:last_error, :string)
     field(:last_synced_at, :utc_datetime)
+    field(:last_failed_at, :utc_datetime)
     field(:failure_count, :integer, default: 0)
     field(:settings, :map, default: %{})
     field(:metadata, :map, default: %{})
@@ -91,6 +95,7 @@ defmodule ChatApi.EmailAccounts.EmailAccount do
       :status,
       :last_error,
       :last_synced_at,
+      :last_failed_at,
       :failure_count,
       :settings,
       :metadata,

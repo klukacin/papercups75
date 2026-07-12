@@ -440,6 +440,86 @@ defmodule ChatApiWeb.EmailAccountControllerTest do
       end
     end
 
+    test "a successful verify on a stored account is the recovery path", %{
+      authed_conn: authed_conn,
+      email_account: email_account
+    } do
+      {:ok, email_account} =
+        EmailAccounts.update_email_account(email_account, %{
+          status: "error",
+          failure_count: 10,
+          last_error: "Connection timed out",
+          last_failed_at: DateTime.utc_now() |> DateTime.truncate(:second)
+        })
+
+      with_mock ChatApi.EmailAccounts.Client,
+        verify_imap: fn %EmailAccount{} -> {:ok, %{exists: 3}} end,
+        verify_smtp: fn %EmailAccount{} -> :ok end do
+        resp =
+          post(authed_conn, Routes.email_account_path(authed_conn, :verify), id: email_account.id)
+
+        assert %{"imap" => %{"ok" => true}, "smtp" => %{"ok" => true}} =
+                 json_response(resp, 200)["data"]
+      end
+
+      updated = EmailAccounts.get_email_account!(email_account.id)
+      assert updated.status == "active"
+      assert updated.failure_count == 0
+      assert updated.last_error == nil
+      assert updated.last_failed_at == nil
+    end
+
+    test "a partially failing verify does not reset the error state", %{
+      authed_conn: authed_conn,
+      email_account: email_account
+    } do
+      {:ok, email_account} =
+        EmailAccounts.update_email_account(email_account, %{
+          status: "error",
+          failure_count: 10,
+          last_error: "Connection timed out",
+          last_failed_at: DateTime.utc_now() |> DateTime.truncate(:second)
+        })
+
+      with_mock ChatApi.EmailAccounts.Client,
+        verify_imap: fn %EmailAccount{} -> {:ok, %{exists: 3}} end,
+        verify_smtp: fn %EmailAccount{} -> {:error, "SMTP authentication failed"} end do
+        resp =
+          post(authed_conn, Routes.email_account_path(authed_conn, :verify), id: email_account.id)
+
+        assert %{"imap" => %{"ok" => true}, "smtp" => %{"ok" => false}} =
+                 json_response(resp, 200)["data"]
+      end
+
+      updated = EmailAccounts.get_email_account!(email_account.id)
+      assert updated.status == "error"
+      assert updated.failure_count == 10
+      assert updated.last_error == "Connection timed out"
+      assert %DateTime{} = updated.last_failed_at
+    end
+
+    test "a successful verify does not re-enable a deliberately disabled account", %{
+      authed_conn: authed_conn,
+      email_account: email_account
+    } do
+      {:ok, email_account} =
+        EmailAccounts.update_email_account(email_account, %{status: "disabled", failure_count: 2})
+
+      with_mock ChatApi.EmailAccounts.Client,
+        verify_imap: fn %EmailAccount{} -> {:ok, %{exists: 3}} end,
+        verify_smtp: fn %EmailAccount{} -> :ok end do
+        resp =
+          post(authed_conn, Routes.email_account_path(authed_conn, :verify), id: email_account.id)
+
+        assert json_response(resp, 200)["data"]
+      end
+
+      updated = EmailAccounts.get_email_account!(email_account.id)
+      # Failure bookkeeping is cleared, but the user's explicit disable sticks
+      assert updated.status == "disabled"
+      assert updated.failure_count == 0
+    end
+
     test "renders 404 when verifying another account's email account", %{
       authed_conn: authed_conn
     } do

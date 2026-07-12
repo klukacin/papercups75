@@ -84,6 +84,13 @@ defmodule ChatApiWeb.EmailAccountController do
   Verifies IMAP/SMTP connectivity for either a stored email account
   (`{"id": ...}`) or a not-yet-saved credentials map. Runs both checks and
   always renders a result — it never raises for connection-level failures.
+
+  For a stored account, a verify where **both** checks pass is the recovery
+  path from sync failures ("Test connection" in the UI): it resets
+  `failure_count`/`last_error`/`last_failed_at` and flips an `"error"`
+  status back to `"active"` so the account is polled again. A deliberately
+  `"disabled"` account keeps its status (only its failure bookkeeping is
+  cleared).
   """
   @spec verify(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def verify(conn, params) do
@@ -101,9 +108,31 @@ defmodule ChatApiWeb.EmailAccountController do
           {:error, reason} -> %{ok: false, error: reason}
         end
 
+      :ok = maybe_record_recovery(config, imap.ok and smtp.ok)
+
       json(conn, %{data: %{imap: imap, smtp: smtp}})
     end
   end
+
+  # Only a stored account with both checks passing recovers; a raw
+  # credentials map (pre-save verify) or any failing check changes nothing.
+  defp maybe_record_recovery(%EmailAccount{} = email_account, true) do
+    attrs = %{failure_count: 0, last_error: nil, last_failed_at: nil}
+
+    attrs =
+      case email_account.status do
+        "disabled" -> attrs
+        _active_or_error -> Map.put(attrs, :status, "active")
+      end
+
+    case EmailAccounts.update_email_account(email_account, attrs) do
+      {:ok, _email_account} -> :ok
+      # Never fail the verify response over bookkeeping
+      {:error, _changeset} -> :ok
+    end
+  end
+
+  defp maybe_record_recovery(_config, _both_ok), do: :ok
 
   defp resolve_verify_config(%{"id" => id}, account_id) when is_binary(id) and id != "" do
     case EmailAccounts.get_email_account(id) do

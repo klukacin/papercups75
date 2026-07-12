@@ -45,6 +45,12 @@ defmodule ChatApi.EmailAccounts.IngestionTest do
     |> Repo.aggregate(:count)
   end
 
+  defp explain(sql) do
+    %{rows: rows} = Repo.query!("EXPLAIN " <> sql)
+
+    Enum.map_join(rows, "\n", &Enum.join(&1, " "))
+  end
+
   describe "process_raw_email/2 — new conversations" do
     test "creates a customer, conversation and message with email_* metadata", ctx do
       assert {:ok, %Message{} = created} =
@@ -327,6 +333,66 @@ defmodule ChatApi.EmailAccounts.IngestionTest do
 
       assert count_messages(ctx.account.id) == 1
       assert count_messages(other_account.id) == 1
+    end
+
+    test "dedup and threading lookups are served by the partial email_message_id indexes", ctx do
+      # On tiny test tables the planner always prefers a sequential scan, so
+      # disable it (inside this test's sandbox transaction only) to prove the
+      # partial expression indexes are actually usable for the real queries.
+      Repo.query!("SET LOCAL enable_seqscan = off")
+
+      dedup_plan =
+        explain(
+          "SELECT m0.\"id\" FROM \"messages\" AS m0 " <>
+            "WHERE m0.\"account_id\" = '#{ctx.account.id}' " <>
+            "AND m0.\"metadata\"->>'email_message_id' = '<simple-001@customer.test>'"
+        )
+
+      assert dedup_plan =~ "messages_account_id_email_message_id_index"
+
+      threading_plan =
+        explain(
+          "SELECT m0.\"conversation_id\" FROM \"messages\" AS m0 " <>
+            "WHERE m0.\"account_id\" = '#{ctx.account.id}' " <>
+            "AND m0.\"metadata\"->>'email_message_id' = ANY('{\"<a@x>\",\"<b@x>\"}')"
+        )
+
+      assert threading_plan =~ "messages_account_id_email_message_id_index"
+    end
+  end
+
+  describe "process_raw_email/2 — max message size guard" do
+    test "skips messages whose raw size exceeds settings[\"max_message_bytes\"]", ctx do
+      {:ok, email_account} =
+        ChatApi.EmailAccounts.update_email_account(ctx.email_account, %{
+          settings: %{"max_message_bytes" => 64}
+        })
+
+      oversized = String.duplicate("x", 65)
+
+      assert {:ok, :skipped} = Ingestion.process_raw_email(oversized, email_account)
+      assert_nothing_created(ctx)
+    end
+
+    test "processes messages at or under the configured limit", ctx do
+      raw = fixture("simple.eml")
+
+      {:ok, email_account} =
+        ChatApi.EmailAccounts.update_email_account(ctx.email_account, %{
+          settings: %{"max_message_bytes" => byte_size(raw)}
+        })
+
+      assert {:ok, %Message{}} = Ingestion.process_raw_email(raw, email_account)
+    end
+
+    test "falls back to the 10MB default when the setting is missing or garbage", ctx do
+      {:ok, email_account} =
+        ChatApi.EmailAccounts.update_email_account(ctx.email_account, %{
+          settings: %{"max_message_bytes" => "not-a-number"}
+        })
+
+      assert {:ok, %Message{}} =
+               Ingestion.process_raw_email(fixture("simple.eml"), email_account)
     end
   end
 
