@@ -135,6 +135,87 @@ defmodule ChatApi.Users do
     |> Repo.update()
   end
 
+  @doc """
+  Bootstraps the FIRST user ever created on the instance (ordered by
+  `inserted_at ASC, id ASC`) as an instance superadmin.
+
+  Called from the `AddIsSuperadminToUsers` migration so that existing
+  installations keep an operator with instance-admin powers. Idempotent and
+  fail-safe:
+
+    * no users on the instance -> no-op (fresh installs)
+    * a superadmin already exists -> no-op (safe to re-run)
+
+  Returns the number of users promoted (0 or 1).
+  """
+  @spec bootstrap_first_superadmin() :: non_neg_integer()
+  def bootstrap_first_superadmin do
+    if Repo.exists?(from(u in User, where: u.is_superadmin == true)) do
+      0
+    else
+      first_user =
+        from(u in User,
+          order_by: [asc: u.inserted_at, asc: u.id],
+          limit: 1,
+          select: u.id
+        )
+
+      {count, _} =
+        from(u in User, where: u.id in subquery(first_user))
+        |> Repo.update_all(set: [is_superadmin: true])
+
+      count
+    end
+  end
+
+  @doc """
+  Grants or revokes the instance-superadmin flag.
+
+  This is the ONLY way the flag can be changed: `is_superadmin` is deliberately
+  not castable in any `ChatApi.Users.User` changeset, so it can never be set
+  through registration or user-update params.
+
+  Revocation is guarded so the instance can never end up without a superadmin:
+  revoking the LAST superadmin returns `{:error, :last_superadmin}`. The
+  current flag is re-read from the database (not trusted from the passed
+  struct) so a stale struct cannot bypass the guard.
+  """
+  @spec set_superadmin(User.t(), boolean()) ::
+          {:ok, User.t()} | {:error, :last_superadmin} | {:error, Ecto.Changeset.t()}
+  def set_superadmin(%User{id: id}, is_superadmin) when is_boolean(is_superadmin) do
+    user = Repo.get!(User, id)
+
+    if user.is_superadmin and not is_superadmin and count_superadmins() <= 1 do
+      {:error, :last_superadmin}
+    else
+      user
+      |> Ecto.Changeset.change(is_superadmin: is_superadmin)
+      |> Repo.update()
+    end
+  end
+
+  @spec count_superadmins() :: non_neg_integer()
+  def count_superadmins do
+    User
+    |> where(is_superadmin: true)
+    |> Repo.aggregate(:count)
+  end
+
+  @doc """
+  Lists EVERY user on the instance with their profile and account memberships
+  preloaded (for the superadmin-only `GET /api/admin/users` endpoint).
+
+  Uses `preload` (separate batched queries) rather than per-user lookups, so
+  the cost is a constant number of queries regardless of user count (no N+1).
+  """
+  @spec list_all_users_with_memberships() :: [User.t()]
+  def list_all_users_with_memberships do
+    User
+    |> order_by([u], asc: u.inserted_at, asc: u.id)
+    |> preload([:profile, account_users: :account])
+    |> Repo.all()
+  end
+
   @spec create_admin(map()) :: {:ok, User.t()} | {:error, Ecto.Changeset.t()}
   def create_admin(params) do
     Map.merge(params, %{role: "admin"})

@@ -4,6 +4,7 @@ import type {MenuProps} from 'antd';
 import {
   ApiOutlined,
   CodeOutlined,
+  CrownOutlined,
   GlobalOutlined,
   LineChartOutlined,
   LogoutOutlined,
@@ -18,6 +19,7 @@ type MenuItems = MenuProps['items'];
 
 export type PrimaryMenuOptions = {
   isAdminUser: boolean;
+  isSuperadmin: boolean;
   shouldHighlightInbox: boolean;
   totalNumUnread: number;
   shouldDisplayBilling: boolean;
@@ -28,6 +30,7 @@ export type PrimaryMenuOptions = {
 // without the surrounding providers (auth, notifications, router, ...).
 export const buildPrimaryMenuItems = ({
   isAdminUser,
+  isSuperadmin,
   shouldHighlightInbox,
   totalNumUnread,
   shouldDisplayBilling,
@@ -161,6 +164,16 @@ export const buildPrimaryMenuItems = ({
             },
           ],
         },
+    // Instance-level administration (all workspaces/users) is only available
+    // to superadmins; see the `/admin` route in Dashboard.tsx.
+    isSuperadmin
+      ? {
+          key: 'admin',
+          icon: <CrownOutlined />,
+          title: 'Instance admin',
+          label: <Link to="/admin">Instance admin</Link>,
+        }
+      : null,
   ];
 };
 

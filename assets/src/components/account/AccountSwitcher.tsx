@@ -25,7 +25,10 @@ import {useAuth} from '../auth/AuthProvider';
 // Always renders (even for a single workspace) since it also hosts the
 // "Create new workspace" action.
 const AccountSwitcher = () => {
-  const {account: primaryAccount} = useAuth();
+  const {account: primaryAccount, currentUser} = useAuth();
+  // Creating workspaces is an instance-superadmin-only action (the server
+  // rejects it with a 403 for everyone else), so hide the menu item otherwise.
+  const isSuperadmin = !!currentUser?.is_superadmin;
   const [accounts, setAccounts] = React.useState<Array<Account>>([]);
   const [isPopoverOpen, setPopoverOpen] = React.useState(false);
   const [isCreateModalOpen, setCreateModalOpen] = React.useState(false);
@@ -123,20 +126,24 @@ const AccountSwitcher = () => {
         );
       })}
 
-      <Divider style={{margin: '8px 0'}} />
+      {isSuperadmin && (
+        <>
+          <Divider style={{margin: '8px 0'}} />
 
-      <Button
-        type="text"
-        block
-        role="menuitem"
-        style={{textAlign: 'left'}}
-        onClick={() => {
-          setPopoverOpen(false);
-          setCreateModalOpen(true);
-        }}
-      >
-        Create new workspace
-      </Button>
+          <Button
+            type="text"
+            block
+            role="menuitem"
+            style={{textAlign: 'left'}}
+            onClick={() => {
+              setPopoverOpen(false);
+              setCreateModalOpen(true);
+            }}
+          >
+            Create new workspace
+          </Button>
+        </>
+      )}
     </Box>
   );
 

@@ -10,6 +10,9 @@ defmodule ChatApiWeb.WorkspaceController do
   @doc """
   Creates a NEW workspace (account) with the current user as an admin member.
 
+  Creating workspaces is an INSTANCE-SUPERADMIN-ONLY operation — regular users
+  (including workspace admins) get a 403.
+
   Mirrors the account-creation half of registration: the account gets the
   default subscription plan and a primary inbox (with the creator as an inbox
   member). The user's primary account (`users.account_id`) is NOT changed —
@@ -18,6 +21,7 @@ defmodule ChatApiWeb.WorkspaceController do
   @spec create(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def create(conn, params) do
     with %User{} = user <- conn.assigns.current_user,
+         :ok <- require_superadmin(user),
          {:ok, %{account: %Account{id: account_id}}} <-
            user
            |> create_workspace_transaction(params)
@@ -30,6 +34,15 @@ defmodule ChatApiWeb.WorkspaceController do
     else
       {:error, _operation, %Ecto.Changeset{} = changeset, _changes} -> {:error, changeset}
       error -> error
+    end
+  end
+
+  @spec require_superadmin(User.t()) :: :ok | {:error, :forbidden, String.t()}
+  defp require_superadmin(%User{} = user) do
+    if Accounts.superadmin?(user) do
+      :ok
+    else
+      {:error, :forbidden, "Only instance admins can create workspaces."}
     end
   end
 

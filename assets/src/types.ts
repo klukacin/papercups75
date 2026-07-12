@@ -35,6 +35,9 @@ export type User = {
   disabled_at?: string;
   role: 'user' | 'admin';
   account_id: string;
+  // Instance-level superadmin flag (from `/api/me`); optional since older
+  // payloads/tests may omit it.
+  is_superadmin?: boolean;
 };
 
 export type UserSettings = {

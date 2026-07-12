@@ -138,6 +138,7 @@ defmodule ChatApiWeb.Router do
     post("/users/:id/enable", UserController, :enable)
     post("/users/:id/archive", UserController, :archive)
     put("/users/:id/role", UserController, :update_role)
+    put("/users/:id/superadmin", UserController, :update_superadmin)
     post("/payment_methods", PaymentMethodController, :create)
     get("/payment_methods", PaymentMethodController, :show)
     get("/browser_sessions/count", BrowserSessionController, :count)
@@ -150,6 +151,8 @@ defmodule ChatApiWeb.Router do
     resources("/accounts", AccountController, only: [:index, :update, :delete])
     post("/workspaces", WorkspaceController, :create)
     post("/account_members", AccountMemberController, :create)
+    put("/account_members/:user_id", AccountMemberController, :update)
+    delete("/account_members/:user_id", AccountMemberController, :delete)
     resources("/messages", MessageController, except: [:new, :edit])
     resources("/conversations", ConversationController, except: [:new, :edit, :create])
     resources("/companies", CompanyController, except: [:new, :edit])
@@ -181,6 +184,7 @@ defmodule ChatApiWeb.Router do
     post("/event_subscriptions/verify", EventSubscriptionController, :verify)
 
     post("/admin/notifications", AdminNotificationController, :create)
+    get("/admin/users", AdminUserController, :index)
   end
 
   scope "/api/v1", ChatApiWeb do

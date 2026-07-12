@@ -21,10 +21,21 @@ defmodule ChatApiWeb.AccountController do
     with current_user when not is_nil(current_user) <- Pow.Plug.current_user(conn) do
       accounts =
         current_user
-        |> Accounts.list_accounts_for_user()
+        |> visible_accounts()
         |> Enum.map(fn %Account{id: id} -> Accounts.get_account!(id) end)
 
       render(conn, :index, accounts: accounts)
+    end
+  end
+
+  # Instance superadmins see EVERY workspace on the instance (ordered by
+  # creation date); regular users see only the accounts they are members of.
+  @spec visible_accounts(ChatApi.Users.User.t()) :: [Account.t()]
+  defp visible_accounts(current_user) do
+    if Accounts.superadmin?(current_user) do
+      Accounts.list_accounts()
+    else
+      Accounts.list_accounts_for_user(current_user)
     end
   end
 

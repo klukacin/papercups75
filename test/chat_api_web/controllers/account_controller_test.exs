@@ -69,6 +69,43 @@ defmodule ChatApiWeb.AccountControllerTest do
       assert [%{"id" => id}] = data
       assert id == account.id
     end
+
+    test "a superadmin sees ALL accounts on the instance, ordered by creation", %{
+      conn: conn,
+      account: account
+    } do
+      # Deterministic creation order: `account` (from setup) is the oldest.
+      earliest = NaiveDateTime.add(account.inserted_at, -3600, :second)
+      older = insert(:account, inserted_at: earliest)
+
+      newer =
+        insert(:account, inserted_at: NaiveDateTime.add(account.inserted_at, 3600, :second))
+
+      # The superadmin is only a MEMBER of their own primary account.
+      superadmin = insert(:user, account: account, is_superadmin: true)
+      authed_conn = Pow.Plug.assign_current_user(conn, superadmin, [])
+
+      resp = get(authed_conn, Routes.account_path(authed_conn, :index))
+
+      ids =
+        resp
+        |> json_response(200)
+        |> Map.fetch!("data")
+        |> Enum.map(& &1["id"])
+
+      assert ids == [older.id, account.id, newer.id]
+    end
+
+    test "a regular user does NOT see foreign accounts", %{conn: conn, account: account} do
+      _foreign = insert(:account)
+      user = insert(:user, account: account)
+      authed_conn = Pow.Plug.assign_current_user(conn, user, [])
+
+      resp = get(authed_conn, Routes.account_path(authed_conn, :index))
+
+      assert [%{"id" => id}] = json_response(resp, 200)["data"]
+      assert id == account.id
+    end
   end
 
   describe "create account" do

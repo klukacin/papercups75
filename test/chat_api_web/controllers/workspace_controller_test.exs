@@ -7,7 +7,8 @@ defmodule ChatApiWeb.WorkspaceControllerTest do
 
   setup %{conn: conn} do
     account = insert(:account)
-    user = insert(:user, account: account, role: "admin")
+    # Creating workspaces is an instance-superadmin-only operation.
+    user = insert(:user, account: account, role: "admin", is_superadmin: true)
 
     conn = put_req_header(conn, "accept", "application/json")
     authed_conn = Pow.Plug.assign_current_user(conn, user, [])
@@ -16,6 +17,19 @@ defmodule ChatApiWeb.WorkspaceControllerTest do
   end
 
   describe "POST /api/workspaces" do
+    test "a regular user cannot create workspaces (403)", %{conn: conn} do
+      # Even a workspace ADMIN is not allowed — only instance superadmins are.
+      regular_admin = insert(:user, role: "admin")
+      regular_conn = Pow.Plug.assign_current_user(conn, regular_admin, [])
+
+      resp = post(regular_conn, "/api/workspaces", %{company_name: "Not Allowed Inc"})
+
+      assert %{"status" => 403, "message" => "Only instance admins can create workspaces."} =
+               json_response(resp, 403)["error"]
+
+      refute Enum.any?(Accounts.list_accounts(), &(&1.company_name == "Not Allowed Inc"))
+    end
+
     test "creates a new account with an admin membership for the creator", %{
       authed_conn: authed_conn,
       account: account,

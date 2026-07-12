@@ -394,6 +394,38 @@ export const addAccountMember = async (
     .then((res) => res.body.data);
 };
 
+export const updateAccountMemberRole = async (
+  userId: number | string,
+  role: 'user' | 'admin',
+  token = getAccessToken()
+): Promise<AccountMember> => {
+  if (!token) {
+    throw new Error('Invalid token!');
+  }
+
+  return request
+    .put(`/api/account_members/${userId}`)
+    .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
+    .send({role})
+    .then((res) => res.body.data);
+};
+
+export const removeAccountMember = async (
+  userId: number | string,
+  token = getAccessToken()
+) => {
+  if (!token) {
+    throw new Error('Invalid token!');
+  }
+
+  return request
+    .delete(`/api/account_members/${userId}`)
+    .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
+    .then((res) => res.body);
+};
+
 export const updateAccountInfo = async (
   updates: Record<string, any>,
   token = getAccessToken()
@@ -1750,6 +1782,51 @@ export const setAccountUserRole = async (
     .set('Authorization', token)
     .set('X-Account-Id', getCurrentAccountId() ?? '')
     .send({role})
+    .then((res) => res.body.data);
+};
+
+export const setUserSuperadmin = async (
+  userId: number | string,
+  isSuperadmin: boolean,
+  token = getAccessToken()
+): Promise<User> => {
+  if (!token) {
+    throw new Error('Invalid token!');
+  }
+
+  return request
+    .put(`/api/users/${userId}/superadmin`)
+    .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
+    .send({is_superadmin: isSuperadmin})
+    .then((res) => res.body.data);
+};
+
+export type AdminUserMembership = {
+  account_id: string;
+  company_name: string;
+  role: 'user' | 'admin';
+};
+
+export type AdminUser = {
+  id: number;
+  email: string;
+  display_name?: string;
+  is_superadmin: boolean;
+  memberships: Array<AdminUserMembership>;
+};
+
+export const fetchAllUsersAdmin = async (
+  token = getAccessToken()
+): Promise<Array<AdminUser>> => {
+  if (!token) {
+    throw new Error('Invalid token!');
+  }
+
+  return request
+    .get(`/api/admin/users`)
+    .set('Authorization', token)
+    .set('X-Account-Id', getCurrentAccountId() ?? '')
     .then((res) => res.body.data);
 };
 
