@@ -146,5 +146,23 @@ jobs:
       - name: Install dependencies
         run: mix deps.get
 
+      # PageController serves priv/static/index.html and replaces the
+      # __SERVER_ENV_DATA__ placeholder with window.__ENV__. That file is a
+      # frontend-build artifact (produced by the separate "Build UI" job), so it
+      # is absent here and ChatApiWeb.PageControllerTest fails with File.Error.
+      # Provide a minimal fixture carrying the placeholder so the controller's
+      # injection logic can be unit-tested without a full asset build.
+      - name: Provide index.html fixture for PageController tests
+        run: |
+          mkdir -p priv/static
+          cat > priv/static/index.html <<'HTML'
+          <!doctype html>
+          <html>
+            <head><meta charset="utf-8"><title>Papercups</title>
+            <script>window.__ENV__ = __SERVER_ENV_DATA__;</script></head>
+            <body><div id="root"></div></body>
+          </html>
+          HTML
+
       - name: Run tests
         run: mix test --exclude lambda_development
