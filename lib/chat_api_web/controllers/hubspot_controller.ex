@@ -115,11 +115,14 @@ defmodule ChatApiWeb.HubspotController do
 
   @spec delete(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def delete(conn, %{"id" => id}) do
-    with %{account_id: _account_id} <- conn.assigns.current_user,
-         %HubspotAuthorization{} = auth <-
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
+         %HubspotAuthorization{account_id: ^account_id} = auth <-
            Hubspot.get_hubspot_authorization!(id),
          {:ok, %HubspotAuthorization{}} <- Hubspot.delete_hubspot_authorization(auth) do
       send_resp(conn, :no_content, "")
+    else
+      %HubspotAuthorization{} -> {:error, :not_found}
+      other -> other
     end
   end
 

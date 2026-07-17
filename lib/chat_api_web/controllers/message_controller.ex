@@ -94,6 +94,7 @@ defmodule ChatApiWeb.MessageController do
   @spec create(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def create(conn, %{"message" => message_params}) do
     with {:ok, params} <- sanitize_new_message_params(conn, message_params),
+         :ok <- verify_conversation_belongs_to_account(params),
          {:ok, %Message{} = msg} <- Messages.create_message(params),
          {_, nil} <- handle_message_attachments(msg, params) do
       message = Messages.get_message!(msg.id)
@@ -179,6 +180,26 @@ defmodule ChatApiWeb.MessageController do
         {:error, :unauthorized, "Access denied"}
     end
   end
+
+  # A message may name a `conversation_id`, which the changeset casts without
+  # any ownership check. Without this guard a user of account A could POST a
+  # message with account B's conversation_id and inject content into B's
+  # support thread. The conversation must belong to the resolved account.
+  @spec verify_conversation_belongs_to_account(map()) :: :ok | {:error, :forbidden, binary()}
+  defp verify_conversation_belongs_to_account(%{
+         "conversation_id" => conversation_id,
+         "account_id" => account_id
+       })
+       when is_binary(conversation_id) do
+    with {:ok, uuid} <- Ecto.UUID.cast(conversation_id),
+         %{account_id: ^account_id} <- ChatApi.Conversations.get_conversation(uuid) do
+      :ok
+    else
+      _ -> {:error, :forbidden, "Forbidden: invalid `conversation_id`"}
+    end
+  end
+
+  defp verify_conversation_belongs_to_account(_params), do: :ok
 
   defp handle_message_attachments(message, %{"file_ids" => [_ | _] = file_ids}),
     do: Messages.create_attachments(message, file_ids)

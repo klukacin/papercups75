@@ -101,11 +101,14 @@ defmodule ChatApiWeb.IntercomController do
 
   @spec delete(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def delete(conn, %{"id" => id}) do
-    with %{account_id: _account_id} <- conn.assigns.current_user,
-         %IntercomAuthorization{} = auth <-
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
+         %IntercomAuthorization{account_id: ^account_id} = auth <-
            Intercom.get_intercom_authorization!(id),
          {:ok, %IntercomAuthorization{}} <- Intercom.delete_intercom_authorization(auth) do
       send_resp(conn, :no_content, "")
+    else
+      %IntercomAuthorization{} -> {:error, :not_found}
+      other -> other
     end
   end
 

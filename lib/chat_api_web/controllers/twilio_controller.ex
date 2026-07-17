@@ -65,11 +65,16 @@ defmodule ChatApiWeb.TwilioController do
 
   @spec delete(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def delete(conn, %{"id" => id}) do
-    with %{account_id: _account_id} <- conn.assigns.current_user,
-         %TwilioAuthorization{} = auth <-
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
+         %TwilioAuthorization{account_id: ^account_id} = auth <-
            Twilio.get_twilio_authorization!(id),
          {:ok, %TwilioAuthorization{}} <- Twilio.delete_twilio_authorization(auth) do
       send_resp(conn, :no_content, "")
+    else
+      # A found-but-foreign authorization (account mismatch) or a nil user must
+      # not fall through to a 500 — treat it as not found.
+      %TwilioAuthorization{} -> {:error, :not_found}
+      other -> other
     end
   end
 

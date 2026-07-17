@@ -42,34 +42,52 @@ defmodule ChatApiWeb.EventSubscriptionController do
 
   @spec show(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def show(conn, %{"id" => id}) do
-    event_subscription = EventSubscriptions.get_event_subscription!(id)
-    render(conn, :show, event_subscription: event_subscription)
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
+         %EventSubscription{} = event_subscription <- authorize(id, account_id) do
+      render(conn, :show, event_subscription: event_subscription)
+    end
   end
 
   @spec update(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def update(conn, %{"id" => id, "event_subscription" => event_subscription_params}) do
-    event_subscription = EventSubscriptions.get_event_subscription!(id)
-    # Not sure the most appropriate place to handle this verification :shrug:
-    verified =
-      event_subscription_params
-      |> Map.get("webhook_url")
-      |> EventSubscriptions.is_valid_webhook_url?()
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
+         %EventSubscription{} = event_subscription <- authorize(id, account_id) do
+      # Not sure the most appropriate place to handle this verification :shrug:
+      verified =
+        event_subscription_params
+        |> Map.get("webhook_url")
+        |> EventSubscriptions.is_valid_webhook_url?()
 
-    params = Map.merge(event_subscription_params, %{"verified" => verified})
+      # `account_id` is forced from the resolved account so an update can never
+      # move the subscription into another workspace.
+      params =
+        event_subscription_params
+        |> Map.merge(%{"verified" => verified, "account_id" => account_id})
 
-    with {:ok, %EventSubscription{} = event_subscription} <-
-           EventSubscriptions.update_event_subscription(event_subscription, params) do
-      render(conn, :show, event_subscription: event_subscription)
+      with {:ok, %EventSubscription{} = event_subscription} <-
+             EventSubscriptions.update_event_subscription(event_subscription, params) do
+        render(conn, :show, event_subscription: event_subscription)
+      end
     end
   end
 
   @spec delete(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def delete(conn, %{"id" => id}) do
-    event_subscription = EventSubscriptions.get_event_subscription!(id)
-
-    with {:ok, %EventSubscription{}} <-
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
+         %EventSubscription{} = event_subscription <- authorize(id, account_id),
+         {:ok, %EventSubscription{}} <-
            EventSubscriptions.delete_event_subscription(event_subscription) do
       send_resp(conn, :no_content, "")
+    end
+  end
+
+  # Loads the subscription only if it belongs to the resolved account, so a
+  # user cannot read/modify/delete another workspace's webhook config by id.
+  @spec authorize(binary(), binary()) :: EventSubscription.t() | {:error, :not_found}
+  defp authorize(id, account_id) do
+    case EventSubscriptions.get_event_subscription!(id) do
+      %EventSubscription{account_id: ^account_id} = event_subscription -> event_subscription
+      _ -> {:error, :not_found}
     end
   end
 

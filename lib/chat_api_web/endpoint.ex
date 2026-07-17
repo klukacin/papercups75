@@ -58,18 +58,17 @@ defmodule ChatApiWeb.Endpoint do
   plug(Plug.Head)
   plug(Plug.Session, @session_options)
 
+  # The embeddable chat widget calls this API cross-origin from arbitrary
+  # customer sites, so `origins: "*"` is intentional. Authentication is a Bearer
+  # token in the `Authorization` header (never an ambient cookie), so
+  # `allow_credentials` must stay FALSE: combining `origins: "*"` with
+  # `allow_credentials: true` would let ANY website make cookie/HTTP-auth'd
+  # cross-origin requests and read the responses (cross-site data theft). The
+  # dashboard is served same-origin and so is unaffected by this.
   plug(Corsica,
-    # FIXME: what's the best way to handle this if we want other websites to
-    # be allowed to hit our API?
     origins: "*",
-    # origins: [
-    #   "http://localhost:3000",
-    #   "http://localhost:4000",
-    #   "https://taro-chat-v1.herokuapp.com",
-    #   ~r{^https?://(.*.?)papercups.io$}
-    # ],
-    allow_credentials: true,
-    allow_headers: ["Content-Type", "Authorization"]
+    allow_credentials: false,
+    allow_headers: ["Content-Type", "Authorization", "X-Account-Id"]
   )
 
   plug(ChatApiWeb.Router)

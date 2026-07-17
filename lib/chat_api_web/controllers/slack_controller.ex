@@ -186,9 +186,8 @@ defmodule ChatApiWeb.SlackController do
 
   @spec update_settings(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def update_settings(conn, %{"id" => id, "settings" => settings}) do
-    with %{account_id: _account_id} <- conn.assigns.current_user,
-         %SlackAuthorization{} = auth <-
-           SlackAuthorizations.get_slack_authorization!(id),
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
+         %SlackAuthorization{} = auth <- authorize(id, account_id),
          {:ok, %SlackAuthorization{} = authorization} <-
            SlackAuthorizations.update_slack_authorization(auth, %{settings: settings}) do
       conn
@@ -199,11 +198,20 @@ defmodule ChatApiWeb.SlackController do
 
   @spec delete(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def delete(conn, %{"id" => id}) do
-    with %{account_id: _account_id} <- conn.assigns.current_user,
-         %SlackAuthorization{} = auth <-
-           SlackAuthorizations.get_slack_authorization!(id),
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
+         %SlackAuthorization{} = auth <- authorize(id, account_id),
          {:ok, %SlackAuthorization{}} <- SlackAuthorizations.delete_slack_authorization(auth) do
       send_resp(conn, :no_content, "")
+    end
+  end
+
+  # Loads the authorization only if it belongs to the resolved account, so a
+  # user cannot modify/delete another workspace's Slack integration by id.
+  @spec authorize(binary(), binary()) :: SlackAuthorization.t() | {:error, :not_found}
+  defp authorize(id, account_id) do
+    case SlackAuthorizations.get_slack_authorization!(id) do
+      %SlackAuthorization{account_id: ^account_id} = auth -> auth
+      _ -> {:error, :not_found}
     end
   end
 

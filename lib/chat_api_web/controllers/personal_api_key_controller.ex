@@ -42,18 +42,26 @@ defmodule ChatApiWeb.PersonalApiKeyController do
   end
 
   @spec show(Plug.Conn.t(), map()) :: Plug.Conn.t()
-  def show(conn, %{"id" => id}) do
-    # TODO: filter by user_id/account_id?
-    personal_api_key = ApiKeys.get_personal_api_key!(id)
-    render(conn, :show, personal_api_key: personal_api_key)
+  def show(%{assigns: %{current_user: %{id: user_id}}} = conn, %{"id" => id}) do
+    account_id = Accounts.get_current_account_id(conn)
+
+    case ApiKeys.find_personal_api_key(id, user_id, account_id) do
+      %PersonalApiKey{} = personal_api_key -> render(conn, :show, personal_api_key: personal_api_key)
+      nil -> {:error, :not_found}
+    end
   end
 
   @spec delete(Plug.Conn.t(), map()) :: Plug.Conn.t()
-  def delete(conn, %{"id" => id}) do
-    personal_api_key = ApiKeys.get_personal_api_key!(id)
+  def delete(%{assigns: %{current_user: %{id: user_id}}} = conn, %{"id" => id}) do
+    account_id = Accounts.get_current_account_id(conn)
 
-    with {:ok, %PersonalApiKey{}} <- ApiKeys.delete_personal_api_key(personal_api_key) do
+    with %PersonalApiKey{} = personal_api_key <-
+           ApiKeys.find_personal_api_key(id, user_id, account_id),
+         {:ok, %PersonalApiKey{}} <- ApiKeys.delete_personal_api_key(personal_api_key) do
       send_resp(conn, :no_content, "")
+    else
+      nil -> {:error, :not_found}
+      error -> error
     end
   end
 end

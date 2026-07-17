@@ -22,6 +22,22 @@ defmodule ChatApi.ApiKeys do
     Repo.get!(PersonalApiKey, id)
   end
 
+  @doc """
+  Fetches a personal API key scoped to its owner (`user_id`) and workspace
+  (`account_id`). Personal keys are per-user secrets, so callers must only ever
+  reach their OWN keys — an unscoped lookup would let any authenticated user
+  read another user's key `value` (a valid `/api/v1` credential) by id.
+  Returns `nil` when the key does not exist or is not owned by the caller.
+  """
+  @spec find_personal_api_key(binary(), binary(), binary()) :: PersonalApiKey.t() | nil
+  def find_personal_api_key(id, user_id, account_id) do
+    PersonalApiKey
+    |> where(id: ^id)
+    |> where(user_id: ^user_id)
+    |> where(account_id: ^account_id)
+    |> Repo.one()
+  end
+
   @spec find_personal_api_key_by_value(binary()) :: PersonalApiKey.t() | nil
   def find_personal_api_key_by_value(value) do
     PersonalApiKey

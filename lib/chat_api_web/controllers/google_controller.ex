@@ -7,6 +7,8 @@ defmodule ChatApiWeb.GoogleController do
   alias ChatApi.Google
   alias ChatApi.Google.GoogleAuthorization
 
+  action_fallback(ChatApiWeb.FallbackController)
+
   @spec callback(Plug.Conn.t(), map()) :: Plug.Conn.t()
   @doc """
   This action is reached via `/api/google/oauth` is the the callback URL that
@@ -143,11 +145,14 @@ defmodule ChatApiWeb.GoogleController do
 
   @spec delete(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def delete(conn, %{"id" => id}) do
-    with %{account_id: _account_id} <- conn.assigns.current_user,
-         %GoogleAuthorization{} = auth <-
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
+         %GoogleAuthorization{account_id: ^account_id} = auth <-
            Google.get_google_authorization!(id),
          {:ok, %GoogleAuthorization{}} <- Google.delete_google_authorization(auth) do
       send_resp(conn, :no_content, "")
+    else
+      %GoogleAuthorization{} -> {:error, :not_found}
+      other -> other
     end
   end
 

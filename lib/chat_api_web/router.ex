@@ -27,9 +27,13 @@ defmodule ChatApiWeb.Router do
     plug(ChatApiWeb.PublicAPIAuthPlug, otp_app: :chat_api)
   end
 
-  # Swagger
-  scope "/api/swagger" do
-    forward("/", PhoenixSwagger.Plug.SwaggerUI, otp_app: :chat_api, swagger_file: "swagger.json")
+  # Swagger UI serves the full API spec, so it is not exposed to anonymous
+  # users in production (info disclosure). Enable it only in dev/test; a
+  # self-hoster who wants public API docs in prod can widen this guard.
+  if Mix.env() in [:dev, :test] do
+    scope "/api/swagger" do
+      forward("/", PhoenixSwagger.Plug.SwaggerUI, otp_app: :chat_api, swagger_file: "swagger.json")
+    end
   end
 
   # Public routes

@@ -4,7 +4,7 @@ defmodule ChatApiWeb.UserInvitationController do
   alias ChatApi.{Accounts, UserInvitations}
   alias ChatApi.UserInvitations.UserInvitation
 
-  plug ChatApiWeb.EnsureRolePlug, :admin when action in [:index, :create, :update]
+  plug ChatApiWeb.EnsureRolePlug, :admin when action in [:index, :create, :update, :delete]
 
   action_fallback ChatApiWeb.FallbackController
 
@@ -44,15 +44,17 @@ defmodule ChatApiWeb.UserInvitationController do
 
   @spec show(Plug.Conn.t(), map) :: Plug.Conn.t()
   def show(conn, %{"id" => id}) do
-    user_invitation = UserInvitations.get_user_invitation!(id)
-    render(conn, :show, user_invitation: user_invitation)
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
+         %UserInvitation{} = user_invitation <- authorize(id, account_id) do
+      render(conn, :show, user_invitation: user_invitation)
+    end
   end
 
   @spec update(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def update(conn, %{"id" => id, "user_invitation" => user_invitation_params}) do
-    user_invitation = UserInvitations.get_user_invitation!(id)
-
-    with {:ok, %UserInvitation{} = user_invitation} <-
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
+         %UserInvitation{} = user_invitation <- authorize(id, account_id),
+         {:ok, %UserInvitation{} = user_invitation} <-
            UserInvitations.update_user_invitation(user_invitation, user_invitation_params) do
       render(conn, :show, user_invitation: user_invitation)
     end
@@ -60,10 +62,20 @@ defmodule ChatApiWeb.UserInvitationController do
 
   @spec delete(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def delete(conn, %{"id" => id}) do
-    user_invitation = UserInvitations.get_user_invitation!(id)
-
-    with {:ok, %UserInvitation{}} <- UserInvitations.delete_user_invitation(user_invitation) do
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
+         %UserInvitation{} = user_invitation <- authorize(id, account_id),
+         {:ok, %UserInvitation{}} <- UserInvitations.delete_user_invitation(user_invitation) do
       send_resp(conn, :no_content, "")
+    end
+  end
+
+  # Loads the invitation only if it belongs to the resolved account, so a user
+  # cannot read/modify/delete another workspace's invitations by id.
+  @spec authorize(binary(), binary()) :: UserInvitation.t() | {:error, :not_found}
+  defp authorize(id, account_id) do
+    case UserInvitations.get_user_invitation!(id) do
+      %UserInvitation{account_id: ^account_id} = user_invitation -> user_invitation
+      _ -> {:error, :not_found}
     end
   end
 end

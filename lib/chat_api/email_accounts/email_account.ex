@@ -38,6 +38,11 @@ defmodule ChatApi.EmailAccounts.EmailAccount do
           updated_at: DateTime.t()
         }
 
+  # The struct holds DECRYPTED plaintext credentials in memory. Redact them from
+  # any `inspect/1` (logs, Sentry breadcrumbs, crash dumps) so an accidental
+  # `inspect(email_account)` can never leak the IMAP/SMTP passwords — this is
+  # the defense-in-depth backstop for the encryption-at-rest column type.
+  @derive {Inspect, except: [:imap_password, :smtp_password]}
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   schema "email_accounts" do
