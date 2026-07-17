@@ -37,20 +37,28 @@ defmodule ChatApiWeb.BrowserSessionController do
 
   @spec update(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def update(conn, %{"id" => id, "browser_session" => browser_session_params}) do
-    browser_session = BrowserSessions.get_browser_session!(id)
-
-    with {:ok, %BrowserSession{} = browser_session} <-
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
+         %BrowserSession{account_id: ^account_id} = browser_session <-
+           BrowserSessions.get_browser_session!(id),
+         {:ok, %BrowserSession{} = browser_session} <-
            BrowserSessions.update_browser_session(browser_session, browser_session_params) do
       render(conn, :create, browser_session: browser_session)
+    else
+      %BrowserSession{} -> {:error, :not_found}
+      other -> other
     end
   end
 
   @spec delete(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def delete(conn, %{"id" => id}) do
-    browser_session = BrowserSessions.get_browser_session!(id)
-
-    with {:ok, %BrowserSession{}} <- BrowserSessions.delete_browser_session(browser_session) do
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
+         %BrowserSession{account_id: ^account_id} = browser_session <-
+           BrowserSessions.get_browser_session!(id),
+         {:ok, %BrowserSession{}} <- BrowserSessions.delete_browser_session(browser_session) do
       send_resp(conn, :no_content, "")
+    else
+      %BrowserSession{} -> {:error, :not_found}
+      other -> other
     end
   end
 

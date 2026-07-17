@@ -7,7 +7,7 @@ defmodule ChatApiWeb.UserController do
 
   plug(
     ChatApiWeb.EnsureRolePlug,
-    :admin when action in [:disable, :enable, :archive, :set_role]
+    :admin when action in [:disable, :enable, :archive, :update_role]
   )
 
   action_fallback(ChatApiWeb.FallbackController)

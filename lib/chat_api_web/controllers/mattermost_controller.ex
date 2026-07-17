@@ -82,11 +82,14 @@ defmodule ChatApiWeb.MattermostController do
 
   @spec delete(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def delete(conn, %{"id" => id}) do
-    with %{account_id: _account_id} <- conn.assigns.current_user,
-         %MattermostAuthorization{} = auth <-
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
+         %MattermostAuthorization{account_id: ^account_id} = auth <-
            Mattermost.get_mattermost_authorization!(id),
          {:ok, %MattermostAuthorization{}} <- Mattermost.delete_mattermost_authorization(auth) do
       send_resp(conn, :no_content, "")
+    else
+      %MattermostAuthorization{} -> {:error, :not_found}
+      other -> other
     end
   end
 

@@ -148,8 +148,8 @@ defmodule ChatApiWeb.GithubController do
 
   @spec delete(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def delete(conn, %{"id" => id}) do
-    with %{account_id: _account_id} <- conn.assigns.current_user,
-         %GithubAuthorization{} = auth <-
+    with account_id when not is_nil(account_id) <- Accounts.get_current_account_id(conn),
+         %GithubAuthorization{account_id: ^account_id} = auth <-
            Github.get_github_authorization!(id),
          {:ok, %GithubAuthorization{}} <- Github.delete_github_authorization(auth) do
       {:ok, _} =
@@ -159,6 +159,9 @@ defmodule ChatApiWeb.GithubController do
         end
 
       send_resp(conn, :no_content, "")
+    else
+      %GithubAuthorization{} -> {:error, :not_found}
+      other -> other
     end
   end
 
